@@ -4,194 +4,248 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Piattaforma Allenamento Estremo</title>
-  <meta name="description" content="Visualizzatore scheda allenamento con aggiornamento pesi e salvataggio locale." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root, [data-theme="light"] {
-      --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
-      --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+    :root {
+      --text-xs:   clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+      --text-sm:   clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
       --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
-      --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
-      --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2rem);
-      --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem; --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem; --space-12: 3rem; --space-16: 4rem;
-      --color-bg: #101312; --color-surface: #171b1a; --color-surface-2: #1d2321; --color-surface-offset: #252d2a; --color-border: #313a36; --color-divider: #2b332f;
-      --color-text: #eef2f0; --color-text-muted: #aeb8b3; --color-text-faint: #75807b; --color-primary: #6ee7b7; --color-primary-hover: #57c899; --color-primary-highlight: rgba(110,231,183,0.14);
-      --color-warning: #f59e0b; --color-success: #22c55e; --color-danger: #ef4444; --radius-sm: 0.5rem; --radius-md: 0.8rem; --radius-lg: 1.1rem; --radius-xl: 1.6rem;
-      --shadow-sm: 0 8px 20px rgba(0,0,0,0.18); --shadow-md: 0 18px 40px rgba(0,0,0,0.24); --font-display: 'Oswald', sans-serif; --font-body: 'Inter', sans-serif;
+      --text-lg:   clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+      --text-xl:   clamp(1.5rem, 1.2rem + 1.25vw, 2rem);
+      --sp1:.25rem;--sp2:.5rem;--sp3:.75rem;--sp4:1rem;--sp5:1.25rem;--sp6:1.5rem;--sp8:2rem;--sp10:2.5rem;--sp12:3rem;--sp16:4rem;
+      --bg:#0d1210;--surf:#151a18;--surf2:#1c2320;--surfoff:#222c28;
+      --border:rgba(255,255,255,0.08);--divider:rgba(255,255,255,0.05);
+      --text:#eef2f0;--muted:#9fb0a8;--faint:#5a6b64;
+      --accent:#6ee7b7;--accent2:#f59e0b;--success:#22c55e;
+      --r-sm:.5rem;--r-md:.8rem;--r-lg:1.1rem;--r-xl:1.6rem;
+      --sh-sm:0 6px 18px rgba(0,0,0,.2);--sh-md:0 16px 36px rgba(0,0,0,.28);
+      --fd:'Oswald',sans-serif;--fb:'Inter',sans-serif;
     }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body { margin: 0; min-height: 100vh; font-family: var(--font-body); font-size: var(--text-base); color: var(--color-text); background: radial-gradient(circle at top right, rgba(110,231,183,0.09), transparent 28%), radial-gradient(circle at bottom left, rgba(245,158,11,0.08), transparent 24%), var(--color-bg); line-height: 1.55; }
-    button, input, select { font: inherit; }
-    .app { width: min(1200px, calc(100% - 2rem)); margin: 0 auto; padding: var(--space-6) 0 var(--space-12); }
-    .hero { display: grid; gap: var(--space-5); padding: var(--space-8); background: linear-gradient(135deg, rgba(110,231,183,0.12), rgba(110,231,183,0.03) 42%, rgba(255,255,255,0.02)); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-xl); box-shadow: var(--shadow-md); margin-bottom: var(--space-8); overflow: hidden; position: relative; }
-    .hero::after { content: ''; position: absolute; inset: auto -60px -60px auto; width: 180px; height: 180px; border-radius: 50%; background: rgba(110,231,183,0.08); filter: blur(14px); }
-    .brand-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
-    .brand { display: flex; align-items: center; gap: var(--space-4); }
-    .logo { width: 56px; height: 56px; border-radius: 18px; display: grid; place-items: center; background: rgba(110,231,183,0.1); border: 1px solid rgba(110,231,183,0.28); color: var(--color-primary); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04); }
-    .brand h1 { margin: 0; font-family: var(--font-display); font-size: var(--text-xl); letter-spacing: 0.04em; text-transform: uppercase; }
-    .hero p { margin: 0; color: var(--color-text-muted); max-width: 65ch; }
-    .pill-row { display: flex; flex-wrap: wrap; gap: var(--space-3); }
-    .pill { display: inline-flex; align-items: center; gap: var(--space-2); padding: 0.65rem 0.9rem; border-radius: 999px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: var(--color-text-muted); font-size: var(--text-sm); }
-    .layout { display: grid; grid-template-columns: 320px 1fr; gap: var(--space-6); }
-    .panel { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); backdrop-filter: blur(10px); }
-    .sidebar { padding: var(--space-5); position: sticky; top: 1rem; align-self: start; }
-    .sidebar h2, .content h2 { margin: 0 0 var(--space-4); font-size: var(--text-lg); }
-    .schedule-list { display: grid; gap: var(--space-3); margin-bottom: var(--space-6); }
-    .day-button { width: 100%; text-align: left; padding: 1rem; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02); color: var(--color-text); cursor: pointer; transition: transform .18s ease, border-color .18s ease, background .18s ease; }
-    .day-button:hover, .day-button.active { transform: translateY(-1px); background: rgba(110,231,183,0.11); border-color: rgba(110,231,183,0.4); }
-    .day-button small { display: block; color: var(--color-text-muted); margin-top: 0.25rem; }
-    .summary { display: grid; gap: var(--space-3); }
-    .summary-card { padding: 1rem; border-radius: var(--radius-md); background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); }
-    .summary-label { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-faint); margin-bottom: 0.35rem; }
-    .summary-value { font-size: var(--text-lg); font-weight: 700; }
-    .content { padding: var(--space-5); display: grid; gap: var(--space-5); }
-    .toolbar { display: flex; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; align-items: center; }
-    .toolbar .meta { color: var(--color-text-muted); font-size: var(--text-sm); }
-    .toolbar-actions { display: flex; gap: var(--space-3); flex-wrap: wrap; }
-    .btn { min-height: 44px; padding: 0.8rem 1rem; border-radius: 999px; border: 1px solid transparent; cursor: pointer; transition: transform .18s ease, background .18s ease, border-color .18s ease; }
-    .btn:hover { transform: translateY(-1px); }
-    .btn-primary { background: var(--color-primary); color: #06261b; font-weight: 700; }
-    .btn-secondary { background: rgba(255,255,255,0.04); color: var(--color-text); border-color: rgba(255,255,255,0.08); }
-    .exercise-list { display: grid; gap: var(--space-4); }
-    .exercise-card { padding: var(--space-5); border-radius: var(--radius-lg); background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.025)); border: 1px solid rgba(255,255,255,0.08); display: grid; gap: var(--space-4); }
-    .exercise-head { display: flex; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; align-items: start; }
-    .exercise-title { margin: 0; font-size: var(--text-lg); }
-    .exercise-subtitle { color: var(--color-text-muted); font-size: var(--text-sm); margin-top: 0.3rem; }
-    .exercise-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
-    .field { display: grid; gap: 0.45rem; }
-    .field label { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-faint); }
-    .field input { width: 100%; min-height: 46px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.14); color: var(--color-text); padding: 0.8rem 0.9rem; outline: none; }
-    .field input:focus { border-color: rgba(110,231,183,0.55); box-shadow: 0 0 0 3px rgba(110,231,183,0.12); }
-    .note { padding: var(--space-4); border-radius: var(--radius-md); background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.18); color: #f7d9a3; font-size: var(--text-sm); }
-    .status { padding: 0.6rem 0.85rem; border-radius: 999px; background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.2); color: #9af0b6; font-size: var(--text-sm); display: inline-flex; align-items: center; gap: 0.5rem; }
-    .empty { padding: var(--space-8); text-align: center; border: 1px dashed rgba(255,255,255,0.15); border-radius: var(--radius-lg); color: var(--color-text-muted); }
-    .footer-note { color: var(--color-text-faint); font-size: var(--text-sm); text-align: center; margin-top: var(--space-8); }
-    @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } .sidebar { position: static; } .exercise-grid { grid-template-columns: 1fr; } }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:var(--fb);font-size:var(--text-base);color:var(--text);background:
+      radial-gradient(circle at 80% 10%, rgba(110,231,183,.08) 0, transparent 30%),
+      radial-gradient(circle at 10% 90%, rgba(245,158,11,.07) 0, transparent 28%),
+      var(--bg);min-height:100dvh;line-height:1.55;}
+    button,input,select{font:inherit;color:inherit;}
+    .app{width:min(1260px,calc(100% - var(--sp8)));margin:0 auto;padding:var(--sp6) 0 var(--sp16);}
+    .header{display:flex;align-items:center;gap:var(--sp5);margin-bottom:var(--sp8);flex-wrap:wrap;}
+    .logo{width:52px;height:52px;flex-shrink:0;border-radius:16px;display:grid;place-items:center;
+      background:rgba(110,231,183,.1);border:1px solid rgba(110,231,183,.28);color:var(--accent);}
+    .header-text h1{font-family:var(--fd);font-size:var(--text-xl);letter-spacing:.04em;text-transform:uppercase;line-height:1.1;}
+    .header-text p{color:var(--muted);font-size:var(--text-sm);margin-top:.35rem;}
+    .header-badge{margin-left:auto;display:inline-flex;align-items:center;gap:.5rem;
+      padding:.55rem .9rem;border-radius:999px;
+      background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#9af0b6;font-size:var(--text-sm);}
+    .layout{display:grid;grid-template-columns:380px 1fr;gap:var(--sp6);align-items:start;}
+    .panel{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--sh-sm);overflow:hidden;}
+    .selector{padding:var(--sp5);}
+    .selector h2{font-size:var(--text-lg);margin-bottom:var(--sp4);}
+    .filters{display:grid;gap:var(--sp3);margin-bottom:var(--sp5);}
+    .filter-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp3);}
+    .field{display:grid;gap:.4rem;}
+    .field label{font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.08em;color:var(--faint);}
+    .field input,.field select{width:100%;min-height:44px;padding:.7rem .85rem;border-radius:var(--r-md);border:1px solid var(--border);background:rgba(0,0,0,.18);color:var(--text);outline:none;transition:border-color .18s,box-shadow .18s;}
+    .field input:focus,.field select:focus{border-color:rgba(110,231,183,.5);box-shadow:0 0 0 3px rgba(110,231,183,.1);}
+    .field select option{background:var(--surf2);}
+    .scheda-list{display:grid;gap:var(--sp2);max-height:420px;overflow-y:auto;padding-right:2px;}
+    .scheda-list::-webkit-scrollbar{width:4px;}
+    .scheda-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:2px;}
+    .scheda-item{padding:var(--sp4);border-radius:var(--r-md);border:1px solid var(--border);background:rgba(255,255,255,.02);cursor:pointer;transition:background .18s,border-color .18s,transform .18s;text-align:left;width:100%;}
+    .scheda-item:hover{background:rgba(110,231,183,.08);border-color:rgba(110,231,183,.25);transform:translateY(-1px);}
+    .scheda-item.selected{background:rgba(110,231,183,.13);border-color:rgba(110,231,183,.45);}
+    .scheda-item .si-name{font-weight:600;font-size:var(--text-sm);}
+    .scheda-item .si-meta{color:var(--muted);font-size:var(--text-xs);margin-top:.3rem;}
+    .no-results{padding:var(--sp6);text-align:center;color:var(--muted);font-size:var(--text-sm);}
+    .viewer{padding:var(--sp5);display:grid;gap:var(--sp5);}
+    .viewer-title{font-family:var(--fd);font-size:var(--text-xl);letter-spacing:.03em;}
+    .viewer-sub{color:var(--muted);font-size:var(--text-sm);margin-top:.4rem;}
+    .day-tabs{display:flex;gap:var(--sp2);flex-wrap:wrap;border-bottom:1px solid var(--divider);padding-bottom:var(--sp4);}
+    .day-tab{min-height:44px;padding:.6rem 1.2rem;border-radius:var(--r-md);border:1px solid var(--border);background:rgba(255,255,255,.02);color:var(--muted);cursor:pointer;font-size:var(--text-sm);font-weight:500;transition:all .18s;}
+    .day-tab:hover{background:rgba(110,231,183,.08);color:var(--text);border-color:rgba(110,231,183,.25);}
+    .day-tab.active{background:rgba(110,231,183,.16);color:var(--accent);border-color:rgba(110,231,183,.5);font-weight:700;}
+    .toolbar{display:flex;justify-content:space-between;align-items:center;gap:var(--sp4);flex-wrap:wrap;}
+    .toolbar-info{color:var(--muted);font-size:var(--text-sm);}
+    .toolbar-actions{display:flex;gap:var(--sp3);}
+    .btn{min-height:44px;padding:.75rem 1.1rem;border-radius:999px;border:1px solid transparent;cursor:pointer;font-size:var(--text-sm);font-weight:600;transition:transform .18s,background .18s,border-color .18s;}
+    .btn:hover{transform:translateY(-1px);}
+    .btn-primary{background:var(--accent);color:#06261b;}
+    .btn-secondary{background:rgba(255,255,255,.05);border-color:var(--border);}
+    .exercise-list{display:grid;gap:var(--sp4);}
+    .ex-card{padding:var(--sp5);border-radius:var(--r-lg);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.025));border:1px solid var(--border);display:grid;gap:var(--sp4);}
+    .ex-head{display:flex;justify-content:space-between;align-items:start;gap:var(--sp4);flex-wrap:wrap;}
+    .ex-title{font-size:var(--text-lg);font-weight:600;}
+    .ex-sub{color:var(--muted);font-size:var(--text-sm);margin-top:.25rem;}
+    .ex-chip{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .8rem;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);font-size:var(--text-xs);}
+    .ex-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sp4);}
+    .ex-note{padding:var(--sp3) var(--sp4);border-radius:var(--r-md);background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.18);color:#f7d9a3;font-size:var(--text-sm);}
+    .field input{width:100%;min-height:46px;border-radius:14px;border:1px solid var(--border);background:rgba(0,0,0,.14);color:var(--text);padding:.8rem .9rem;outline:none;}
+    .field input:focus{border-color:rgba(110,231,183,.55);box-shadow:0 0 0 3px rgba(110,231,183,.12);}
+    .empty-state{padding:var(--sp10);text-align:center;color:var(--muted);}
+    .empty-state svg{margin:0 auto var(--sp4);color:var(--faint);}
+    .empty-state h3{margin-bottom:var(--sp2);}
+    .footer-note{color:var(--faint);font-size:var(--text-xs);text-align:center;margin-top:var(--sp10);}
+    code{background:rgba(255,255,255,.07);padding:.15em .4em;border-radius:4px;font-size:.9em;}
+    @media(max-width:960px){.layout{grid-template-columns:1fr;}.ex-fields{grid-template-columns:1fr;}}
   </style>
 </head>
 <body>
-  <main class="app">
-    <section class="hero">
-      <div class="brand-row">
-        <div class="brand">
-          <div class="logo" aria-hidden="true">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-label="Logo allenamento"><path d="M4 14l3-8 5 12 3-8 5 4" /></svg>
+<main class="app">
+  <header class="header">
+    <div class="logo" aria-hidden="true">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14l3-8 5 12 3-8 5 4"/></svg>
+    </div>
+    <div class="header-text">
+      <h1>Piattaforma Allenamento Estremo</h1>
+      <p>Seleziona una scheda, scegli il giorno e aggiorna i tuoi pesi.</p>
+    </div>
+    <div id="saveState" class="header-badge">● Locale attivo</div>
+  </header>
+  <div class="layout">
+    <aside class="panel selector">
+      <h2>Seleziona scheda</h2>
+      <div class="filters">
+        <div class="field"><label>Cerca per nome</label><input type="text" id="filterNome" placeholder="Es. ForzeBase, Ipertrofia…" /></div>
+        <div class="filter-row">
+          <div class="field"><label>Mese</label>
+            <select id="filterMese">
+              <option value="">Tutti</option>
+              <option value="01">Gennaio</option><option value="02">Febbraio</option>
+              <option value="03">Marzo</option><option value="04">Aprile</option>
+              <option value="05">Maggio</option><option value="06">Giugno</option>
+              <option value="07">Luglio</option><option value="08">Agosto</option>
+              <option value="09">Settembre</option><option value="10">Ottobre</option>
+              <option value="11">Novembre</option><option value="12">Dicembre</option>
+            </select>
           </div>
-          <div>
-            <h1>Piattaforma Allenamento Estremo</h1>
-            <p>Visualizzatore della tua scheda con storico giornaliero dei pesi, aggiornabile direttamente dal browser.</p>
-          </div>
+          <div class="field"><label>Anno</label><select id="filterAnno"><option value="">Tutti</option></select></div>
         </div>
-        <div id="saveState" class="status">● Dati locali attivi</div>
       </div>
-      <div class="pill-row">
-        <div class="pill">Scheda caricata da file nel repository</div>
-        <div class="pill">Salvataggio automatico in localStorage</div>
-        <div class="pill">Storico per giorno ed esercizio</div>
+      <div id="schedaList" class="scheda-list"></div>
+    </aside>
+    <section class="panel viewer" id="viewer">
+      <div class="empty-state" id="emptyState">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg>
+        <h3>Nessuna scheda selezionata</h3>
+        <p>Scegli una scheda dalla lista per visualizzarne gli esercizi.</p>
       </div>
-    </section>
-    <section class="layout">
-      <aside class="panel sidebar">
-        <h2>Giorni della scheda</h2>
-        <div id="scheduleList" class="schedule-list"></div>
-        <h2>Riepilogo rapido</h2>
-        <div class="summary">
-          <div class="summary-card"><div class="summary-label">Totale giorni</div><div class="summary-value" id="totalDays">-</div></div>
-          <div class="summary-card"><div class="summary-label">Esercizi del giorno</div><div class="summary-value" id="dayExercises">-</div></div>
-          <div class="summary-card"><div class="summary-label">Ultimo salvataggio</div><div class="summary-value" id="lastSaved">Mai</div></div>
+      <div id="schedaView" style="display:none;contents">
+        <div>
+          <div class="viewer-title" id="viewTitle"></div>
+          <div class="viewer-sub" id="viewSub"></div>
         </div>
-      </aside>
-      <section class="panel content">
+        <div class="day-tabs" id="dayTabs"></div>
         <div class="toolbar">
-          <div>
-            <h2 id="dayTitle">Caricamento scheda...</h2>
-            <div class="meta" id="dayMeta">Attendi il caricamento del file di configurazione.</div>
-          </div>
+          <div class="toolbar-info" id="toolbarInfo"></div>
           <div class="toolbar-actions">
-            <button class="btn btn-secondary" id="resetDayBtn" type="button">Reset giorno</button>
-            <button class="btn btn-primary" id="exportBtn" type="button">Esporta dati</button>
+            <button class="btn btn-secondary" id="resetBtn">Reset giorno</button>
+            <button class="btn btn-primary" id="exportBtn">Esporta</button>
           </div>
         </div>
-        <div class="note">Modifica i campi di peso, ripetizioni effettive e note personali. Ogni cambiamento viene salvato automaticamente nel browser per il giorno selezionato.</div>
         <div id="exerciseList" class="exercise-list"></div>
-      </section>
+      </div>
     </section>
-    <p class="footer-note">La scheda base arriva da <code>scheda.json</code>; i tuoi aggiornamenti restano locali nel browser.</p>
-  </main>
-  <script>
-    const STORAGE_KEY = 'piattaforma-allenamento-estremo-v1';
-    const state = { schedule: null, selectedDayId: null, progress: loadProgress(), lastSaved: null };
-    const els = { scheduleList: document.getElementById('scheduleList'), totalDays: document.getElementById('totalDays'), dayExercises: document.getElementById('dayExercises'), lastSaved: document.getElementById('lastSaved'), dayTitle: document.getElementById('dayTitle'), dayMeta: document.getElementById('dayMeta'), exerciseList: document.getElementById('exerciseList'), resetDayBtn: document.getElementById('resetDayBtn'), exportBtn: document.getElementById('exportBtn'), saveState: document.getElementById('saveState') };
-    async function init() {
-      try {
-        const response = await fetch('./scheda.json');
-        if (!response.ok) throw new Error('Impossibile leggere scheda.json');
-        const data = await response.json();
-        state.schedule = data.scheda;
-        state.selectedDayId = state.schedule.giorni[0]?.id || null;
-        renderSidebar(); renderDay(); bindActions();
-      } catch (error) {
-        els.dayTitle.textContent = 'Errore caricamento scheda';
-        els.dayMeta.textContent = error.message;
-        els.exerciseList.innerHTML = '<div class="empty">Controlla che <code>scheda.json</code> sia presente nel repository.</div>';
-      }
-    }
-    function bindActions() { els.resetDayBtn.addEventListener('click', resetCurrentDay); els.exportBtn.addEventListener('click', exportProgress); }
-    function renderSidebar() {
-      const giorni = state.schedule?.giorni || [];
-      els.totalDays.textContent = giorni.length;
-      els.scheduleList.innerHTML = giorni.map(giorno => { const esercizi = giorno.esercizi.length; const isActive = giorno.id === state.selectedDayId; return `<button class="day-button ${isActive ? 'active' : ''}" data-day-id="${giorno.id}" type="button"><strong>${giorno.nome}</strong><small>${esercizi} esercizi</small></button>`; }).join('');
-      els.scheduleList.querySelectorAll('[data-day-id]').forEach(btn => btn.addEventListener('click', () => { state.selectedDayId = btn.dataset.dayId; renderSidebar(); renderDay(); }));
-    }
-    function renderDay() {
-      const day = state.schedule?.giorni.find(g => g.id === state.selectedDayId);
-      if (!day) { els.exerciseList.innerHTML = '<div class="empty">Nessun giorno disponibile.</div>'; return; }
-      els.dayTitle.textContent = day.nome;
-      els.dayMeta.textContent = `${day.esercizi.length} esercizi • Scheda: ${state.schedule.nome} • Versione ${state.schedule.versione}`;
-      els.dayExercises.textContent = day.esercizi.length;
-      updateLastSavedLabel();
-      const dayProgress = state.progress[day.id] || {};
-      els.exerciseList.innerHTML = day.esercizi.map(ex => { const saved = dayProgress[ex.id] || {}; return `<article class="exercise-card"><div class="exercise-head"><div><h3 class="exercise-title">${ex.nome}</h3><div class="exercise-subtitle">${ex.serie} serie • ${ex.reps} reps target</div></div><div class="pill">${ex.id}</div></div><div class="exercise-grid"><div class="field"><label for="peso-${day.id}-${ex.id}">Peso (kg)</label><input id="peso-${day.id}-${ex.id}" type="number" min="0" step="0.5" value="${saved.peso ?? ''}" data-day="${day.id}" data-exercise="${ex.id}" data-field="peso" placeholder="Es. 80" /></div><div class="field"><label for="reps-${day.id}-${ex.id}">Reps effettive</label><input id="reps-${day.id}-${ex.id}" type="text" value="${saved.repsFatte ?? ''}" data-day="${day.id}" data-exercise="${ex.id}" data-field="repsFatte" placeholder="Es. 8 / 8 / 7 / 6" /></div><div class="field"><label for="note-${day.id}-${ex.id}">Note personali</label><input id="note-${day.id}-${ex.id}" type="text" value="${saved.note ?? ''}" data-day="${day.id}" data-exercise="${ex.id}" data-field="note" placeholder="Cedimento, tecnica, sensazioni" /></div></div><div class="note"><strong>Indicazioni:</strong> ${ex.note}</div></article>`; }).join('');
-      els.exerciseList.querySelectorAll('input[data-field]').forEach(input => input.addEventListener('input', handleInputChange));
-    }
-    function handleInputChange(event) {
-      const { day, exercise, field } = event.target.dataset;
-      if (!state.progress[day]) state.progress[day] = {};
-      if (!state.progress[day][exercise]) state.progress[day][exercise] = {};
-      state.progress[day][exercise][field] = event.target.value;
-      saveProgress();
-    }
-    function saveProgress() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.progress));
-      state.lastSaved = new Date().toISOString();
-      updateLastSavedLabel();
-      els.saveState.innerHTML = '● Salvato in locale';
-      window.clearTimeout(saveProgress._timer);
-      saveProgress._timer = window.setTimeout(() => { els.saveState.innerHTML = '● Dati locali attivi'; }, 1600);
-    }
-    function loadProgress() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; } }
-    function updateLastSavedLabel() {
-      const storedLabel = state.lastSaved || localStorage.getItem(STORAGE_KEY + '-lastSaved');
-      if (state.lastSaved) localStorage.setItem(STORAGE_KEY + '-lastSaved', state.lastSaved);
-      const source = state.lastSaved || storedLabel;
-      if (!source) { els.lastSaved.textContent = 'Mai'; return; }
-      const date = new Date(source);
-      els.lastSaved.textContent = new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date);
-    }
-    function resetCurrentDay() {
-      if (!state.selectedDayId) return;
-      if (!confirm('Vuoi cancellare i dati salvati per questo giorno?')) return;
-      delete state.progress[state.selectedDayId]; saveProgress(); renderDay();
-    }
-    function exportProgress() {
-      const payload = { exportedAt: new Date().toISOString(), schedule: state.schedule?.nome || null, progress: state.progress };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'allenamento-estremo-dati.json'; a.click(); URL.revokeObjectURL(url);
-    }
-    init();
-  </script>
+  </div>
+  <p class="footer-note">Schede in <code>schede/NOME_NUMERO_mese-anno.json</code> — progressi salvati in <code>localStorage</code>.</p>
+</main>
+<script>
+const STORAGE_KEY='pae-v2';
+const MESI=['','Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const EMBEDDED_CATALOG=[
+  {file:'schede/ForzeBase_01_01-2026.json',nome:'ForzeBase',numero:'01',mese:'01',anno:'2026'},
+  {file:'schede/ForzeBase_02_02-2026.json',nome:'ForzeBase',numero:'02',mese:'02',anno:'2026'},
+  {file:'schede/IpertrofiaIntensa_01_03-2026.json',nome:'IpertrofiaIntensa',numero:'01',mese:'03',anno:'2026'},
+  {file:'schede/IpertrofiaIntensa_02_04-2026.json',nome:'IpertrofiaIntensa',numero:'02',mese:'04',anno:'2026'},
+];
+const state={catalog:[],filtered:[],selected:null,schedaData:null,activeDay:null,progress:loadProgress()};
+const $=id=>document.getElementById(id);
+const els={filterNome:$('filterNome'),filterMese:$('filterMese'),filterAnno:$('filterAnno'),schedaList:$('schedaList'),emptyState:$('emptyState'),schedaView:$('schedaView'),viewTitle:$('viewTitle'),viewSub:$('viewSub'),dayTabs:$('dayTabs'),toolbarInfo:$('toolbarInfo'),resetBtn:$('resetBtn'),exportBtn:$('exportBtn'),exerciseList:$('exerciseList'),saveState:$('saveState')};
+async function init(){
+  try{const r=await fetch('schede/catalog.json');if(!r.ok)throw new Error();state.catalog=await r.json();}
+  catch{state.catalog=EMBEDDED_CATALOG;}
+  populateAnni();state.filtered=[...state.catalog];renderList();
+  els.filterNome.addEventListener('input',applyFilters);
+  els.filterMese.addEventListener('change',applyFilters);
+  els.filterAnno.addEventListener('change',applyFilters);
+  els.resetBtn.addEventListener('click',resetDay);
+  els.exportBtn.addEventListener('click',exportData);
+}
+function populateAnni(){
+  const anni=[...new Set(state.catalog.map(s=>s.anno))].sort();
+  anni.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;els.filterAnno.appendChild(o);});
+}
+function applyFilters(){
+  const n=els.filterNome.value.trim().toLowerCase(),m=els.filterMese.value,a=els.filterAnno.value;
+  state.filtered=state.catalog.filter(s=>{
+    if(n&&!s.nome.toLowerCase().includes(n)&&!s.numero.includes(n))return false;
+    if(m&&s.mese!==m)return false;
+    if(a&&s.anno!==a)return false;
+    return true;
+  });renderList();
+}
+function renderList(){
+  if(!state.filtered.length){els.schedaList.innerHTML='<div class="no-results">Nessuna scheda trovata.</div>';return;}
+  els.schedaList.innerHTML=state.filtered.map(s=>{
+    const mn=MESI[parseInt(s.mese,10)]||s.mese;const sel=state.selected?.file===s.file;
+    return `<button class="scheda-item ${sel?'selected':''}" data-file="${s.file}" type="button"><div class="si-name">${s.nome} <span style="color:var(--accent);opacity:.8">#${s.numero}</span></div><div class="si-meta">${mn} ${s.anno} &middot; ${s.file.split('/').pop()}</div></button>`;
+  }).join('');
+  els.schedaList.querySelectorAll('[data-file]').forEach(b=>b.addEventListener('click',()=>selectScheda(b.dataset.file)));
+}
+async function selectScheda(file){
+  state.selected=state.catalog.find(s=>s.file===file);renderList();
+  try{
+    const r=await fetch(file);if(!r.ok)throw new Error(`Impossibile caricare ${file}`);
+    const json=await r.json();state.schedaData=json.scheda;
+    state.activeDay=state.schedaData.giorni[0]?.id||null;renderViewer();
+  }catch(err){
+    els.emptyState.innerHTML=`<h3>Errore</h3><p>${err.message}</p>`;
+    els.emptyState.style.display='block';els.schedaView.style.display='none';
+  }
+}
+function renderViewer(){
+  const s=state.schedaData;if(!s)return;
+  els.emptyState.style.display='none';els.schedaView.style.display='contents';
+  const mn=MESI[parseInt(state.selected.mese,10)]||state.selected.mese;
+  els.viewTitle.textContent=`${s.nome} — Scheda #${s.numero}`;
+  els.viewSub.textContent=`${mn} ${state.selected.anno} · ${s.giorni.length} giorni · Versione ${s.versione}`;
+  els.dayTabs.innerHTML=s.giorni.map(g=>`<button class="day-tab ${g.id===state.activeDay?'active':''}" data-day="${g.id}" type="button">${g.nome}</button>`).join('');
+  els.dayTabs.querySelectorAll('[data-day]').forEach(b=>b.addEventListener('click',()=>{state.activeDay=b.dataset.day;renderViewer();}));
+  renderDay();
+}
+function renderDay(){
+  const s=state.schedaData;const day=s.giorni.find(g=>g.id===state.activeDay);if(!day)return;
+  const pkey=`${state.selected.file}::${day.id}`;const dp=state.progress[pkey]||{};
+  els.toolbarInfo.textContent=`${day.esercizi.length} esercizi · ${day.nome}`;
+  els.exerciseList.innerHTML=day.esercizi.map(ex=>{
+    const sv=dp[ex.id]||{};
+    return `<article class="ex-card"><div class="ex-head"><div><div class="ex-title">${ex.nome}</div><div class="ex-sub">${ex.serie} serie · ${ex.reps} reps target</div></div><div class="ex-chip">${ex.id}</div></div><div class="ex-fields"><div class="field"><label for="p-${day.id}-${ex.id}">Peso (kg)</label><input id="p-${day.id}-${ex.id}" type="number" min="0" step="0.5" value="${sv.peso??''}" placeholder="Es. 80" data-day="${day.id}" data-ex="${ex.id}" data-f="peso"/></div><div class="field"><label for="r-${day.id}-${ex.id}">Reps effettive</label><input id="r-${day.id}-${ex.id}" type="text" value="${sv.repsFatte??''}" placeholder="Es. 8/8/7/6" data-day="${day.id}" data-ex="${ex.id}" data-f="repsFatte"/></div><div class="field"><label for="n-${day.id}-${ex.id}">Note personali</label><input id="n-${day.id}-${ex.id}" type="text" value="${sv.note??''}" placeholder="Tecnica, cedimento…" data-day="${day.id}" data-ex="${ex.id}" data-f="note"/></div></div><div class="ex-note"><strong>Indicazioni:</strong> ${ex.note}</div></article>`;
+  }).join('');
+  els.exerciseList.querySelectorAll('input[data-f]').forEach(inp=>inp.addEventListener('input',e=>{
+    const{day,ex,f}=e.target.dataset;const key=`${state.selected.file}::${day}`;
+    if(!state.progress[key])state.progress[key]={};
+    if(!state.progress[key][ex])state.progress[key][ex]={};
+    state.progress[key][ex][f]=e.target.value;save();
+  }));
+}
+function save(){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(state.progress));
+  els.saveState.textContent='● Salvato';clearTimeout(save._t);
+  save._t=setTimeout(()=>{els.saveState.textContent='● Locale attivo';},1600);
+}
+function loadProgress(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');}catch{return{};}}
+function resetDay(){
+  if(!state.selected||!state.activeDay)return;
+  if(!confirm('Cancellare i dati per questo giorno?'))return;
+  const key=`${state.selected.file}::${state.activeDay}`;
+  delete state.progress[key];save();renderDay();
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify({exportedAt:new Date().toISOString(),progress:state.progress},null,2)],{type:'application/json'});
+  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:'allenamento-dati.json'});a.click();URL.revokeObjectURL(a.href);
+}
+init();
+</script>
 </body>
 </html>
