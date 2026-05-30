@@ -1,94 +1,216 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Piattaforma Allenamento Estremo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --text-xs:   clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
-      --text-sm:   clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
-      --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
-      --text-lg:   clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
-      --text-xl:   clamp(1.5rem, 1.2rem + 1.25vw, 2rem);
+    :root{
+      --text-xs:clamp(.75rem,.7rem + .25vw,.875rem);
+      --text-sm:clamp(.875rem,.8rem + .35vw,1rem);
+      --text-base:clamp(1rem,.95rem + .25vw,1.125rem);
+      --text-lg:clamp(1.125rem,1rem + .75vw,1.5rem);
+      --text-xl:clamp(1.5rem,1.2rem + 1.25vw,2rem);
       --sp1:.25rem;--sp2:.5rem;--sp3:.75rem;--sp4:1rem;--sp5:1.25rem;--sp6:1.5rem;--sp8:2rem;--sp10:2.5rem;--sp12:3rem;--sp16:4rem;
-      --bg:#0d1210;--surf:#151a18;--surf2:#1c2320;--surfoff:#222c28;
-      --border:rgba(255,255,255,0.08);--divider:rgba(255,255,255,0.05);
+      --bg:#0d1210;--surf:#151a18;--surf2:#1c2320;--surfoff:#222c28;--surfoff2:#2a3530;
+      --border:rgba(255,255,255,.08);--divider:rgba(255,255,255,.05);
       --text:#eef2f0;--muted:#9fb0a8;--faint:#5a6b64;
-      --accent:#6ee7b7;--accent2:#f59e0b;--success:#22c55e;
+      --accent:#6ee7b7;--accent2:#f59e0b;--success:#22c55e;--danger:#f87171;
       --r-sm:.5rem;--r-md:.8rem;--r-lg:1.1rem;--r-xl:1.6rem;
-      --sh-sm:0 6px 18px rgba(0,0,0,.2);--sh-md:0 16px 36px rgba(0,0,0,.28);
+      --sh-sm:0 6px 18px rgba(0,0,0,.2);--sh-md:0 16px 36px rgba(0,0,0,.3);--sh-lg:0 24px 60px rgba(0,0,0,.45);
       --fd:'Oswald',sans-serif;--fb:'Inter',sans-serif;
     }
     *{box-sizing:border-box;margin:0;padding:0;}
     html{scroll-behavior:smooth;}
-    body{font-family:var(--fb);font-size:var(--text-base);color:var(--text);background:
-      radial-gradient(circle at 80% 10%, rgba(110,231,183,.08) 0, transparent 30%),
-      radial-gradient(circle at 10% 90%, rgba(245,158,11,.07) 0, transparent 28%),
-      var(--bg);min-height:100dvh;line-height:1.55;}
+    body{font-family:var(--fb);font-size:var(--text-base);color:var(--text);
+      background:radial-gradient(circle at 80% 10%,rgba(110,231,183,.08) 0,transparent 30%),
+      radial-gradient(circle at 10% 90%,rgba(245,158,11,.07) 0,transparent 28%),var(--bg);
+      min-height:100dvh;line-height:1.55;}
     button,input,select{font:inherit;color:inherit;}
-    .app{width:min(1260px,calc(100% - var(--sp8)));margin:0 auto;padding:var(--sp6) 0 var(--sp16);}
+    button{cursor:pointer;background:none;border:none;}
+
+    /* ── LAYOUT ─────────────────────────────────────────── */
+    .app{width:min(1320px,calc(100% - var(--sp8)));margin:0 auto;padding:var(--sp6) 0 var(--sp16);}
     .header{display:flex;align-items:center;gap:var(--sp5);margin-bottom:var(--sp8);flex-wrap:wrap;}
     .logo{width:52px;height:52px;flex-shrink:0;border-radius:16px;display:grid;place-items:center;
       background:rgba(110,231,183,.1);border:1px solid rgba(110,231,183,.28);color:var(--accent);}
     .header-text h1{font-family:var(--fd);font-size:var(--text-xl);letter-spacing:.04em;text-transform:uppercase;line-height:1.1;}
     .header-text p{color:var(--muted);font-size:var(--text-sm);margin-top:.35rem;}
-    .header-badge{margin-left:auto;display:inline-flex;align-items:center;gap:.5rem;
-      padding:.55rem .9rem;border-radius:999px;
-      background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#9af0b6;font-size:var(--text-sm);}
-    .layout{display:grid;grid-template-columns:380px 1fr;gap:var(--sp6);align-items:start;}
+    .header-badge{margin-left:auto;display:inline-flex;align-items:center;gap:.5rem;padding:.55rem .9rem;
+      border-radius:999px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#9af0b6;font-size:var(--text-sm);}
+    .layout{display:grid;grid-template-columns:340px 1fr;gap:var(--sp6);align-items:start;}
     .panel{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--sh-sm);overflow:hidden;}
+
+    /* ── SIDEBAR ────────────────────────────────────────── */
     .selector{padding:var(--sp5);}
-    .selector h2{font-size:var(--text-lg);margin-bottom:var(--sp4);}
-    .filters{display:grid;gap:var(--sp3);margin-bottom:var(--sp5);}
+    .selector h2{font-size:var(--text-base);font-weight:700;margin-bottom:var(--sp4);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+    .filters{display:grid;gap:var(--sp3);margin-bottom:var(--sp4);}
     .filter-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp3);}
-    .field{display:grid;gap:.4rem;}
+    .field{display:grid;gap:.35rem;}
     .field label{font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.08em;color:var(--faint);}
-    .field input,.field select{width:100%;min-height:44px;padding:.7rem .85rem;border-radius:var(--r-md);border:1px solid var(--border);background:rgba(0,0,0,.18);color:var(--text);outline:none;transition:border-color .18s,box-shadow .18s;}
+    .field input,.field select{width:100%;min-height:42px;padding:.65rem .85rem;border-radius:var(--r-md);
+      border:1px solid var(--border);background:rgba(0,0,0,.18);color:var(--text);outline:none;
+      transition:border-color .18s,box-shadow .18s;}
     .field input:focus,.field select:focus{border-color:rgba(110,231,183,.5);box-shadow:0 0 0 3px rgba(110,231,183,.1);}
     .field select option{background:var(--surf2);}
-    .scheda-list{display:grid;gap:var(--sp2);max-height:420px;overflow-y:auto;padding-right:2px;}
+    .scheda-list{display:grid;gap:var(--sp2);max-height:360px;overflow-y:auto;padding-right:2px;}
     .scheda-list::-webkit-scrollbar{width:4px;}
     .scheda-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:2px;}
-    .scheda-item{padding:var(--sp4);border-radius:var(--r-md);border:1px solid var(--border);background:rgba(255,255,255,.02);cursor:pointer;transition:background .18s,border-color .18s,transform .18s;text-align:left;width:100%;}
+    .scheda-item{padding:var(--sp3) var(--sp4);border-radius:var(--r-md);border:1px solid var(--border);
+      background:rgba(255,255,255,.02);cursor:pointer;transition:background .18s,border-color .18s,transform .18s;text-align:left;width:100%;}
     .scheda-item:hover{background:rgba(110,231,183,.08);border-color:rgba(110,231,183,.25);transform:translateY(-1px);}
     .scheda-item.selected{background:rgba(110,231,183,.13);border-color:rgba(110,231,183,.45);}
-    .scheda-item .si-name{font-weight:600;font-size:var(--text-sm);}
-    .scheda-item .si-meta{color:var(--muted);font-size:var(--text-xs);margin-top:.3rem;}
+    .si-name{font-weight:600;font-size:var(--text-sm);}
+    .si-meta{color:var(--muted);font-size:var(--text-xs);margin-top:.2rem;}
     .no-results{padding:var(--sp6);text-align:center;color:var(--muted);font-size:var(--text-sm);}
-    .viewer{padding:var(--sp5);display:grid;gap:var(--sp5);}
+
+    /* ── VIEWER ─────────────────────────────────────────── */
+    .viewer{padding:var(--sp5);display:grid;gap:var(--sp4);}
     .viewer-title{font-family:var(--fd);font-size:var(--text-xl);letter-spacing:.03em;}
-    .viewer-sub{color:var(--muted);font-size:var(--text-sm);margin-top:.4rem;}
+    .viewer-sub{color:var(--muted);font-size:var(--text-sm);}
     .day-tabs{display:flex;gap:var(--sp2);flex-wrap:wrap;border-bottom:1px solid var(--divider);padding-bottom:var(--sp4);}
-    .day-tab{min-height:44px;padding:.6rem 1.2rem;border-radius:var(--r-md);border:1px solid var(--border);background:rgba(255,255,255,.02);color:var(--muted);cursor:pointer;font-size:var(--text-sm);font-weight:500;transition:all .18s;}
+    .day-tab{min-height:40px;padding:.5rem 1.1rem;border-radius:var(--r-md);border:1px solid var(--border);
+      background:rgba(255,255,255,.02);color:var(--muted);font-size:var(--text-sm);font-weight:500;transition:all .18s;}
     .day-tab:hover{background:rgba(110,231,183,.08);color:var(--text);border-color:rgba(110,231,183,.25);}
     .day-tab.active{background:rgba(110,231,183,.16);color:var(--accent);border-color:rgba(110,231,183,.5);font-weight:700;}
     .toolbar{display:flex;justify-content:space-between;align-items:center;gap:var(--sp4);flex-wrap:wrap;}
     .toolbar-info{color:var(--muted);font-size:var(--text-sm);}
     .toolbar-actions{display:flex;gap:var(--sp3);}
-    .btn{min-height:44px;padding:.75rem 1.1rem;border-radius:999px;border:1px solid transparent;cursor:pointer;font-size:var(--text-sm);font-weight:600;transition:transform .18s,background .18s,border-color .18s;}
+    .btn{min-height:40px;padding:.65rem 1rem;border-radius:999px;border:1px solid transparent;
+      font-size:var(--text-sm);font-weight:600;transition:transform .15s,background .15s,opacity .15s;}
     .btn:hover{transform:translateY(-1px);}
     .btn-primary{background:var(--accent);color:#06261b;}
-    .btn-secondary{background:rgba(255,255,255,.05);border-color:var(--border);}
-    .exercise-list{display:grid;gap:var(--sp4);}
-    .ex-card{padding:var(--sp5);border-radius:var(--r-lg);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.025));border:1px solid var(--border);display:grid;gap:var(--sp4);}
-    .ex-head{display:flex;justify-content:space-between;align-items:start;gap:var(--sp4);flex-wrap:wrap;}
-    .ex-title{font-size:var(--text-lg);font-weight:600;}
-    .ex-sub{color:var(--muted);font-size:var(--text-sm);margin-top:.25rem;}
-    .ex-chip{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .8rem;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);font-size:var(--text-xs);}
-    .ex-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sp4);}
-    .ex-note{padding:var(--sp3) var(--sp4);border-radius:var(--r-md);background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.18);color:#f7d9a3;font-size:var(--text-sm);}
-    .field input{width:100%;min-height:46px;border-radius:14px;border:1px solid var(--border);background:rgba(0,0,0,.14);color:var(--text);padding:.8rem .9rem;outline:none;}
-    .field input:focus{border-color:rgba(110,231,183,.55);box-shadow:0 0 0 3px rgba(110,231,183,.12);}
+    .btn-danger{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.28);color:var(--danger);}
+    .btn-ghost{background:rgba(255,255,255,.04);border-color:var(--border);color:var(--muted);}
     .empty-state{padding:var(--sp10);text-align:center;color:var(--muted);}
     .empty-state svg{margin:0 auto var(--sp4);color:var(--faint);}
     .empty-state h3{margin-bottom:var(--sp2);}
+
+    /* ── EXERCISE CARD (compact) ────────────────────────── */
+    .exercise-list{display:grid;gap:var(--sp3);}
+    .ex-card{border-radius:var(--r-lg);background:rgba(255,255,255,.03);border:1px solid var(--border);overflow:hidden;transition:border-color .18s;}
+    .ex-card:hover{border-color:rgba(110,231,183,.18);}
+    .ex-main{display:grid;grid-template-columns:1fr auto;align-items:center;gap:var(--sp4);padding:var(--sp4) var(--sp5);}
+    .ex-info{}
+    .ex-title{font-size:var(--text-base);font-weight:600;line-height:1.25;}
+    .ex-meta{display:flex;flex-wrap:wrap;gap:var(--sp3);margin-top:.35rem;align-items:center;}
+    .ex-badge{display:inline-flex;align-items:center;padding:.25rem .6rem;border-radius:999px;
+      font-size:var(--text-xs);font-weight:600;letter-spacing:.03em;}
+    .badge-serie{background:rgba(110,231,183,.12);color:var(--accent);border:1px solid rgba(110,231,183,.22);}
+    .badge-reps{background:rgba(245,158,11,.1);color:#fcd34d;border:1px solid rgba(245,158,11,.2);}
+    .badge-rest{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--border);}
+    .ex-actions{display:flex;gap:var(--sp2);align-items:center;flex-shrink:0;}
+    .icon-btn{width:36px;height:36px;border-radius:var(--r-md);display:grid;place-items:center;
+      border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);
+      transition:background .15s,color .15s,border-color .15s;}
+    .icon-btn:hover{background:rgba(110,231,183,.12);color:var(--accent);border-color:rgba(110,231,183,.3);}
+    .icon-btn.active{background:rgba(110,231,183,.18);color:var(--accent);border-color:rgba(110,231,183,.45);}
+
+    /* Serie tracker row */
+    .serie-row{display:flex;align-items:center;gap:var(--sp3);padding:0 var(--sp5) var(--sp4);}
+    .serie-label{font-size:var(--text-xs);color:var(--faint);min-width:48px;}
+    .serie-dots{display:flex;gap:var(--sp2);flex-wrap:wrap;}
+    .serie-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:rgba(255,255,255,.04);
+      cursor:pointer;transition:background .15s,border-color .15s,transform .12s;position:relative;}
+    .serie-dot:hover{transform:scale(1.12);}
+    .serie-dot.done{background:var(--accent);border-color:var(--accent);}
+    .serie-dot.done::after{content:'✓';position:absolute;inset:0;display:grid;place-items:center;color:#06261b;font-size:11px;font-weight:700;}
+    .serie-timer-btn{min-height:28px;padding:.2rem .7rem;border-radius:999px;border:1px solid rgba(110,231,183,.25);
+      background:rgba(110,231,183,.08);color:var(--accent);font-size:var(--text-xs);font-weight:600;transition:all .15s;}
+    .serie-timer-btn:hover{background:rgba(110,231,183,.18);}
+
+    /* Input row */
+    .ex-inputs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp3);padding:0 var(--sp5) var(--sp4);}
+    .ex-inputs .field label{font-size:10px;}
+    .ex-inputs .field input{min-height:38px;padding:.55rem .75rem;border-radius:var(--r-md);
+      border:1px solid var(--border);background:rgba(0,0,0,.15);color:var(--text);outline:none;width:100%;
+      transition:border-color .15s,box-shadow .15s;}
+    .ex-inputs .field input:focus{border-color:rgba(110,231,183,.5);box-shadow:0 0 0 2px rgba(110,231,183,.1);}
+
+    /* Note indicazioni */
+    .ex-note-bar{padding:var(--sp2) var(--sp5) var(--sp3);border-top:1px solid var(--divider);
+      color:#f7d9a3;font-size:var(--text-xs);background:rgba(245,158,11,.04);line-height:1.5;}
+    .ex-note-bar strong{opacity:.7;margin-right:.3rem;}
+
+    /* History drawer (inline, collapsible) */
+    .ex-history{border-top:1px solid var(--divider);background:rgba(0,0,0,.15);}
+    .ex-history-toggle{width:100%;text-align:left;padding:var(--sp3) var(--sp5);
+      display:flex;align-items:center;gap:var(--sp3);color:var(--muted);font-size:var(--text-xs);
+      letter-spacing:.05em;text-transform:uppercase;transition:color .15s;}
+    .ex-history-toggle:hover{color:var(--text);}
+    .ex-history-toggle svg{transition:transform .2s;}
+    .ex-history-toggle.open svg{transform:rotate(180deg);}
+    .ex-history-body{overflow:hidden;max-height:0;transition:max-height .25s ease;}
+    .ex-history-body.open{max-height:400px;}
+    .history-table{width:100%;border-collapse:collapse;font-size:var(--text-xs);}
+    .history-table th{padding:.4rem var(--sp5);color:var(--faint);font-weight:600;text-align:left;border-bottom:1px solid var(--divider);}
+    .history-table td{padding:.5rem var(--sp5);border-bottom:1px solid rgba(255,255,255,.03);color:var(--muted);}
+    .history-table tr:last-child td{border-bottom:none;}
+    .history-empty{padding:var(--sp4) var(--sp5);color:var(--faint);font-size:var(--text-xs);}
+
+    /* ── REST TIMER MODAL ───────────────────────────────── */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);
+      display:grid;place-items:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s;}
+    .modal-overlay.open{opacity:1;pointer-events:all;}
+    .modal{background:var(--surf2);border:1px solid var(--border);border-radius:var(--r-xl);
+      padding:var(--sp8) var(--sp8);width:min(400px,calc(100vw - 2rem));box-shadow:var(--sh-lg);
+      text-align:center;position:relative;}
+    .modal-close{position:absolute;top:var(--sp4);right:var(--sp4);width:32px;height:32px;
+      border-radius:var(--r-md);display:grid;place-items:center;color:var(--muted);border:1px solid var(--border);
+      background:rgba(255,255,255,.04);transition:all .15s;}
+    .modal-close:hover{color:var(--text);background:rgba(255,255,255,.08);}
+    .modal h3{font-family:var(--fd);font-size:var(--text-lg);letter-spacing:.05em;margin-bottom:.25rem;}
+    .modal-sub{color:var(--muted);font-size:var(--text-xs);margin-bottom:var(--sp6);}
+    .timer-ring{position:relative;width:140px;height:140px;margin:0 auto var(--sp6);}
+    .timer-ring svg{position:absolute;inset:0;transform:rotate(-90deg);}
+    .timer-ring circle{fill:none;stroke-width:7;}
+    .ring-bg{stroke:rgba(255,255,255,.07);}
+    .ring-fill{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset .9s linear;}
+    .timer-display{position:absolute;inset:0;display:grid;place-items:center;
+      font-family:var(--fd);font-size:2.4rem;font-weight:700;letter-spacing:.04em;color:var(--text);}
+    .timer-controls{display:flex;justify-content:center;gap:var(--sp4);margin-bottom:var(--sp6);}
+    .timer-ctrl{width:44px;height:44px;border-radius:var(--r-md);border:1px solid var(--border);
+      background:rgba(255,255,255,.05);display:grid;place-items:center;color:var(--muted);transition:all .15s;font-size:1.1rem;}
+    .timer-ctrl:hover{background:rgba(110,231,183,.12);color:var(--accent);border-color:rgba(110,231,183,.3);}
+    .timer-adjust{display:flex;align-items:center;gap:var(--sp3);justify-content:center;margin-bottom:var(--sp5);}
+    .adj-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);
+      background:rgba(255,255,255,.04);display:grid;place-items:center;color:var(--muted);font-size:.9rem;transition:all .15s;}
+    .adj-btn:hover{background:rgba(110,231,183,.1);color:var(--accent);}
+    .adj-label{font-size:var(--text-xs);color:var(--muted);}
+    .timer-presets{display:flex;gap:var(--sp2);justify-content:center;}
+    .preset-btn{padding:.35rem .7rem;border-radius:999px;border:1px solid var(--border);
+      background:rgba(255,255,255,.04);color:var(--muted);font-size:var(--text-xs);transition:all .15s;}
+    .preset-btn:hover,.preset-btn.active{background:rgba(110,231,183,.1);color:var(--accent);border-color:rgba(110,231,183,.3);}
+
+    /* ── CRONOLOGIA SESSIONI (bottom) ───────────────────── */
+    .log-section{margin-top:var(--sp8);}
+    .log-section h2{font-family:var(--fd);font-size:var(--text-lg);letter-spacing:.04em;text-transform:uppercase;margin-bottom:var(--sp4);}
+    .log-list{display:grid;gap:var(--sp3);}
+    .log-card{padding:var(--sp4) var(--sp5);border-radius:var(--r-lg);border:1px solid var(--border);
+      background:rgba(255,255,255,.02);cursor:pointer;transition:background .15s,border-color .15s;}
+    .log-card:hover{background:rgba(110,231,183,.06);border-color:rgba(110,231,183,.2);}
+    .log-card-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--sp3);}
+    .log-date{font-weight:600;font-size:var(--text-sm);}
+    .log-tags{display:flex;gap:var(--sp2);flex-wrap:wrap;}
+    .log-tag{padding:.2rem .55rem;border-radius:999px;font-size:10px;font-weight:600;
+      background:rgba(110,231,183,.1);color:var(--accent);border:1px solid rgba(110,231,183,.2);}
+    .log-summary{margin-top:var(--sp2);color:var(--muted);font-size:var(--text-xs);}
+    .log-empty{padding:var(--sp6);text-align:center;color:var(--muted);font-size:var(--text-sm);}
+
     .footer-note{color:var(--faint);font-size:var(--text-xs);text-align:center;margin-top:var(--sp10);}
     code{background:rgba(255,255,255,.07);padding:.15em .4em;border-radius:4px;font-size:.9em;}
-    @media(max-width:960px){.layout{grid-template-columns:1fr;}.ex-fields{grid-template-columns:1fr;}}
+
+    @media(max-width:900px){
+      .layout{grid-template-columns:1fr;}
+      .ex-inputs{grid-template-columns:1fr 1fr;}
+    }
+    @media(max-width:500px){
+      .ex-inputs{grid-template-columns:1fr;}
+      .ex-main{grid-template-columns:1fr;}
+    }
   </style>
 </head>
 <body>
@@ -99,15 +221,17 @@
     </div>
     <div class="header-text">
       <h1>Piattaforma Allenamento Estremo</h1>
-      <p>Seleziona una scheda, scegli il giorno e aggiorna i tuoi pesi.</p>
+      <p>Seleziona una scheda, traccia le serie, monitora i progressi.</p>
     </div>
     <div id="saveState" class="header-badge">● Locale attivo</div>
   </header>
+
   <div class="layout">
+    <!-- SIDEBAR -->
     <aside class="panel selector">
-      <h2>Seleziona scheda</h2>
+      <h2>Schede</h2>
       <div class="filters">
-        <div class="field"><label>Cerca per nome</label><input type="text" id="filterNome" placeholder="Es. ForzeBase, Ipertrofia…" /></div>
+        <div class="field"><label>Cerca per nome</label><input type="text" id="filterNome" placeholder="Es. ATHLON, Forza…"/></div>
         <div class="filter-row">
           <div class="field"><label>Mese</label>
             <select id="filterMese">
@@ -125,11 +249,13 @@
       </div>
       <div id="schedaList" class="scheda-list"></div>
     </aside>
+
+    <!-- VIEWER -->
     <section class="panel viewer" id="viewer">
       <div class="empty-state" id="emptyState">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg>
         <h3>Nessuna scheda selezionata</h3>
-        <p>Scegli una scheda dalla lista per visualizzarne gli esercizi.</p>
+        <p>Scegli una scheda dalla lista per iniziare.</p>
       </div>
       <div id="schedaView" style="display:none;contents">
         <div>
@@ -140,7 +266,8 @@
         <div class="toolbar">
           <div class="toolbar-info" id="toolbarInfo"></div>
           <div class="toolbar-actions">
-            <button class="btn btn-secondary" id="resetBtn">Reset giorno</button>
+            <button class="btn btn-ghost" id="logDayBtn">💾 Salva sessione</button>
+            <button class="btn btn-danger" id="resetBtn">Reset</button>
             <button class="btn btn-primary" id="exportBtn">Esporta</button>
           </div>
         </div>
@@ -148,103 +275,436 @@
       </div>
     </section>
   </div>
-  <p class="footer-note">Schede in <code>schede/NOME_NUMERO_mese-anno.json</code> — progressi salvati in <code>localStorage</code>.</p>
+
+  <!-- CRONOLOGIA -->
+  <section class="log-section" id="logSection" style="display:none">
+    <h2>📋 Cronologia sessioni</h2>
+    <div id="logList" class="log-list"></div>
+  </section>
+
+  <p class="footer-note">Schede in <code>schede/NOME_NUMERO_mese-anno.json</code> · progressi e cronologia salvati in <code>localStorage</code>.</p>
 </main>
+
+<!-- REST TIMER MODAL -->
+<div class="modal-overlay" id="timerModal" role="dialog" aria-modal="true" aria-label="Timer riposo">
+  <div class="modal">
+    <button class="modal-close" id="timerClose" aria-label="Chiudi">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+    <h3>RIPOSO</h3>
+    <p class="modal-sub" id="timerExName"></p>
+    <div class="timer-ring">
+      <svg width="140" height="140" viewBox="0 0 140 140">
+        <circle class="ring-bg" cx="70" cy="70" r="62"/>
+        <circle class="ring-fill" id="ringFill" cx="70" cy="70" r="62"/>
+      </svg>
+      <div class="timer-display" id="timerDisplay">0:00</div>
+    </div>
+    <div class="timer-adjust">
+      <button class="adj-btn" id="adjMinus">−</button>
+      <span class="adj-label" id="adjLabel">Regola</span>
+      <button class="adj-btn" id="adjPlus">+</button>
+    </div>
+    <div class="timer-controls">
+      <button class="timer-ctrl" id="timerPlayPause" title="Play/Pausa">▶</button>
+      <button class="timer-ctrl" id="timerReset" title="Reset">↺</button>
+    </div>
+    <div class="timer-presets">
+      <button class="preset-btn" data-sec="60">1 min</button>
+      <button class="preset-btn" data-sec="90">1:30</button>
+      <button class="preset-btn" data-sec="120">2 min</button>
+      <button class="preset-btn" data-sec="180">3 min</button>
+    </div>
+  </div>
+</div>
+
 <script>
-const STORAGE_KEY='pae-v2';
-const MESI=['','Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-const EMBEDDED_CATALOG=[
-  {file:'schede/ForzeBase_01_01-2026.json',nome:'ForzeBase',numero:'01',mese:'01',anno:'2026'},
-  {file:'schede/ForzeBase_02_02-2026.json',nome:'ForzeBase',numero:'02',mese:'02',anno:'2026'},
-  {file:'schede/IpertrofiaIntensa_01_03-2026.json',nome:'IpertrofiaIntensa',numero:'01',mese:'03',anno:'2026'},
-  {file:'schede/IpertrofiaIntensa_02_04-2026.json',nome:'IpertrofiaIntensa',numero:'02',mese:'04',anno:'2026'},
+/* ─── CONSTANTS ──────────────────────────────────────────────────────── */
+const SK_PROGRESS = 'pae-v3-progress';
+const SK_LOG      = 'pae-v3-log';
+const MESI = ['','Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const EMBEDDED_CATALOG = [
+  {file:'schede/ATHLON_01_05-2026.json',           nome:'ATHLON',            numero:'01',mese:'05',anno:'2026'},
+  {file:'schede/ATHLON_Hypertrophy_02_05-2026.json',nome:'ATHLON_Hypertrophy',numero:'02',mese:'05',anno:'2026'},
 ];
-const state={catalog:[],filtered:[],selected:null,schedaData:null,activeDay:null,progress:loadProgress()};
-const $=id=>document.getElementById(id);
-const els={filterNome:$('filterNome'),filterMese:$('filterMese'),filterAnno:$('filterAnno'),schedaList:$('schedaList'),emptyState:$('emptyState'),schedaView:$('schedaView'),viewTitle:$('viewTitle'),viewSub:$('viewSub'),dayTabs:$('dayTabs'),toolbarInfo:$('toolbarInfo'),resetBtn:$('resetBtn'),exportBtn:$('exportBtn'),exerciseList:$('exerciseList'),saveState:$('saveState')};
-async function init(){
-  try{const r=await fetch('schede/catalog.json');if(!r.ok)throw new Error();state.catalog=await r.json();}
-  catch{state.catalog=EMBEDDED_CATALOG;}
-  populateAnni();state.filtered=[...state.catalog];renderList();
-  els.filterNome.addEventListener('input',applyFilters);
-  els.filterMese.addEventListener('change',applyFilters);
-  els.filterAnno.addEventListener('change',applyFilters);
-  els.resetBtn.addEventListener('click',resetDay);
-  els.exportBtn.addEventListener('click',exportData);
+const DEFAULT_REST = 90; // sec
+
+/* ─── STATE ──────────────────────────────────────────────────────────── */
+const st = {
+  catalog: [], filtered: [],
+  selected: null, schedaData: null, activeDay: null,
+  serieDone: {},        // {exId: count} — resettato ad ogni cambio giorno
+  progress: loadLS(SK_PROGRESS, {}),
+  log:      loadLS(SK_LOG, []),
+};
+
+/* ─── TIMER STATE ────────────────────────────────────────────────────── */
+const tmr = { total:DEFAULT_REST, remaining:DEFAULT_REST, running:false, interval:null, exName:'' };
+
+/* ─── DOM REFS ───────────────────────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+const E = {
+  filterNome: $('filterNome'), filterMese: $('filterMese'), filterAnno: $('filterAnno'),
+  schedaList: $('schedaList'), emptyState: $('emptyState'), schedaView: $('schedaView'),
+  viewTitle:  $('viewTitle'),  viewSub:    $('viewSub'),    dayTabs: $('dayTabs'),
+  toolbarInfo:$('toolbarInfo'),resetBtn:   $('resetBtn'),   exportBtn:$('exportBtn'),
+  logDayBtn:  $('logDayBtn'),  exerciseList:$('exerciseList'), saveState:$('saveState'),
+  logSection: $('logSection'), logList:    $('logList'),
+  timerModal: $('timerModal'), timerClose: $('timerClose'), timerDisplay:$('timerDisplay'),
+  ringFill:   $('ringFill'),   timerPlayPause:$('timerPlayPause'), timerReset:$('timerReset'),
+  adjMinus:   $('adjMinus'),   adjPlus:    $('adjPlus'),    adjLabel:$('adjLabel'),
+  timerExName:$('timerExName'),
+};
+
+/* ─── INIT ───────────────────────────────────────────────────────────── */
+async function init() {
+  try { const r = await fetch('schede/catalog.json'); if(!r.ok) throw 0; st.catalog = await r.json(); }
+  catch { st.catalog = EMBEDDED_CATALOG; }
+  populateAnni(); st.filtered = [...st.catalog]; renderList(); renderLogSection();
+  E.filterNome.addEventListener('input',  applyFilters);
+  E.filterMese.addEventListener('change', applyFilters);
+  E.filterAnno.addEventListener('change', applyFilters);
+  E.resetBtn.addEventListener('click',   resetDay);
+  E.exportBtn.addEventListener('click',  exportData);
+  E.logDayBtn.addEventListener('click',  logCurrentDay);
+  initTimer();
 }
-function populateAnni(){
-  const anni=[...new Set(state.catalog.map(s=>s.anno))].sort();
-  anni.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;els.filterAnno.appendChild(o);});
+
+/* ─── CATALOG / FILTER ───────────────────────────────────────────────── */
+function populateAnni() {
+  [...new Set(st.catalog.map(s=>s.anno))].sort().forEach(a => {
+    const o = document.createElement('option'); o.value=a; o.textContent=a; E.filterAnno.appendChild(o);
+  });
 }
-function applyFilters(){
-  const n=els.filterNome.value.trim().toLowerCase(),m=els.filterMese.value,a=els.filterAnno.value;
-  state.filtered=state.catalog.filter(s=>{
-    if(n&&!s.nome.toLowerCase().includes(n)&&!s.numero.includes(n))return false;
-    if(m&&s.mese!==m)return false;
-    if(a&&s.anno!==a)return false;
-    return true;
-  });renderList();
+function applyFilters() {
+  const n=E.filterNome.value.trim().toLowerCase(), m=E.filterMese.value, a=E.filterAnno.value;
+  st.filtered = st.catalog.filter(s =>
+    (!n || s.nome.toLowerCase().includes(n) || s.numero.includes(n)) &&
+    (!m || s.mese===m) && (!a || s.anno===a)
+  ); renderList();
 }
-function renderList(){
-  if(!state.filtered.length){els.schedaList.innerHTML='<div class="no-results">Nessuna scheda trovata.</div>';return;}
-  els.schedaList.innerHTML=state.filtered.map(s=>{
-    const mn=MESI[parseInt(s.mese,10)]||s.mese;const sel=state.selected?.file===s.file;
-    return `<button class="scheda-item ${sel?'selected':''}" data-file="${s.file}" type="button"><div class="si-name">${s.nome} <span style="color:var(--accent);opacity:.8">#${s.numero}</span></div><div class="si-meta">${mn} ${s.anno} &middot; ${s.file.split('/').pop()}</div></button>`;
+function renderList() {
+  if (!st.filtered.length) { E.schedaList.innerHTML='<div class="no-results">Nessuna scheda trovata.</div>'; return; }
+  E.schedaList.innerHTML = st.filtered.map(s => {
+    const mn=MESI[+s.mese]||s.mese, sel=st.selected?.file===s.file;
+    return `<button class="scheda-item${sel?' selected':''}" data-file="${s.file}" type="button">
+      <div class="si-name">${s.nome} <span style="color:var(--accent);opacity:.7">#${s.numero}</span></div>
+      <div class="si-meta">${mn} ${s.anno} · v${s.versione||'—'}</div>
+    </button>`;
   }).join('');
-  els.schedaList.querySelectorAll('[data-file]').forEach(b=>b.addEventListener('click',()=>selectScheda(b.dataset.file)));
+  E.schedaList.querySelectorAll('[data-file]').forEach(b => b.addEventListener('click', () => selectScheda(b.dataset.file)));
 }
-async function selectScheda(file){
-  state.selected=state.catalog.find(s=>s.file===file);renderList();
-  try{
-    const r=await fetch(file);if(!r.ok)throw new Error(`Impossibile caricare ${file}`);
-    const json=await r.json();state.schedaData=json.scheda;
-    state.activeDay=state.schedaData.giorni[0]?.id||null;renderViewer();
-  }catch(err){
-    els.emptyState.innerHTML=`<h3>Errore</h3><p>${err.message}</p>`;
-    els.emptyState.style.display='block';els.schedaView.style.display='none';
+
+/* ─── SCHEDA LOAD ────────────────────────────────────────────────────── */
+async function selectScheda(file) {
+  st.selected = st.catalog.find(s=>s.file===file); renderList();
+  try {
+    const r = await fetch(file); if(!r.ok) throw new Error(`Impossibile caricare ${file}`);
+    const json = await r.json(); st.schedaData = json.scheda;
+    st.activeDay = st.schedaData.giorni[0]?.id || null;
+    st.serieDone = {}; renderViewer();
+  } catch(err) {
+    E.emptyState.innerHTML=`<h3>Errore</h3><p>${err.message}</p>`;
+    E.emptyState.style.display='block'; E.schedaView.style.display='none';
   }
 }
-function renderViewer(){
-  const s=state.schedaData;if(!s)return;
-  els.emptyState.style.display='none';els.schedaView.style.display='contents';
-  const mn=MESI[parseInt(state.selected.mese,10)]||state.selected.mese;
-  els.viewTitle.textContent=`${s.nome} — Scheda #${s.numero}`;
-  els.viewSub.textContent=`${mn} ${state.selected.anno} · ${s.giorni.length} giorni · Versione ${s.versione}`;
-  els.dayTabs.innerHTML=s.giorni.map(g=>`<button class="day-tab ${g.id===state.activeDay?'active':''}" data-day="${g.id}" type="button">${g.nome}</button>`).join('');
-  els.dayTabs.querySelectorAll('[data-day]').forEach(b=>b.addEventListener('click',()=>{state.activeDay=b.dataset.day;renderViewer();}));
+function renderViewer() {
+  const s=st.schedaData; if(!s) return;
+  E.emptyState.style.display='none'; E.schedaView.style.display='contents';
+  const mn=MESI[+st.selected.mese]||st.selected.mese;
+  E.viewTitle.textContent = `${s.nome} — Scheda #${s.numero}`;
+  E.viewSub.textContent   = `${mn} ${st.selected.anno} · ${s.giorni.length} giorni · v${s.versione}`;
+  E.dayTabs.innerHTML = s.giorni.map(g =>
+    `<button class="day-tab${g.id===st.activeDay?' active':''}" data-day="${g.id}">${g.nome}</button>`
+  ).join('');
+  E.dayTabs.querySelectorAll('[data-day]').forEach(b => b.addEventListener('click', () => {
+    st.activeDay=b.dataset.day; st.serieDone={}; renderViewer();
+  }));
   renderDay();
 }
-function renderDay(){
-  const s=state.schedaData;const day=s.giorni.find(g=>g.id===state.activeDay);if(!day)return;
-  const pkey=`${state.selected.file}::${day.id}`;const dp=state.progress[pkey]||{};
-  els.toolbarInfo.textContent=`${day.esercizi.length} esercizi · ${day.nome}`;
-  els.exerciseList.innerHTML=day.esercizi.map(ex=>{
-    const sv=dp[ex.id]||{};
-    return `<article class="ex-card"><div class="ex-head"><div><div class="ex-title">${ex.nome}</div><div class="ex-sub">${ex.serie} serie · ${ex.reps} reps target</div></div><div class="ex-chip">${ex.id}</div></div><div class="ex-fields"><div class="field"><label for="p-${day.id}-${ex.id}">Peso (kg)</label><input id="p-${day.id}-${ex.id}" type="number" min="0" step="0.5" value="${sv.peso??''}" placeholder="Es. 80" data-day="${day.id}" data-ex="${ex.id}" data-f="peso"/></div><div class="field"><label for="r-${day.id}-${ex.id}">Reps effettive</label><input id="r-${day.id}-${ex.id}" type="text" value="${sv.repsFatte??''}" placeholder="Es. 8/8/7/6" data-day="${day.id}" data-ex="${ex.id}" data-f="repsFatte"/></div><div class="field"><label for="n-${day.id}-${ex.id}">Note personali</label><input id="n-${day.id}-${ex.id}" type="text" value="${sv.note??''}" placeholder="Tecnica, cedimento…" data-day="${day.id}" data-ex="${ex.id}" data-f="note"/></div></div><div class="ex-note"><strong>Indicazioni:</strong> ${ex.note}</div></article>`;
+
+/* ─── DAY RENDER ─────────────────────────────────────────────────────── */
+function renderDay() {
+  const s=st.schedaData; if(!s) return;
+  const day = s.giorni.find(g=>g.id===st.activeDay); if(!day) return;
+  const pkey = progKey(day.id);
+  const dp = st.progress[pkey] || {};
+  E.toolbarInfo.textContent = `${day.nome} · ${day.esercizi.length} esercizi`;
+
+  E.exerciseList.innerHTML = day.esercizi.map(ex => {
+    const sv = dp[ex.id] || {};
+    const done = st.serieDone[ex.id] || 0;
+    const restSec = ex.recupero || DEFAULT_REST;
+    const restLabel = restSec >= 60 ? `${Math.floor(restSec/60)}:${String(restSec%60).padStart(2,'0')} min` : `${restSec}s`;
+    const histRows = buildHistoryRows(ex.id);
+
+    // serie dots
+    let dots = '';
+    for(let i=0;i<ex.serie;i++){
+      dots += `<div class="serie-dot${i<done?' done':''}" data-ex="${ex.id}" data-idx="${i}" title="Serie ${i+1}"></div>`;
+    }
+
+    return `
+    <article class="ex-card" id="excard-${ex.id}">
+      <div class="ex-main">
+        <div class="ex-info">
+          <div class="ex-title">${ex.nome}</div>
+          <div class="ex-meta">
+            <span class="ex-badge badge-serie">${ex.serie} serie</span>
+            <span class="ex-badge badge-reps">${ex.reps} reps</span>
+            <span class="ex-badge badge-rest">⏱ ${restLabel}</span>
+          </div>
+        </div>
+        <div class="ex-actions">
+          <button class="icon-btn" data-histex="${ex.id}" title="Cronologia esercizio" aria-label="Mostra cronologia">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="serie-row">
+        <span class="serie-label">${done}/${ex.serie}</span>
+        <div class="serie-dots">${dots}</div>
+        <button class="serie-timer-btn" data-timerex="${ex.id}" data-timersec="${restSec}" data-timername="${ex.nome}">⏱ Riposo</button>
+      </div>
+      <div class="ex-inputs">
+        <div class="field"><label>Peso (kg)</label>
+          <input type="number" min="0" step="0.5" value="${sv.peso??''}" placeholder="0" data-day="${day.id}" data-ex="${ex.id}" data-f="peso"/>
+        </div>
+        <div class="field"><label>Reps effettive</label>
+          <input type="text" value="${sv.repsFatte??''}" placeholder="8/8/7/6" data-day="${day.id}" data-ex="${ex.id}" data-f="repsFatte"/>
+        </div>
+        <div class="field"><label>Note</label>
+          <input type="text" value="${sv.note??''}" placeholder="Tecnica, sensazioni…" data-day="${day.id}" data-ex="${ex.id}" data-f="note"/>
+        </div>
+      </div>
+      <div class="ex-note-bar"><strong>📋</strong>${ex.note}</div>
+      <div class="ex-history">
+        <button class="ex-history-toggle" data-histtoggle="${ex.id}">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+          Cronologia esercizio (${histRows.length} sessioni)
+        </button>
+        <div class="ex-history-body" id="histbody-${ex.id}">
+          ${histRows.length ? `
+          <table class="history-table">
+            <thead><tr><th>Data</th><th>Peso</th><th>Reps</th><th>Note</th></tr></thead>
+            <tbody>${histRows.map(r=>`<tr><td>${r.date}</td><td>${r.peso||'—'}</td><td>${r.repsFatte||'—'}</td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.note||'—'}</td></tr>`).join('')}</tbody>
+          </table>` : '<div class="history-empty">Nessuna sessione registrata.</div>'}
+        </div>
+      </div>
+    </article>`;
   }).join('');
-  els.exerciseList.querySelectorAll('input[data-f]').forEach(inp=>inp.addEventListener('input',e=>{
-    const{day,ex,f}=e.target.dataset;const key=`${state.selected.file}::${day}`;
-    if(!state.progress[key])state.progress[key]={};
-    if(!state.progress[key][ex])state.progress[key][ex]={};
-    state.progress[key][ex][f]=e.target.value;save();
+
+  // serie dot click
+  E.exerciseList.querySelectorAll('.serie-dot').forEach(d => d.addEventListener('click', e => {
+    const exId=d.dataset.ex, idx=+d.dataset.idx;
+    const cur=st.serieDone[exId]||0;
+    // click on next → mark done; click on done → undo last
+    if(idx===cur) st.serieDone[exId]=cur+1;
+    else if(idx===cur-1) st.serieDone[exId]=cur-1;
+    refreshSerieDots(exId);
+  }));
+
+  // timer buttons
+  E.exerciseList.querySelectorAll('[data-timerex]').forEach(b => b.addEventListener('click', () => {
+    openTimer(+b.dataset.timersec, b.dataset.timername);
+  }));
+
+  // inputs
+  E.exerciseList.querySelectorAll('input[data-f]').forEach(inp => inp.addEventListener('input', e => {
+    const{day,ex,f}=e.target.dataset; const key=progKey(day);
+    if(!st.progress[key]) st.progress[key]={};
+    if(!st.progress[key][ex]) st.progress[key][ex]={};
+    st.progress[key][ex][f]=e.target.value; save();
+  }));
+
+  // history toggles
+  E.exerciseList.querySelectorAll('[data-histtoggle]').forEach(b => b.addEventListener('click', () => {
+    const id=b.dataset.histtoggle;
+    const body=$(`histbody-${id}`);
+    const open=body.classList.toggle('open');
+    b.classList.toggle('open',open);
+  }));
+
+  // icon-btn history (same toggle)
+  E.exerciseList.querySelectorAll('[data-histex]').forEach(b => b.addEventListener('click', () => {
+    const id=b.dataset.histex;
+    const toggle=E.exerciseList.querySelector(`[data-histtoggle="${id}"]`);
+    if(toggle) toggle.click();
+    setTimeout(()=>$(`excard-${id}`)?.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
   }));
 }
-function save(){
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(state.progress));
-  els.saveState.textContent='● Salvato';clearTimeout(save._t);
-  save._t=setTimeout(()=>{els.saveState.textContent='● Locale attivo';},1600);
+
+function refreshSerieDots(exId) {
+  const done=st.serieDone[exId]||0;
+  const card=$(`excard-${exId}`);
+  if(!card) return;
+  card.querySelector('.serie-label').textContent=`${done}/${card.querySelectorAll('.serie-dot').length}`;
+  card.querySelectorAll('.serie-dot').forEach((d,i)=>d.classList.toggle('done',i<done));
 }
-function loadProgress(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');}catch{return{};}}
-function resetDay(){
-  if(!state.selected||!state.activeDay)return;
-  if(!confirm('Cancellare i dati per questo giorno?'))return;
-  const key=`${state.selected.file}::${state.activeDay}`;
-  delete state.progress[key];save();renderDay();
+
+/* ─── PROGRESS KEY ───────────────────────────────────────────────────── */
+function progKey(dayId){ return `${st.selected.file}::${dayId}`; }
+
+/* ─── HISTORY ROWS ───────────────────────────────────────────────────── */
+function buildHistoryRows(exId) {
+  const rows = [];
+  st.log.forEach(session => {
+    if(session.schedaFile !== st.selected?.file) return;
+    if(session.dayId !== st.activeDay) return;
+    const exData = session.exercises?.[exId];
+    if(!exData) return;
+    rows.push({ date: session.date, ...exData });
+  });
+  return rows.reverse(); // più recente prima
 }
-function exportData(){
-  const blob=new Blob([JSON.stringify({exportedAt:new Date().toISOString(),progress:state.progress},null,2)],{type:'application/json'});
-  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:'allenamento-dati.json'});a.click();URL.revokeObjectURL(a.href);
+
+/* ─── LOG SESSION ────────────────────────────────────────────────────── */
+function logCurrentDay() {
+  if(!st.selected||!st.activeDay) return;
+  const day=st.schedaData.giorni.find(g=>g.id===st.activeDay); if(!day) return;
+  const pkey=progKey(st.activeDay); const dp=st.progress[pkey]||{};
+  const exercises={};
+  day.esercizi.forEach(ex=>{ if(dp[ex.id]) exercises[ex.id]={...dp[ex.id]}; });
+  const entry = {
+    id: Date.now(),
+    schedaFile: st.selected.file,
+    schedaNome: `${st.schedaData.nome} #${st.schedaData.numero}`,
+    dayId: st.activeDay,
+    dayNome: day.nome,
+    date: new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),
+    exercises
+  };
+  st.log.unshift(entry);
+  saveLS(SK_LOG, st.log);
+  renderLogSection();
+  flashBadge('● Sessione salvata!');
 }
+
+/* ─── LOG RENDER ─────────────────────────────────────────────────────── */
+function renderLogSection() {
+  if(!st.log.length){ E.logSection.style.display='none'; return; }
+  E.logSection.style.display='block';
+  E.logList.innerHTML = st.log.slice(0,30).map(s => {
+    const exNames=Object.keys(s.exercises||{});
+    const summary=exNames.map(id=>{
+      const ex=s.exercises[id]; const parts=[];
+      if(ex.peso) parts.push(`${ex.peso}kg`);
+      if(ex.repsFatte) parts.push(ex.repsFatte);
+      return parts.join(' ');
+    }).filter(Boolean).slice(0,4).join(' · ');
+    return `<div class="log-card">
+      <div class="log-card-head">
+        <span class="log-date">📅 ${s.date}</span>
+        <div class="log-tags">
+          <span class="log-tag">${s.schedaNome}</span>
+          <span class="log-tag">${s.dayNome}</span>
+        </div>
+      </div>
+      ${summary?`<div class="log-summary">${summary}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+/* ─── TIMER ──────────────────────────────────────────────────────────── */
+const CIRC = 2*Math.PI*62; // circumference for r=62
+function initTimer() {
+  E.ringFill.setAttribute('stroke-dasharray', CIRC);
+  updateRingUI();
+  E.timerClose.addEventListener('click', closeTimer);
+  E.timerModal.addEventListener('click', e=>{ if(e.target===E.timerModal) closeTimer(); });
+  E.timerPlayPause.addEventListener('click', toggleTimer);
+  E.timerReset.addEventListener('click', () => { resetTimer(tmr.total); });
+  E.adjMinus.addEventListener('click', ()=>{ adjustTimer(-15); });
+  E.adjPlus.addEventListener('click',  ()=>{ adjustTimer(+15); });
+  document.querySelectorAll('.preset-btn').forEach(b => b.addEventListener('click', ()=>{
+    document.querySelectorAll('.preset-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    resetTimer(+b.dataset.sec);
+  }));
+}
+function openTimer(sec, name) {
+  tmr.exName=name; E.timerExName.textContent=name;
+  clearInterval(tmr.interval); tmr.running=false;
+  resetTimer(sec);
+  E.timerModal.classList.add('open');
+  // highlight preset
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.toggle('active',+b.dataset.sec===sec));
+  // auto-start
+  toggleTimer();
+}
+function closeTimer() {
+  clearInterval(tmr.interval); tmr.running=false;
+  E.timerModal.classList.remove('open');
+  E.timerPlayPause.textContent='▶';
+}
+function resetTimer(sec) {
+  clearInterval(tmr.interval); tmr.running=false;
+  tmr.total=sec; tmr.remaining=sec;
+  E.timerPlayPause.textContent='▶';
+  updateRingUI();
+}
+function toggleTimer() {
+  if(tmr.running){ clearInterval(tmr.interval); tmr.running=false; E.timerPlayPause.textContent='▶'; }
+  else {
+    if(tmr.remaining<=0) resetTimer(tmr.total);
+    tmr.running=true; E.timerPlayPause.textContent='⏸';
+    tmr.interval=setInterval(()=>{
+      tmr.remaining--;
+      updateRingUI();
+      if(tmr.remaining<=0){
+        clearInterval(tmr.interval); tmr.running=false;
+        E.timerPlayPause.textContent='▶';
+        beep();
+      }
+    },1000);
+  }
+}
+function adjustTimer(delta) {
+  const newVal=Math.max(15, tmr.remaining+delta);
+  tmr.remaining=newVal; tmr.total=Math.max(tmr.total,newVal);
+  updateRingUI();
+}
+function updateRingUI() {
+  const m=Math.floor(tmr.remaining/60), s=tmr.remaining%60;
+  E.timerDisplay.textContent=`${m}:${String(s).padStart(2,'0')}`;
+  const frac=tmr.total>0?tmr.remaining/tmr.total:0;
+  E.ringFill.setAttribute('stroke-dashoffset', CIRC*(1-frac));
+  E.adjLabel.textContent=`${tmr.remaining}s`;
+  // color warning
+  E.ringFill.style.stroke=tmr.remaining<=10?'var(--danger)':tmr.remaining<=30?'var(--accent2)':'var(--accent)';
+}
+function beep() {
+  try {
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    [0,200,400].forEach(t=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value=880; g.gain.setValueAtTime(.3,ctx.currentTime+t/1000);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+t/1000+.25);
+      o.start(ctx.currentTime+t/1000); o.stop(ctx.currentTime+t/1000+.25);
+    });
+  } catch{}
+}
+
+/* ─── PERSIST ────────────────────────────────────────────────────────── */
+function save() { saveLS(SK_PROGRESS, st.progress); flashBadge('● Salvato'); }
+function saveLS(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch{} }
+function loadLS(k,def){ try{ return JSON.parse(localStorage.getItem(k)||'null')||def; }catch{ return def; } }
+function flashBadge(msg){ E.saveState.textContent=msg; clearTimeout(flashBadge._t); flashBadge._t=setTimeout(()=>E.saveState.textContent='● Locale attivo',2000); }
+
+/* ─── UTILS ──────────────────────────────────────────────────────────── */
+function resetDay() {
+  if(!st.selected||!st.activeDay) return;
+  if(!confirm('Cancellare i dati correnti per questo giorno?')) return;
+  delete st.progress[progKey(st.activeDay)];
+  st.serieDone={}; save(); renderDay();
+}
+function exportData() {
+  const blob=new Blob([JSON.stringify({exportedAt:new Date().toISOString(),progress:st.progress,log:st.log},null,2)],{type:'application/json'});
+  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:'allenamento-export.json'});
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
 init();
 </script>
 </body>
