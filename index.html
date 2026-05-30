@@ -94,7 +94,6 @@
     .ex-card{border-radius:var(--r-lg);background:rgba(255,255,255,.03);border:1px solid var(--border);overflow:hidden;transition:border-color .18s;}
     .ex-card:hover{border-color:rgba(110,231,183,.18);}
 
-    /* header row */
     .ex-head{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--sp4);padding:var(--sp4) var(--sp5) var(--sp3);}
     .ex-title{font-size:var(--text-base);font-weight:700;line-height:1.25;}
     .ex-meta{display:flex;flex-wrap:wrap;gap:var(--sp2);margin-top:.35rem;align-items:center;}
@@ -106,10 +105,6 @@
       border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);
       transition:background .15s,color .15s,border-color .15s;}
     .icon-btn:hover{background:rgba(110,231,183,.12);color:var(--accent);border-color:rgba(110,231,183,.3);}
-    .timer-pill{display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .75rem;border-radius:999px;
-      border:1px solid rgba(110,231,183,.25);background:rgba(110,231,183,.07);color:var(--accent);
-      font-size:var(--text-xs);font-weight:600;transition:all .15s;white-space:nowrap;}
-    .timer-pill:hover{background:rgba(110,231,183,.18);}
 
     /* ── SERIE TABLE ─────────────────────────────────────────────────── */
     .serie-table-wrap{padding:0 var(--sp5) var(--sp3);}
@@ -119,37 +114,31 @@
       font-size:10px;text-transform:uppercase;letter-spacing:.07em;
       color:var(--faint);font-weight:600;text-align:left;border-bottom:1px solid var(--divider);
     }
-    .serie-table thead th:last-child{text-align:right;}
-    /* col widths */
     .col-check{width:36px;}
-    .col-serie{width:56px;}
-    .col-reps {width:80px;}
-    .col-peso {width:100%;}
-    .col-rest {width:60px;text-align:right;}
+    .col-serie{width:48px;}
+    .col-reps{width:80px;}
+    .col-peso{width:100%;}
+    .col-rest{width:72px;text-align:right;}
 
     .serie-table tbody tr{transition:background .12s;}
     .serie-table tbody tr:hover{background:rgba(255,255,255,.03);}
     .serie-table tbody td{padding:.45rem var(--sp3) .45rem 0;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle;}
     .serie-table tbody tr:last-child td{border-bottom:none;}
 
-    /* check dot */
     .serie-check{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);
       background:rgba(255,255,255,.04);cursor:pointer;display:grid;place-items:center;
       font-size:11px;font-weight:700;color:transparent;transition:all .15s;}
     .serie-check:hover{border-color:rgba(110,231,183,.5);transform:scale(1.08);}
     .serie-check.done{background:var(--accent);border-color:var(--accent);color:#06261b;}
 
-    /* serie label */
     .serie-num{font-size:var(--text-xs);font-weight:700;color:var(--muted);}
     .serie-table tbody tr.done-row .serie-num{color:var(--accent);}
 
-    /* reps cell — read only */
     .reps-cell{font-size:var(--text-sm);font-weight:600;
       padding:.3rem .55rem;border-radius:var(--r-sm);
       background:rgba(245,158,11,.08);color:#fcd34d;
       border:1px solid rgba(245,158,11,.18);display:inline-block;white-space:nowrap;}
 
-    /* peso input */
     .peso-input-wrap{display:flex;align-items:center;gap:var(--sp2);}
     .peso-input{width:80px;min-height:34px;padding:.3rem .6rem;border-radius:var(--r-md);
       border:1px solid var(--border);background:rgba(0,0,0,.18);color:var(--text);
@@ -158,16 +147,25 @@
     .peso-input:focus{border-color:rgba(110,231,183,.5);box-shadow:0 0 0 2px rgba(110,231,183,.1);}
     .peso-input.has-value{border-color:rgba(110,231,183,.3);color:var(--accent);font-weight:600;}
     .peso-unit{font-size:var(--text-xs);color:var(--faint);}
-    /* no-weight placeholder */
     .peso-na{font-size:var(--text-xs);color:var(--faint);padding:.3rem .4rem;}
 
-    /* timer cell */
-    .rest-cell-btn{font-size:var(--text-xs);color:var(--faint);background:rgba(255,255,255,.04);
-      border:1px solid var(--border);border-radius:var(--r-sm);padding:.2rem .4rem;
-      transition:all .15s;white-space:nowrap;}
+    /* ── TIMER BUTTON in ogni riga ───────────────────────────────────── */
+    .rest-cell-btn{
+      font-size:var(--text-xs);color:var(--faint);
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--border);border-radius:var(--r-sm);
+      padding:.3rem .5rem;
+      transition:all .15s;white-space:nowrap;
+      display:inline-flex;align-items:center;gap:.25rem;
+    }
     .rest-cell-btn:hover{color:var(--accent);border-color:rgba(110,231,183,.3);background:rgba(110,231,183,.08);}
+    /* Quando il timer di quella riga è attivo */
+    .rest-cell-btn.timer-active{
+      color:var(--accent);border-color:rgba(110,231,183,.4);
+      background:rgba(110,231,183,.1);animation:pulse-border 1s ease-in-out infinite;
+    }
+    @keyframes pulse-border{0%,100%{border-color:rgba(110,231,183,.4);}50%{border-color:rgba(110,231,183,.8);}}
 
-    /* note row */
     .ex-note-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp3);padding:var(--sp2) var(--sp5) var(--sp4);border-top:1px solid var(--divider);}
     .note-field{display:grid;gap:.3rem;}
     .note-field label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--faint);}
@@ -176,7 +174,6 @@
       font-size:var(--text-sm);transition:border-color .15s;}
     .note-field input:focus{border-color:rgba(110,231,183,.5);box-shadow:0 0 0 2px rgba(110,231,183,.1);}
 
-    /* indicazioni tecniche */
     .ex-note-bar{padding:var(--sp2) var(--sp5);color:#f7d9a3;font-size:var(--text-xs);
       background:rgba(245,158,11,.04);border-top:1px solid rgba(245,158,11,.1);line-height:1.55;}
     .ex-note-bar strong{opacity:.6;margin-right:.3rem;}
@@ -239,7 +236,6 @@
     .log-tags{display:flex;gap:var(--sp2);flex-wrap:wrap;}
     .log-tag{padding:.2rem .55rem;border-radius:999px;font-size:10px;font-weight:600;
       background:rgba(110,231,183,.1);color:var(--accent);border:1px solid rgba(110,231,183,.2);}
-    /* log exercise rows */
     .log-ex-list{margin-top:var(--sp3);display:grid;gap:var(--sp2);}
     .log-ex-row{display:flex;align-items:baseline;gap:var(--sp3);flex-wrap:wrap;font-size:var(--text-xs);}
     .log-ex-name{color:var(--text);font-weight:600;min-width:160px;}
@@ -255,7 +251,9 @@
     @media(max-width:900px){.layout{grid-template-columns:1fr;}}
     @media(max-width:540px){
       .ex-note-row{grid-template-columns:1fr;}
-      .col-rest{display:none;}
+      /* Su mobile rendiamo il bottone timer più compatto ma visibile */
+      .rest-cell-btn{padding:.2rem .35rem;font-size:9px;}
+      .col-rest{width:58px;}
     }
   </style>
 </head>
@@ -355,29 +353,21 @@ const EMBEDDED_CATALOG = [
 ];
 const DEFAULT_REST = 90;
 
-/*
-  STORAGE FORMAT — progress[schedaFile::dayId][exId] = {
-    pesi:     string[]   // one per serie index, e.g. ["80","82.5","","80"]
-    repsFatte: string    // optional free text
-    note:      string    // optional note
-  }
-  log[] = [{ id, schedaFile, schedaNome, dayId, dayNome, date, exercises:{ [exId]: {...same} } }]
-*/
-
 /* ─── STATE ──────────────────────────────────────────────────────────── */
 const st = {
   catalog:[], filtered:[],
   selected:null, schedaData:null, activeDay:null,
-  serieDone:{},  // runtime: {exId: count} – not persisted
+  serieDone:{},
   progress: loadLS(SK_PROGRESS, {}),
   log:      loadLS(SK_LOG, []),
 };
 
 /* ─── TIMER ──────────────────────────────────────────────────────────── */
-const tmr = {total:DEFAULT_REST, remaining:DEFAULT_REST, running:false, iv:null};
+// activeTimerBtn tiene il riferimento al bottone della riga che ha avviato il timer
+const tmr = {total:DEFAULT_REST, remaining:DEFAULT_REST, running:false, iv:null, activeBtn:null};
 
 /* ─── DOM ────────────────────────────────────────────────────────────── */
-const $   = id => document.getElementById(id);
+const $    = id => document.getElementById(id);
 const qall = (sel, root=document) => root.querySelectorAll(sel);
 const E = {
   filterNome:$('filterNome'), filterMese:$('filterMese'), filterAnno:$('filterAnno'),
@@ -471,12 +461,9 @@ function renderDay(){
     const done=st.serieDone[ex.id]||0;
     const restSec=ex.recupero||DEFAULT_REST;
     const restLabel=restSec>=60?`${Math.floor(restSec/60)}:${String(restSec%60).padStart(2,'0')}`:`${restSec}s`;
-    // Determina se ha senso il peso (reps è numerico o range numerico, es "6-8", "12", "10-12 per gamba")
-    // Se reps contiene "min" → esercizio cardio/tempo → nessun campo peso
     const noWeight = /min|sec/i.test(ex.reps);
     const histRows=buildHistoryRows(ex.id);
 
-    // Build serie rows
     let serieRowsHtml='';
     for(let i=0;i<ex.serie;i++){
       const isDone=i<done;
@@ -484,7 +471,9 @@ function renderDay(){
       serieRowsHtml+=`
       <tr class="${isDone?'done-row':''}" data-exid="${ex.id}" data-rowidx="${i}">
         <td class="col-check">
-          <button class="serie-check${isDone?' done':''}" data-ex="${ex.id}" data-idx="${i}" aria-label="Serie ${i+1}${isDone?' completata':''}">✓</button>
+          <button class="serie-check${isDone?' done':''}" data-ex="${ex.id}" data-idx="${i}"
+            data-timersec="${restSec}" data-timername="${ex.nome} · S${i+1}"
+            aria-label="Serie ${i+1}${isDone?' completata':''}">✓</button>
         </td>
         <td class="col-serie"><span class="serie-num">S${i+1}</span></td>
         <td class="col-reps"><span class="reps-cell">${ex.reps}</span></td>
@@ -501,7 +490,7 @@ function renderDay(){
           }
         </td>
         <td class="col-rest">
-          <button class="rest-cell-btn" data-timersec="${restSec}" data-timername="${ex.nome} · S${i+1}">
+          <button class="rest-cell-btn" data-timersec="${restSec}" data-timername="${ex.nome} · S${i+1}" data-rowkey="${ex.id}-${i}">
             ⏱ ${restLabel}
           </button>
         </td>
@@ -510,13 +499,11 @@ function renderDay(){
 
     return `
     <article class="ex-card" id="excard-${ex.id}">
-
-      <!-- Header -->
       <div class="ex-head">
         <div>
           <div class="ex-title">${ex.nome}</div>
           <div class="ex-meta">
-            <span class="ex-badge badge-rest">⏱ ${restLabel}</span>
+            <span class="ex-badge badge-rest">⏱ ${restLabel} recupero</span>
           </div>
         </div>
         <div class="ex-head-actions">
@@ -526,7 +513,6 @@ function renderDay(){
         </div>
       </div>
 
-      <!-- Serie table -->
       <div class="serie-table-wrap">
         <table class="serie-table" aria-label="Serie di ${ex.nome}">
           <thead>
@@ -542,7 +528,6 @@ function renderDay(){
         </table>
       </div>
 
-      <!-- Note libere -->
       <div class="ex-note-row">
         <div class="note-field">
           <label>Reps effettive</label>
@@ -556,10 +541,8 @@ function renderDay(){
         </div>
       </div>
 
-      <!-- Indicazioni tecniche (read-only) -->
       <div class="ex-note-bar"><strong>📋</strong>${ex.note}</div>
 
-      <!-- History drawer -->
       <div class="ex-history">
         <button class="ex-history-toggle" data-histtoggle="${ex.id}">
           <span class="arr">▾</span>
@@ -593,13 +576,22 @@ function renderDay(){
     </article>`;
   }).join('');
 
-  /* ── bind: serie check dots ── */
+  /* ── bind: serie check — avvia timer automaticamente ── */
   qall('.serie-check', E.exerciseList).forEach(btn=>btn.addEventListener('click',()=>{
     const exId=btn.dataset.ex, idx=+btn.dataset.idx;
     const cur=st.serieDone[exId]||0;
-    if(idx===cur)        st.serieDone[exId]=cur+1;
-    else if(idx===cur-1) st.serieDone[exId]=cur-1;
+    const wasUnchecked = idx===cur;
+    if(wasUnchecked)        st.serieDone[exId]=cur+1;
+    else if(idx===cur-1)    st.serieDone[exId]=cur-1;
     refreshCheckRow(exId);
+    // Avvia il timer di recupero automaticamente quando si completa una serie
+    if(wasUnchecked){
+      const sec=+btn.dataset.timersec, name=btn.dataset.timername;
+      // Trova il bottone riga corrispondente per evidenziarlo
+      const rowKey=`${exId}-${idx}`;
+      const rowBtn=E.exerciseList.querySelector(`.rest-cell-btn[data-rowkey="${rowKey}"]`);
+      openToastTimer(sec, name, rowBtn);
+    }
   }));
 
   /* ── bind: peso per serie ── */
@@ -623,9 +615,9 @@ function renderDay(){
     st.progress[key][ex][f]=e.target.value; save();
   }));
 
-  /* ── bind: timer buttons (per-row + header) ── */
-  qall('[data-timersec]', E.exerciseList).forEach(b=>b.addEventListener('click',()=>{
-    openToastTimer(+b.dataset.timersec, b.dataset.timername);
+  /* ── bind: timer manuale (clic sul bottone riga) ── */
+  qall('.rest-cell-btn', E.exerciseList).forEach(b=>b.addEventListener('click',()=>{
+    openToastTimer(+b.dataset.timersec, b.dataset.timername, b);
   }));
 
   /* ── bind: history toggles ── */
@@ -699,7 +691,7 @@ function logCurrentDay(){
   st.log.unshift(entry);
   saveLS(SK_LOG,st.log);
   renderLogSection();
-  renderDay(); // refresh history drawers
+  renderDay();
   flashBadge('✓ Sessione salvata!');
 }
 
@@ -735,17 +727,32 @@ function initToastTimer(){
   E.toastMinus.addEventListener('click', ()=>adjustToast(-10));
   E.toastPlus.addEventListener('click',  ()=>adjustToast(+10));
 }
-function openToastTimer(sec,name){
+
+function openToastTimer(sec, name, sourceBtn){
+  // Rimuovi stile attivo dal bottone precedente
+  if(tmr.activeBtn) tmr.activeBtn.classList.remove('timer-active');
+
   clearInterval(tmr.iv); tmr.running=false;
   tmr.total=sec; tmr.remaining=sec;
+  tmr.activeBtn = sourceBtn||null;
+  if(tmr.activeBtn) tmr.activeBtn.classList.add('timer-active');
+
   E.toastExName.textContent=name||'Riposo';
   E.toastPlayPause.textContent='⏸';
-  updateToastUI(); E.toastTimer.classList.add('visible');
+  updateToastUI();
+  E.toastTimer.classList.add('visible');
   tmr.running=true; tmr.iv=setInterval(tickToast,1000);
 }
+
 function tickToast(){
   tmr.remaining=Math.max(0,tmr.remaining-1); updateToastUI();
-  if(tmr.remaining<=0){ clearInterval(tmr.iv); tmr.running=false; E.toastPlayPause.textContent='▶'; beep(); }
+  if(tmr.remaining<=0){
+    clearInterval(tmr.iv); tmr.running=false;
+    E.toastPlayPause.textContent='▶';
+    // Rimuovi highlight dal bottone riga
+    if(tmr.activeBtn){ tmr.activeBtn.classList.remove('timer-active'); tmr.activeBtn=null; }
+    beep();
+  }
 }
 function updateToastUI(){
   const m=Math.floor(tmr.remaining/60),s=tmr.remaining%60;
@@ -760,7 +767,12 @@ function toggleToast(){
   else{ if(tmr.remaining<=0) tmr.remaining=tmr.total; tmr.running=true; E.toastPlayPause.textContent='⏸'; tmr.iv=setInterval(tickToast,1000); }
 }
 function adjustToast(d){ tmr.remaining=Math.max(10,tmr.remaining+d); if(d>0) tmr.total=Math.max(tmr.total,tmr.remaining); updateToastUI(); }
-function closeToast(){ clearInterval(tmr.iv); tmr.running=false; E.toastTimer.classList.remove('visible'); E.toastPlayPause.textContent='▶'; }
+function closeToast(){
+  clearInterval(tmr.iv); tmr.running=false;
+  if(tmr.activeBtn){ tmr.activeBtn.classList.remove('timer-active'); tmr.activeBtn=null; }
+  E.toastTimer.classList.remove('visible');
+  E.toastPlayPause.textContent='▶';
+}
 function beep(){
   try{
     const ctx=new(window.AudioContext||window.webkitAudioContext)();
