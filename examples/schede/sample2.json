@@ -1,0 +1,15 @@
+{
+  "id": "push_a",
+  "nome": "Push A",
+  "descrizione": "Petto e spalle",
+  "giorni": [
+    {
+      "giorno": "Martedì",
+      "etichetta": "Push",
+      "esercizi": [
+        {"id":"bench","nome":"Bench Press","serie":4,"reps":"6-8","recupero":90},
+        {"id":"ohp","nome":"Overhead Press","serie":3,"reps":"6-8","recupero":90}
+      ]
+    }
+  ]
+}

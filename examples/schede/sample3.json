@@ -1,0 +1,15 @@
+{
+  "id": "legs_a",
+  "nome": "Legs A",
+  "descrizione": "Gambe e glutei",
+  "giorni": [
+    {
+      "giorno": "Mercoledì",
+      "etichetta": "Leg Day",
+      "esercizi": [
+        {"id":"squat","nome":"Squat","serie":5,"reps":"5","recupero":180},
+        {"id":"rdl","nome":"Romanian Deadlift","serie":4,"reps":"6-8","recupero":120}
+      ]
+    }
+  ]
+}
