@@ -9,14 +9,44 @@ use gloo_file::File as GlooFile;
 use gloo_net::http::Request;
 use gloo_timers::callback::Interval;
 use models::{TimerState, *};
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use wasm_bindgen_futures::spawn_local;
+use wasm_bindgen_futures::{spawn_local, JsFuture};
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
+
+// ── Wake Lock helpers ─────────────────────────────────────────────────────────
+
+/// Request a screen wake lock and store the sentinel in `slot`.
+/// Silently does nothing if the API is unavailable (old browser / HTTP context).
+fn acquire_wake_lock(slot: Rc<RefCell<Option<JsValue>>>) {
+    spawn_local(async move {
+        let Some(window) = web_sys::window() else { return };
+        let nav  = window.navigator();
+        let Ok(wl) = js_sys::Reflect::get(&nav, &"wakeLock".into()) else { return };
+        if wl.is_undefined() || wl.is_null() { return }
+        let Ok(req) = js_sys::Reflect::get(&wl, &"request".into()) else { return };
+        let Some(req_fn) = req.dyn_ref::<js_sys::Function>() else { return };
+        let Ok(promise) = req_fn.call1(&wl, &"screen".into()) else { return };
+        if let Ok(sentinel) = JsFuture::from(js_sys::Promise::from(promise)).await {
+            *slot.borrow_mut() = Some(sentinel);
+        }
+    });
+}
+
+/// Release a previously acquired wake lock sentinel.
+fn release_wake_lock(slot: &Rc<RefCell<Option<JsValue>>>) {
+    if let Some(sentinel) = slot.borrow_mut().take() {
+        if let Ok(rel) = js_sys::Reflect::get(&sentinel, &"release".into()) {
+            if let Some(rel_fn) = rel.dyn_ref::<js_sys::Function>() {
+                let _ = rel_fn.call0(&sentinel);
+            }
+        }
+    }
+}
 
 /// Build weight_inputs / reps_inputs maps from a saved-sets list so that
 /// input fields are pre-filled when a session is loaded or resumed.
@@ -742,6 +772,20 @@ fn app() -> Html {
             viewing_history.set(false);
         })
     };
+
+    // ── Wake Lock ────────────────────────────────────────────────────────────
+    // Acquire when a workout is loaded, release when the user exits.
+    {
+        let slot: Rc<RefCell<Option<JsValue>>> = use_mut_ref(|| None);
+        use_effect_with_deps(
+            move |is_loaded: &bool| {
+                if *is_loaded { acquire_wake_lock(slot.clone()); }
+                else          { release_wake_lock(&slot); }
+                || ()
+            },
+            workout.is_some(),
+        );
+    }
 
     // Pre-compute history sessions (needed in render, can't use let inside html!)
     let history_sessions: Vec<Session> = if *history_open {
