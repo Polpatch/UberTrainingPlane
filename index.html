@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+    <title>Allenamento WASM</title>
+    
+<script type="module">
+import init, * as bindings from './fitness_wasm-8418ee83451993a2.js';
+const wasm = await init({ module_or_path: './fitness_wasm-8418ee83451993a2_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script>
+    
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f6f7fb;
+        color: #111;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; }
+      .app-shell { max-width: 980px; margin: 0 auto; padding: 20px; }
+      .app-header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 24px; }
+      .app-header h1 { margin: 0 0 6px; font-size: clamp(1.8rem, 2.5vw, 2.8rem); }
+      .app-header p { margin: 0; color: #555; max-width: 640px; }
+      .clear-button { background: #111; color: white; border: 0; border-radius: 999px; padding: 12px 18px; cursor: pointer; font-weight: 600; }
+      .app-main { display: grid; gap: 18px; }
+      .upload-panel { display: grid; gap: 18px; }
+      .upload-card { background: white; border-radius: 24px; padding: 28px; box-shadow: 0 16px 48px rgba(12,18,40,.06); }
+      .file-label { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; background: #111; color: white; border-radius: 999px; padding: 14px 20px; font-weight: 600; border: 1px solid transparent; }
+      .file-label input { display: none; }
+      .hint { margin: 14px 0 0; color: #666; line-height: 1.6; }
+      .catalog-list { display: grid; gap: 12px; margin-top: 16px; }
+      .catalog-card { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 18px; cursor: pointer; transition: box-shadow .2s ease; }
+      .catalog-card:hover { box-shadow: 0 12px 30px rgba(15,23,42,.08); }
+      .catalog-info { display: grid; gap: 4px; }
+      .catalog-title { font-weight: 700; }
+      .catalog-meta { color: #6b7280; font-size: 0.92rem; }
+      .workout-details { display: grid; gap: 20px; }
+      .workout-meta { background: white; border-radius: 24px; padding: 24px; box-shadow: 0 14px 34px rgba(12,18,40,.06); }
+      .meta-label { font-size: 0.95rem; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+      .meta-desc { margin: 0; color: #444; }
+      .meta-tag { display: inline-block; margin-top: 14px; background: #eef5ff; color: #1155cc; padding: 8px 14px; border-radius: 999px; font-size: 0.88rem; }
+      .day-tabs { display: flex; flex-wrap: wrap; gap: 10px; }
+      .day-tab { background: #fff; color: #111; border: 1px solid #dedfe3; padding: 12px 18px; border-radius: 999px; cursor: pointer; transition: all .2s ease; }
+      .day-tab.active { background: #111; color: #fff; border-color: #111; }
+      .exercise-list { display: grid; gap: 16px; }
+      .exercise-card { background: white; border-radius: 24px; padding: 20px; box-shadow: 0 12px 32px rgba(12,18,40,.05); transition: box-shadow .2s ease; }
+      .exercise-card:not(.selected) { cursor: pointer; padding: 18px 20px; }
+      .exercise-card:not(.selected):hover { box-shadow: 0 16px 40px rgba(12,18,40,.1); }
+      .exercise-head { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+      .chart-icon-btn { flex-shrink: 0; background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: 0.55; padding: 2px 4px; border-radius: 8px; transition: opacity .15s, background .15s; }
+      .chart-icon-btn:hover { opacity: 1; background: #f3f4f6; }
+      .weight-chart-section { margin: 12px 0 4px; padding: 12px 10px 6px; background: #f9fafb; border-radius: 16px; border: 1px solid #e5e7eb; }
+      .chart-empty { font-size: 0.88rem; color: #9ca3af; margin: 0; padding: 8px 0; }
+      .exercise-head h3 { margin: 0 0 8px; font-size: 1.15rem; }
+      .exercise-meta { color: #666; font-size: 0.95rem; }
+      .exercise-rec { color: #111; font-weight: 700; font-size: 0.94rem; margin-top: 8px; }
+      .exercise-note { margin: 14px 0 0; color: #444; background: #fff7e0; padding: 14px 16px; border-radius: 16px; border: 1px solid #ffe4a3; }
+      .exercise-card:not(.selected) .exercise-note { opacity: 0.9; }
+      .expanded-body { margin-top: 20px; }
+      .series-progress { display: flex; align-items: center; justify-content: center; padding: 0 12%; margin-bottom: 20px; }
+      .series-dot { flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; background: #f3f4f6; border: 2px solid #d1d5db; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: #9ca3af; transition: all .15s ease; padding: 0; }
+      .series-dot:hover { border-color: #93c5fd; color: #2563eb; }
+      .series-dot.active { background: #eff6ff; border-color: #2563eb; color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+      .series-dot.completed { background: #2563eb; border-color: #1d4ed8; color: white; }
+      .series-dot.completed.active { background: #1d4ed8; box-shadow: 0 0 0 3px rgba(37,99,235,.25); }
+      .series-line { flex: 1; min-width: 10px; height: 2px; background: #d1d5db; }
+      .series-nav { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: #f3f4f6; border: 1.5px solid #d1d5db; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: #6b7280; padding: 0; transition: all .15s ease; }
+      .series-nav:hover { background: #e5e7eb; border-color: #9ca3af; color: #111; }
+      .series-capsule { flex-shrink: 0; width: 54px; height: 34px; border-radius: 17px; border: 2px solid #d1d5db; transition: all .15s ease; }
+      .series-capsule.active { background: #eff6ff; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+      .series-capsule.completed { background: #2563eb; border-color: #1d4ed8; }
+      /* Carousel — plain block container, no flex, no percentage hacks */
+      .carousel-outer {
+        position: relative;
+        overflow: hidden;
+        margin: 0 12% 20px;   /* same side spacing as .series-progress padding */
+        height: 46px;          /* 34px dot + 6px breathing room top/bottom */
+        cursor: grab;
+        user-select: none; -webkit-user-select: none;
+        touch-action: none;
+      }
+      .carousel-outer:active { cursor: grabbing; }
+      /* Track: positioned absolutely so its width never inflates the parent */
+      .carousel-track {
+        position: absolute;
+        left: 50%;             /* track origin at container centre */
+        top: 50%;              /* vertically centred via translateY(-50%) */
+        display: flex;
+        align-items: center;
+        width: max-content;    /* as wide as all n dots need — clipped by outer */
+        will-change: transform;
+      }
+      .carousel-track--snap { transition: transform 0.25s ease; }
+      .series-line--c { flex-shrink: 0; width: 20px; height: 2px; background: #d1d5db; }
+      .series-row { display: grid; gap: 14px; margin-bottom: 16px; padding: 16px; border: 1px solid #e5e7eb; border-radius: 18px; background: #f9fafb; }
+      .series-row-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-weight: 700; color: #111; }
+      .series-status { font-size: 0.92rem; color: #4b5563; }
+      .series-status.pending { color: #9ca3af; }
+      .day-header h2 { margin: 0; }
+      .day-header p { margin: 6px 0 0; color: #666; }
+      .active-exercise { background: #fff; border-radius: 24px; padding: 24px; box-shadow: 0 16px 50px rgba(12,18,40,.08); border: 1px solid #e6e9f2; }
+      .active-head { display: grid; gap: 10px; margin-bottom: 20px; }
+      .active-label { color: #777; text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.82rem; }
+      .input-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
+      .input-row label { display: grid; gap: 8px; font-size: 0.95rem; color: #333; }
+      .input-row input { width: 100%; padding: 14px 16px; border-radius: 16px; border: 1px solid #d1d5db; font-size: 1rem; }
+      .action-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+      .primary-button, .secondary-button { border: 0; border-radius: 999px; padding: 12px 20px; cursor: pointer; font-weight: 600; }
+      .primary-button { background: #111; color: white; }
+      .secondary-button { background: #f3f4f6; color: #111; }
+      .timer-card { background: #eef5ff; padding: 18px; border-radius: 20px; border: 1px solid #dbeafe; }
+      .timer-label { color: #1d4ed8; font-weight: 700; margin-bottom: 10px; }
+      .timer-value { font-size: 1.5rem; font-weight: 700; margin-bottom: 10px; }
+      .timer-bar { height: 10px; background: #dbeafe; border-radius: 999px; overflow: hidden; }
+      .timer-bar-fill { height: 100%; background: #2563eb; transition: width 0.2s ease; }
+      .exercise-card.selected { border: 1px solid #2563eb; }
+      .session-history { background: #fff; border-radius: 24px; padding: 22px; box-shadow: 0 10px 28px rgba(12,18,40,.06); }
+      .session-history h3 { margin-top: 0; }
+      .session-history ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+      .session-history li { padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 16px; }
+      .history-time { color: #6b7280; font-size: 0.92rem; margin-top: 6px; }
+      .error-banner { background: #ffe8e1; color: #8b1a07; border: 1px solid #f5c2b0; border-radius: 18px; padding: 14px 18px; }
+      /* Burger button */
+      .burger-btn { flex-shrink: 0; width: 40px; height: 40px; background: none; border: none; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; padding: 0; border-radius: 10px; transition: background .15s; }
+      .burger-btn:hover { background: #f3f4f6; }
+      .burger-btn span { display: block; width: 22px; height: 2px; background: #111; border-radius: 2px; transition: all .2s; }
+      /* Burger menu modal */
+      .menu-overlay { position: fixed; inset: 0; background: rgba(12,18,40,.45); z-index: 200; display: flex; align-items: flex-start; justify-content: flex-start; }
+      .menu-modal { background: white; width: 300px; max-width: 88vw; height: 100vh; padding: 28px 24px; box-shadow: 4px 0 32px rgba(12,18,40,.15); display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+      .menu-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+      .menu-modal-title { font-size: 1.15rem; font-weight: 700; }
+      .menu-close-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: #6b7280; padding: 4px 8px; border-radius: 8px; }
+      .menu-close-btn:hover { background: #f3f4f6; color: #111; }
+      .menu-section-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: #9ca3af; margin: 16px 0 8px; }
+      .menu-action-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 13px 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 14px; cursor: pointer; font-size: 0.95rem; font-weight: 600; color: #111; text-align: left; transition: background .15s; }
+      .menu-action-btn:hover { background: #f3f4f6; }
+      .menu-action-btn--file input { display: none; }
+      .menu-action-icon { font-size: 1rem; color: #6b7280; }
+      .menu-hint { font-size: 0.85rem; color: #9ca3af; margin: 12px 0 0; line-height: 1.5; }
+      /* History banner (shown when viewing a past session) */
+      .history-banner { display: flex; justify-content: space-between; align-items: center; background: #fff7e0; border: 1px solid #ffe4a3; border-radius: 18px; padding: 12px 16px; gap: 12px; }
+      .history-banner span { font-size: 0.9rem; color: #92400e; font-weight: 600; }
+      .history-banner button { background: none; border: none; cursor: pointer; font-size: 0.9rem; color: #92400e; font-weight: 700; white-space: nowrap; }
+      .history-banner button:hover { text-decoration: underline; }
+      /* History session list in modal */
+      .history-session-list { display: grid; gap: 10px; margin-top: 4px; }
+      .history-session-item { display: flex; flex-direction: column; gap: 4px; width: 100%; padding: 14px 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 14px; cursor: pointer; text-align: left; transition: background .15s; }
+      .history-session-item:hover { background: #f3f4f6; }
+      .history-session-date { font-weight: 700; font-size: 0.95rem; color: #111; }
+      .history-session-meta { font-size: 0.85rem; color: #6b7280; }
+      /* Resume-session dialog */
+      .resume-dialog-wrap { display: flex; justify-content: center; }
+      .resume-dialog { background: white; border-radius: 24px; padding: 28px; box-shadow: 0 16px 48px rgba(12,18,40,.1); max-width: 480px; width: 100%; }
+      .resume-dialog h2 { margin: 0 0 8px; }
+      .resume-dialog-sub { margin: 0 0 20px; color: #555; }
+      .resume-options { display: grid; gap: 12px; margin-bottom: 16px; }
+      .resume-option { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 18px; }
+      .resume-option-day { font-weight: 700; margin-bottom: 4px; }
+      .resume-option-meta { color: #6b7280; font-size: 0.9rem; }
+      /* Workout footer buttons */
+      .workout-footer { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+      .footer-btn { flex: 1; border: 0; border-radius: 999px; padding: 14px 20px; cursor: pointer; font-weight: 600; font-size: 0.95rem; }
+      .footer-btn--save { background: #111; color: white; }
+      .footer-btn--delete { background: #fff1f1; color: #b91c1c; border: 1.5px solid #fecaca; }
+      @media (max-width: 720px) {
+        .app-shell { padding: 16px; }
+        .app-header { align-items: stretch; }
+        .workout-meta, .upload-card { padding: 20px; }
+        .input-row { grid-template-columns: 1fr; }
+      }
+    </style>
+  <link rel="modulepreload" href="./fitness_wasm-8418ee83451993a2.js" crossorigin="anonymous" integrity="sha384-xKAG6DvDq1WYi8xPJR9+vxiWG1Y7pfoFxRVdEL+BcBagJOLlmzfb0nWUWR9ydfNx"><link rel="preload" href="./fitness_wasm-8418ee83451993a2_bg.wasm" crossorigin="anonymous" integrity="sha384-nkAR52VrjSC/5ccvs4jBx6GIPiggwBTixbINdnVUOl0/poCo8GGTwKa1avrtGEfI" as="fetch" type="application/wasm"></head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
