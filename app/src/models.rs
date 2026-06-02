@@ -1,6 +1,7 @@
 use gloo_storage::{LocalStorage, Storage};
 use js_sys::Date as JsDate;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 // ── Core workout data ────────────────────────────────────────────────────────
 
@@ -282,6 +283,114 @@ pub fn delete_session(workout_id: &str, session_id: &str) {
     let mut index = load_sessions_index();
     index.retain(|m| m.id != session_id);
     save_sessions_index(&index);
+}
+
+impl CatalogEntry {
+    pub fn display_name(&self) -> String {
+        let num = self.numero.clone().unwrap_or_default();
+        if num.is_empty() { self.nome.clone() } else { format!("{} {}", self.nome, num) }
+    }
+    pub fn date_label(&self) -> String {
+        format!("{} / {}",
+            self.mese.clone().unwrap_or_default(),
+            self.anno.clone().unwrap_or_default())
+    }
+}
+
+/// Timer state passed as a single prop to ExerciseCard.
+#[derive(Clone, PartialEq)]
+pub struct TimerState {
+    pub running: bool,
+    pub left:    u32,
+    pub total:   u32,
+}
+
+impl TimerState {
+    #[allow(dead_code)]
+    pub fn idle() -> Self { Self { running: false, left: 0, total: 0 } }
+}
+
+// ── Pure logic helpers ────────────────────────────────────────────────────────
+
+/// Insert or update a CompletedSet in `list`. Sorts by set_number before returning.
+pub fn upsert_completed_set(
+    mut list: Vec<CompletedSet>,
+    exercise: &Exercise,
+    set_number: u32,
+    peso: Option<f32>,
+    reps: Option<String>,
+) -> Vec<CompletedSet> {
+    let timestamp = now_iso();
+    if let Some(e) = list.iter_mut().find(|s| {
+        s.exercise_id == exercise.id && s.set_number == set_number
+    }) {
+        e.peso      = peso;
+        e.reps      = reps;
+        e.timestamp = timestamp;
+    } else {
+        list.push(CompletedSet {
+            exercise_id: exercise.id.clone(),
+            nome:        exercise.nome.clone(),
+            set_number,
+            peso,
+            reps,
+            timestamp,
+        });
+    }
+    list.sort_by_key(|s| s.set_number);
+    list
+}
+
+/// Return the index of the next exercise in `day` that still has incomplete sets,
+/// searching forward (wrapping) from `current_idx`.
+/// Returns `current_idx` if all exercises are complete.
+pub fn next_incomplete_exercise(
+    day: &Day,
+    sets: &[CompletedSet],
+    current_idx: usize,
+) -> usize {
+    let n = day.esercizi.len();
+    (1..n)
+        .map(|off| (current_idx + off) % n)
+        .find(|&i| {
+            let ex = &day.esercizi[i];
+            sets.iter().filter(|s| s.exercise_id == ex.id).count() < ex.serie as usize
+        })
+        .unwrap_or(current_idx)
+}
+
+/// Read the input value for `exercise_id` at `idx`, falling back to the most
+/// recent non-empty value at a lower index, then to `default`.
+pub fn get_input_with_fallback(
+    map: &HashMap<String, Vec<String>>,
+    exercise_id: &str,
+    idx: usize,
+    default: &str,
+) -> String {
+    map.get(exercise_id)
+        .and_then(|v| v.get(idx).cloned())
+        .filter(|v| !v.is_empty())
+        .or_else(|| {
+            (0..idx).rev().find_map(|prev| {
+                map.get(exercise_id)
+                    .and_then(|v| v.get(prev).cloned())
+                    .filter(|v| !v.is_empty())
+            })
+        })
+        .unwrap_or_else(|| default.to_string())
+}
+
+/// Resize the inner Vec for `exercise_id` if needed, then set the value at `idx`.
+pub fn update_input_map(
+    mut map: HashMap<String, Vec<String>>,
+    exercise_id: String,
+    idx: usize,
+    value: String,
+) -> HashMap<String, Vec<String>> {
+    let entry = map.entry(exercise_id).or_default();
+    if entry.len() <= idx { entry.resize(idx + 1, String::new()); }
+    entry[idx] = value;
+    map
 }
 
 // ── Weight history ────────────────────────────────────────────────────────────

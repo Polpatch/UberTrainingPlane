@@ -40,7 +40,9 @@ pnpm-lock.yaml
 # Misc
 Thumbs.db
 
-# Claude
+# Claude / local planning
 CLAUDE.md
 .claude/
 todo.md
+refactor.md
+plan.md

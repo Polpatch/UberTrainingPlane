@@ -29,8 +29,8 @@ pub fn catalog_panel(props: &CatalogPanelProps) -> Html {
                                 html! {
                                     <article class="catalog-card" onclick={Callback::from(move |_| on_load.emit(item.clone()))}>
                                         <div class="catalog-info">
-                                            <div class="catalog-title">{ format!("{} {}", entry.nome, entry.numero.clone().unwrap_or_default()) }</div>
-                                            <div class="catalog-meta">{ format!("{} / {}", entry.mese.clone().unwrap_or_default(), entry.anno.clone().unwrap_or_default()) }</div>
+                                            <div class="catalog-title">{ entry.display_name() }</div>
+                                            <div class="catalog-meta">{ entry.date_label() }</div>
                                         </div>
                                         <button class="select-button">{"Apri"}</button>
                                     </article>

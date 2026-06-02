@@ -8,7 +8,7 @@ use gloo_file::callbacks::{read_as_text, FileReader};
 use gloo_file::File as GlooFile;
 use gloo_net::http::Request;
 use gloo_timers::callback::Interval;
-use models::*;
+use models::{TimerState, *};
 use std::cell::Cell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
@@ -347,22 +347,14 @@ fn app() -> Html {
     let on_weight_change = {
         let weight_inputs = weight_inputs.clone();
         Callback::from(move |(exercise_id, idx, value): (String, usize, String)| {
-            let mut map = (*weight_inputs).clone();
-            let entry = map.entry(exercise_id).or_insert_with(Vec::new);
-            if entry.len() <= idx { entry.resize(idx + 1, String::new()); }
-            entry[idx] = value;
-            weight_inputs.set(map);
+            weight_inputs.set(update_input_map((*weight_inputs).clone(), exercise_id, idx, value));
         })
     };
 
     let on_reps_change = {
         let reps_inputs = reps_inputs.clone();
         Callback::from(move |(exercise_id, idx, value): (String, usize, String)| {
-            let mut map = (*reps_inputs).clone();
-            let entry = map.entry(exercise_id).or_insert_with(Vec::new);
-            if entry.len() <= idx { entry.resize(idx + 1, String::new()); }
-            entry[idx] = value;
-            reps_inputs.set(map);
+            reps_inputs.set(update_input_map((*reps_inputs).clone(), exercise_id, idx, value));
         })
     };
 
@@ -379,7 +371,7 @@ fn app() -> Html {
             if let Some(workout) = &*workout {
                 if let Some(day) = workout.giorni.get(*day_index) {
                     if let Some(exercise) = day.esercizi.get(*selected_exercise) {
-                        let weight = weight_inputs
+                        let peso = weight_inputs
                             .get(&exercise.id)
                             .and_then(|v| v.get(set_index))
                             .and_then(|v| v.parse::<f32>().ok());
@@ -387,48 +379,19 @@ fn app() -> Html {
                             .get(&exercise.id)
                             .and_then(|v| v.get(set_index))
                             .cloned();
-                        let set_number = (set_index + 1) as u32;
-                        let timestamp  = now_iso();
-                        let mut list = (*saved_sets).clone();
-                        if let Some(e) = list.iter_mut().find(|s| {
-                            s.exercise_id == exercise.id && s.set_number == set_number
-                        }) {
-                            e.peso      = weight;
-                            e.reps      = reps.clone();
-                            e.timestamp = timestamp;
-                        } else {
-                            list.push(CompletedSet {
-                                exercise_id: exercise.id.clone(),
-                                nome:        exercise.nome.clone(),
-                                set_number,
-                                peso:        weight,
-                                reps,
-                                timestamp,
-                            });
-                        }
-                        list.sort_by_key(|s| s.set_number);
+                        let list = upsert_completed_set(
+                            (*saved_sets).clone(), exercise,
+                            (set_index + 1) as u32, peso, reps,
+                        );
 
-                        // Auto-advance: if this exercise is now complete, select
-                        // the next one that still has incomplete sets.
+                        let current_idx = *selected_exercise;
                         let ex_done = list.iter()
                             .filter(|s| s.exercise_id == exercise.id)
                             .count() >= exercise.serie as usize;
-                        let current_idx = *selected_exercise;
                         let next_active = if ex_done {
-                            let n = day.esercizi.len();
-                            let next = (1..n)
-                                .map(|off| (current_idx + off) % n)
-                                .find(|&i| {
-                                    let ex = &day.esercizi[i];
-                                    list.iter().filter(|s| s.exercise_id == ex.id).count()
-                                        < ex.serie as usize
-                                });
-                            if let Some(next_idx) = next {
-                                selected_exercise.set(next_idx);
-                                next_idx
-                            } else {
-                                current_idx
-                            }
+                            let next = next_incomplete_exercise(day, &list, current_idx);
+                            if next != current_idx { selected_exercise.set(next); }
+                            next
                         } else {
                             current_idx
                         };
@@ -522,6 +485,7 @@ fn app() -> Html {
                                 if let Some(workout) = &*workout_for_timer {
                                     if let Some(day) = workout.giorni.get(*day_index_for_timer) {
                                         if let Some(exercise) = day.esercizi.get(*selected_ex_for_timer) {
+                                            // Find the first uncompleted set number for this exercise
                                             let existing: HashSet<u32> = (*saved_sets_for_timer)
                                                 .iter()
                                                 .filter(|s| s.exercise_id == exercise.id)
@@ -531,7 +495,7 @@ fn app() -> Html {
                                                 .find(|n| !existing.contains(n))
                                                 .unwrap_or(existing.len() as u32 + 1);
                                             let next_idx = (next_set - 1) as usize;
-                                            let weight = weight_inputs_for_timer
+                                            let peso = weight_inputs_for_timer
                                                 .get(&exercise.id)
                                                 .and_then(|v| v.get(next_idx))
                                                 .and_then(|v| v.parse::<f32>().ok());
@@ -539,44 +503,19 @@ fn app() -> Html {
                                                 .get(&exercise.id)
                                                 .and_then(|v| v.get(next_idx))
                                                 .cloned();
-                                            let entry = CompletedSet {
-                                                exercise_id: exercise.id.clone(),
-                                                nome:        exercise.nome.clone(),
-                                                set_number:  next_set,
-                                                peso:        weight,
-                                                reps,
-                                                timestamp:   now_iso(),
-                                            };
-                                            let mut list = (*saved_sets_for_timer).clone();
-                                            if let Some(e) = list.iter_mut().find(|s| {
-                                                s.exercise_id == exercise.id && s.set_number == next_set
-                                            }) {
-                                                *e = entry;
-                                            } else {
-                                                list.push(entry);
-                                            }
-                                            list.sort_by_key(|s| s.set_number);
+                                            let list = upsert_completed_set(
+                                                (*saved_sets_for_timer).clone(),
+                                                exercise, next_set, peso, reps,
+                                            );
 
-                                            // Auto-advance after timer save
+                                            let current_idx = *selected_ex_for_timer;
                                             let ex_done = list.iter()
                                                 .filter(|s| s.exercise_id == exercise.id)
                                                 .count() >= exercise.serie as usize;
-                                            let current_idx = *selected_ex_for_timer;
                                             let next_active = if ex_done {
-                                                let n = day.esercizi.len();
-                                                let next = (1..n)
-                                                    .map(|off| (current_idx + off) % n)
-                                                    .find(|&i| {
-                                                        let ex = &day.esercizi[i];
-                                                        list.iter().filter(|s| s.exercise_id == ex.id).count()
-                                                            < ex.serie as usize
-                                                    });
-                                                if let Some(next_idx) = next {
-                                                    selected_ex_for_timer.set(next_idx);
-                                                    next_idx
-                                                } else {
-                                                    current_idx
-                                                }
+                                                let next = next_incomplete_exercise(day, &list, current_idx);
+                                                if next != current_idx { selected_ex_for_timer.set(next); }
+                                                next
                                             } else {
                                                 current_idx
                                             };
@@ -976,9 +915,7 @@ fn app() -> Html {
                                                             on_reps_change={on_reps_change.clone()}
                                                             on_start_timer={on_start_timer.clone()}
                                                             on_cancel_timer={on_cancel_timer.clone()}
-                                                            timer_running={*timer_running}
-                                                            timer_left={*timer_left}
-                                                            timer_total={*timer_total}
+                                                            timer={TimerState { running: *timer_running, left: *timer_left, total: *timer_total }}
                                                             history_mode={*viewing_history}
                                                             workout_id={workout_data.id.clone()}
                                                         />
