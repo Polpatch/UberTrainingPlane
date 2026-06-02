@@ -102,11 +102,8 @@ fn save_schedules(schedules: &[Workout]) {
 /// Insert or replace a schedule by id.
 pub fn upsert_schedule(workout: &Workout) {
     let mut schedules = load_schedules();
-    if let Some(e) = schedules.iter_mut().find(|s| s.id == workout.id) {
-        *e = workout.clone();
-    } else {
-        schedules.push(workout.clone());
-    }
+    let id = workout.id.clone();
+    upsert_by(&mut schedules, workout.clone(), |s| s.id == id);
     save_schedules(&schedules);
 }
 
@@ -136,11 +133,8 @@ fn save_sessions_index(index: &[SessionMeta]) {
 
 fn upsert_session_meta(meta: SessionMeta) {
     let mut index = load_sessions_index();
-    if let Some(e) = index.iter_mut().find(|m| m.id == meta.id) {
-        *e = meta;
-    } else {
-        index.push(meta);
-    }
+    let id = meta.id.clone(); // capture before meta is moved
+    upsert_by(&mut index, meta, |m| m.id == id);
     save_sessions_index(&index);
 }
 
@@ -239,11 +233,7 @@ pub fn update_session_sets(
         s.sets = sets.to_vec();
         s.active_exercise = active_exercise;
         s.updated = now_iso();
-        let pct = if total_expected > 0 {
-            (sets.len() as f32 / total_expected as f32 * 100.0).min(100.0)
-        } else {
-            0.0
-        };
+        let pct = s.completion_pct(total_expected);
         upsert_session_meta(SessionMeta {
             id: session_id.to_string(),
             workout_id: workout_id.to_string(),
@@ -285,6 +275,14 @@ pub fn delete_session(workout_id: &str, session_id: &str) {
     save_sessions_index(&index);
 }
 
+/// Insert or replace an item in a Vec. Uses `position` to avoid double-move.
+fn upsert_by<T>(vec: &mut Vec<T>, item: T, matches: impl Fn(&T) -> bool) {
+    match vec.iter().position(|x| matches(x)) {
+        Some(i) => vec[i] = item,
+        None    => vec.push(item),
+    }
+}
+
 impl CatalogEntry {
     pub fn display_name(&self) -> String {
         let num = self.numero.clone().unwrap_or_default();
@@ -303,6 +301,13 @@ pub struct TimerState {
     pub running: bool,
     pub left:    u32,
     pub total:   u32,
+}
+
+impl Session {
+    pub fn completion_pct(&self, total_expected: u32) -> f32 {
+        if total_expected == 0 { return 0.0; }
+        (self.sets.len() as f32 / total_expected as f32 * 100.0).min(100.0)
+    }
 }
 
 impl TimerState {

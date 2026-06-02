@@ -15,29 +15,27 @@ fn render_weight_chart(points: &[WeightPoint]) -> Html {
         };
     }
 
-    // Layout constants
-    let vw: f64    = 300.0;
-    let vh: f64    = 110.0;
-    let pad_l: f64 = 32.0;   // left: y-axis labels
-    let pad_r: f64 = 10.0;
-    let pad_t: f64 = 18.0;   // top: weight labels
-    let pad_b: f64 = 24.0;   // bottom: date labels
-    let cw = vw - pad_l - pad_r;   // inner chart width
-    let ch = vh - pad_t - pad_b;   // inner chart height
+    let view_width:  f64 = 300.0;
+    let view_height: f64 = 110.0;
+    let pad_left:    f64 = 32.0;  // space for y-axis labels
+    let pad_right:   f64 = 10.0;
+    let pad_top:     f64 = 18.0;  // space for weight labels above dots
+    let pad_bottom:  f64 = 24.0;  // space for date labels below
+    let inner_w = view_width  - pad_left  - pad_right;
+    let inner_h = view_height - pad_top   - pad_bottom;
 
     let n = points.len();
     let min_w = points.iter().map(|p| p.max_weight).fold(f32::INFINITY,     f32::min);
     let max_w = points.iter().map(|p| p.max_weight).fold(f32::NEG_INFINITY, f32::max);
-    let w_range = ((max_w - min_w) as f64).max(1.0);
+    let weight_range = ((max_w - min_w) as f64).max(1.0);
 
     let to_x = |i: usize| -> f64 {
-        pad_l + if n <= 1 { cw / 2.0 } else { i as f64 / (n - 1) as f64 * cw }
+        pad_left + if n <= 1 { inner_w / 2.0 } else { i as f64 / (n - 1) as f64 * inner_w }
     };
     let to_y = |w: f32| -> f64 {
-        pad_t + ch - (w as f64 - min_w as f64) / w_range * ch
+        pad_top + inner_h - (w as f64 - min_w as f64) / weight_range * inner_h
     };
 
-    // SVG line path
     let path_d: String = points.iter().enumerate()
         .map(|(i, p)| {
             let x = to_x(i); let y = to_y(p.max_weight);
@@ -45,31 +43,30 @@ fn render_weight_chart(points: &[WeightPoint]) -> Html {
         })
         .collect::<Vec<_>>().join(" ");
 
-    // Y-axis labels
-    let y_top_label  = format!("{:.0}kg", max_w);
-    let y_bot_label  = format!("{:.0}kg", min_w);
-    let y_top        = format!("{:.1}", pad_t);
-    let y_bot        = format!("{:.1}", pad_t + ch);
-    let x_axis_label = format!("{:.0}", pad_l - 4.0);
+    let label_max_w   = format!("{:.0}kg", max_w);
+    let label_min_w   = format!("{:.0}kg", min_w);
+    let y_top_str     = format!("{:.1}", pad_top);
+    let y_bot_str     = format!("{:.1}", pad_top + inner_h);
+    let x_ylabel_str  = format!("{:.0}", pad_left - 4.0);
 
     html! {
-        <svg viewBox={format!("0 0 {vw} {vh}")} width="100%" height="130"
+        <svg viewBox={format!("0 0 {view_width} {view_height}")} width="100%" height="130"
              style="display:block;overflow:visible">
             // Horizontal grid lines
-            <line x1={format!("{pad_l}")} y1={y_top.clone()}
-                  x2={format!("{:.0}", vw - pad_r)} y2={y_top.clone()}
+            <line x1={format!("{pad_left}")} y1={y_top_str.clone()}
+                  x2={format!("{:.0}", view_width - pad_right)} y2={y_top_str.clone()}
                   stroke="#f3f4f6" stroke-width="1"/>
-            <line x1={format!("{pad_l}")} y1={y_bot.clone()}
-                  x2={format!("{:.0}", vw - pad_r)} y2={y_bot.clone()}
+            <line x1={format!("{pad_left}")} y1={y_bot_str.clone()}
+                  x2={format!("{:.0}", view_width - pad_right)} y2={y_bot_str.clone()}
                   stroke="#e5e7eb" stroke-width="1"/>
             // Y-axis labels
-            <text x={x_axis_label.clone()} y={y_top.clone()}
+            <text x={x_ylabel_str.clone()} y={y_top_str.clone()}
                   text-anchor="end" font-size="9" fill="#9ca3af">
-                { y_top_label }
+                { label_max_w }
             </text>
-            <text x={x_axis_label} y={format!("{:.1}", pad_t + ch + 3.0)}
+            <text x={x_ylabel_str} y={format!("{:.1}", pad_top + inner_h + 3.0)}
                   text-anchor="end" font-size="9" fill="#9ca3af">
-                { y_bot_label }
+                { label_min_w }
             </text>
             // Line
             <path d={path_d} fill="none" stroke="#2563eb"
@@ -87,7 +84,7 @@ fn render_weight_chart(points: &[WeightPoint]) -> Html {
                 let show_date = i == 0 || i == n - 1;
                 let date_str  = p.date.get(5..).unwrap_or(&p.date).to_string();
                 let anchor    = if i == 0 { "start" } else { "end" };
-                let dy        = format!("{:.1}", vh - 4.0);
+                let dy        = format!("{:.1}", view_height - 4.0);
                 html! {
                     <g>
                         <circle cx={cx} cy={cy} r="3.5"

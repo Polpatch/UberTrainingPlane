@@ -203,8 +203,9 @@ fn app() -> Html {
         }};
     }
 
-    // ── File upload ──────────────────────────────────────────────────────────
-    let on_file_change = {
+    // Shared: parse a JSON string into a Workout and apply it to the app state.
+    // Used by both on_file_change and on_load_catalog_entry.
+    let apply_json: Rc<dyn Fn(String)> = {
         let workout            = workout.clone();
         let error              = error.clone();
         let day_index          = day_index.clone();
@@ -214,32 +215,34 @@ fn app() -> Html {
         let reps_inputs        = reps_inputs.clone();
         let current_session_id = current_session_id.clone();
         let resume_candidates  = resume_candidates.clone();
-        let reader_task        = reader_task.clone();
+        Rc::new(move |text: String| {
+            match serde_json::from_str::<Workout>(&text) {
+                Ok(data) => open_workout!(
+                    data, workout, error,
+                    day_index, selected_exercise, saved_sets,
+                    weight_inputs, reps_inputs,
+                    current_session_id, resume_candidates
+                ),
+                Err(e) => error.set(Some(format!("Errore JSON: {}", e))),
+            }
+        })
+    };
+
+    // ── File upload ──────────────────────────────────────────────────────────
+    let on_file_change = {
+        let apply_json  = apply_json.clone();
+        let error       = error.clone();
+        let reader_task = reader_task.clone();
         Callback::from(move |event: web_sys::Event| {
             let input = event.target().and_then(|t| t.dyn_into::<HtmlInputElement>().ok());
             if let Some(input) = input {
                 if let Some(file) = input.files().and_then(|f| f.get(0)) {
-                    let gloo_file          = GlooFile::from(file);
-                    let workout            = workout.clone();
-                    let error              = error.clone();
-                    let day_index          = day_index.clone();
-                    let selected_exercise  = selected_exercise.clone();
-                    let saved_sets         = saved_sets.clone();
-                    let weight_inputs      = weight_inputs.clone();
-                    let reps_inputs        = reps_inputs.clone();
-                    let current_session_id = current_session_id.clone();
-                    let resume_candidates  = resume_candidates.clone();
+                    let gloo_file  = GlooFile::from(file);
+                    let apply_json = apply_json.clone();
+                    let error      = error.clone();
                     let task = read_as_text(&gloo_file, move |result| match result {
-                        Ok(text) => match serde_json::from_str::<Workout>(&text) {
-                            Ok(data) => open_workout!(
-                                data, workout, error,
-                                day_index, selected_exercise, saved_sets,
-                                weight_inputs, reps_inputs,
-                                current_session_id, resume_candidates
-                            ),
-                            Err(e) => error.set(Some(format!("Errore JSON: {}", e))),
-                        },
-                        Err(e) => error.set(Some(format!("Errore lettura file: {:?}", e))),
+                        Ok(text) => apply_json(text),
+                        Err(e)   => error.set(Some(format!("Errore lettura file: {:?}", e))),
                     });
                     *reader_task.borrow_mut() = Some(task);
                 }
@@ -249,40 +252,18 @@ fn app() -> Html {
 
     // ── Catalog entry ────────────────────────────────────────────────────────
     let on_load_catalog_entry = {
-        let workout            = workout.clone();
-        let error              = error.clone();
-        let day_index          = day_index.clone();
-        let selected_exercise  = selected_exercise.clone();
-        let saved_sets         = saved_sets.clone();
-        let weight_inputs      = weight_inputs.clone();
-        let reps_inputs        = reps_inputs.clone();
-        let current_session_id = current_session_id.clone();
-        let resume_candidates  = resume_candidates.clone();
+        let apply_json = apply_json.clone();
+        let error      = error.clone();
         Callback::from(move |entry: CatalogEntry| {
-            let workout            = workout.clone();
-            let error              = error.clone();
-            let day_index          = day_index.clone();
-            let selected_exercise  = selected_exercise.clone();
-            let saved_sets         = saved_sets.clone();
-            let weight_inputs      = weight_inputs.clone();
-            let reps_inputs        = reps_inputs.clone();
-            let current_session_id = current_session_id.clone();
-            let resume_candidates  = resume_candidates.clone();
-            let file_path = entry.file.clone();
+            let apply_json = apply_json.clone();
+            let error      = error.clone();
+            let file_path  = entry.file.clone();
             spawn_local(async move {
                 match Request::get(&file_path).send().await {
                     Ok(resp) if resp.ok() => {
                         match resp.text().await {
-                            Ok(text) => match serde_json::from_str::<Workout>(&text) {
-                                Ok(data) => open_workout!(
-                                    data, workout, error,
-                                    day_index, selected_exercise, saved_sets,
-                                    weight_inputs, reps_inputs,
-                                    current_session_id, resume_candidates
-                                ),
-                                Err(e) => error.set(Some(format!("Errore JSON: {}", e))),
-                            },
-                            Err(e) => error.set(Some(format!("Errore caricamento file: {:?}", e))),
+                            Ok(text) => apply_json(text),
+                            Err(e)   => error.set(Some(format!("Errore caricamento file: {:?}", e))),
                         }
                     }
                     Ok(resp) => error.set(Some(format!("Errore caricamento file: {}", resp.status()))),
@@ -618,26 +599,24 @@ fn app() -> Html {
         })
     };
 
-    // ── Save and finish ──────────────────────────────────────────────────────
-    let on_save_and_finish = {
-        let workout            = workout.clone();
-        let current_session_id = current_session_id.clone();
+    // Shared: reset all workout-related state handles to their initial values.
+    // Used by on_save_and_finish, on_delete_workout, and clear_workout.
+    let reset_workout_state: Rc<dyn Fn()> = {
         let timer_handle       = timer_handle.clone();
         let timer_running      = timer_running.clone();
         let timer_left         = timer_left.clone();
         let timer_total        = timer_total.clone();
+        let workout            = workout.clone();
         let error              = error.clone();
         let day_index          = day_index.clone();
         let selected_exercise  = selected_exercise.clone();
         let saved_sets         = saved_sets.clone();
         let weight_inputs      = weight_inputs.clone();
         let reps_inputs        = reps_inputs.clone();
+        let current_session_id = current_session_id.clone();
         let resume_candidates  = resume_candidates.clone();
-        Callback::from(move |_| {
-            if let Some(w) = &*workout {
-                let sid = (*current_session_id).clone();
-                if !sid.is_empty() { terminate_session(&w.id, &sid); }
-            }
+        let viewing_history    = viewing_history.clone();
+        Rc::new(move || {
             timer_handle.borrow_mut().take();
             timer_running.set(false);
             timer_left.set(0);
@@ -651,6 +630,21 @@ fn app() -> Html {
             reps_inputs.set(HashMap::new());
             current_session_id.set(String::new());
             resume_candidates.set(vec![]);
+            viewing_history.set(false);
+        })
+    };
+
+    // ── Save and finish ──────────────────────────────────────────────────────
+    let on_save_and_finish = {
+        let workout            = workout.clone();
+        let current_session_id = current_session_id.clone();
+        let reset              = reset_workout_state.clone();
+        Callback::from(move |_| {
+            if let Some(w) = &*workout {
+                let sid = (*current_session_id).clone();
+                if !sid.is_empty() { terminate_session(&w.id, &sid); }
+            }
+            reset();
         })
     };
 
@@ -658,62 +652,20 @@ fn app() -> Html {
     let on_delete_workout = {
         let workout            = workout.clone();
         let current_session_id = current_session_id.clone();
-        let timer_handle       = timer_handle.clone();
-        let timer_running      = timer_running.clone();
-        let timer_left         = timer_left.clone();
-        let timer_total        = timer_total.clone();
-        let error              = error.clone();
-        let day_index          = day_index.clone();
-        let selected_exercise  = selected_exercise.clone();
-        let saved_sets         = saved_sets.clone();
-        let weight_inputs      = weight_inputs.clone();
-        let reps_inputs        = reps_inputs.clone();
-        let resume_candidates  = resume_candidates.clone();
+        let reset              = reset_workout_state.clone();
         Callback::from(move |_| {
             if let Some(w) = &*workout {
                 let sid = (*current_session_id).clone();
                 if !sid.is_empty() { delete_session(&w.id, &sid); }
             }
-            timer_handle.borrow_mut().take();
-            timer_running.set(false);
-            timer_left.set(0);
-            timer_total.set(0);
-            workout.set(None);
-            error.set(None);
-            day_index.set(0);
-            selected_exercise.set(0);
-            saved_sets.set(Vec::new());
-            weight_inputs.set(HashMap::new());
-            reps_inputs.set(HashMap::new());
-            current_session_id.set(String::new());
-            resume_candidates.set(vec![]);
+            reset();
         })
     };
 
-    // ── Clear workout ────────────────────────────────────────────────────────
+    // ── Clear workout (go back to catalog without terminating the session) ───
     let clear_workout = {
-        let workout            = workout.clone();
-        let error              = error.clone();
-        let day_index          = day_index.clone();
-        let selected_exercise  = selected_exercise.clone();
-        let saved_sets         = saved_sets.clone();
-        let weight_inputs      = weight_inputs.clone();
-        let reps_inputs        = reps_inputs.clone();
-        let timer_running      = timer_running.clone();
-        let timer_handle       = timer_handle.clone();
-        let current_session_id = current_session_id.clone();
-        Callback::from(move |_| {
-            timer_handle.borrow_mut().take();
-            timer_running.set(false);
-            workout.set(None);
-            error.set(None);
-            day_index.set(0);
-            selected_exercise.set(0);
-            saved_sets.set(Vec::new());
-            weight_inputs.set(HashMap::new());
-            reps_inputs.set(HashMap::new());
-            current_session_id.set(String::new());
-        })
+        let reset = reset_workout_state.clone();
+        Callback::from(move |_| reset())
     };
 
     // ── History callbacks ────────────────────────────────────────────────────

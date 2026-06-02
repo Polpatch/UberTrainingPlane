@@ -7,6 +7,29 @@ const MAX_VISIBLE: usize = 5;
 const STEP_PX:    f64 = 54.0; // DOT (34px) + GAP (20px)
 const HALF_DOT:   f64 = 17.0; // DOT / 2
 
+// ── Shared drag helpers ───────────────────────────────────────────────────────
+
+fn handle_drag_start(
+    client_x: f64,
+    current_offset: f64,
+    drag_start: &Rc<RefCell<Option<(f64, f64)>>>,
+    is_dragging: &UseStateHandle<bool>,
+) {
+    *drag_start.borrow_mut() = Some((client_x, current_offset));
+    is_dragging.set(true);
+}
+
+fn handle_drag_move(
+    client_x: f64,
+    drag_start: &Rc<RefCell<Option<(f64, f64)>>>,
+    base_offset: &UseStateHandle<f64>,
+    max_offset: f64,
+) {
+    if let Some((sx, so)) = *drag_start.borrow() {
+        base_offset.set((so + sx - client_x).max(HALF_DOT).min(max_offset));
+    }
+}
+
 #[derive(Properties, PartialEq)]
 pub struct ProgressBarProps {
     /// Number of sets for this exercise.
@@ -59,14 +82,13 @@ pub fn progress_bar(props: &ProgressBarProps) -> Html {
         }
     };
 
-    // ── Mouse drag ─────────────────────────────────────────────────────────
+    // ── Drag callbacks (mouse + touch share the same helpers) ─────────────────
     let on_mouse_down = {
         let bo  = base_offset.clone();
         let ds  = drag_start.clone();
         let isd = is_dragging.clone();
         Callback::from(move |e: MouseEvent| {
-            *ds.borrow_mut() = Some((e.client_x() as f64, *bo));
-            isd.set(true);
+            handle_drag_start(e.client_x() as f64, *bo, &ds, &isd);
         })
     };
 
@@ -80,10 +102,7 @@ pub fn progress_bar(props: &ProgressBarProps) -> Html {
                 if ds.borrow().is_some() { snap(); }
                 return;
             }
-            if let Some((sx, so)) = *ds.borrow() {
-                let new_off = (so + sx - e.client_x() as f64).max(HALF_DOT).min(max);
-                bo.set(new_off);
-            }
+            handle_drag_move(e.client_x() as f64, &ds, &bo, max);
         })
     };
 
@@ -92,15 +111,13 @@ pub fn progress_bar(props: &ProgressBarProps) -> Html {
         Callback::from(move |_: MouseEvent| snap())
     };
 
-    // ── Touch drag ─────────────────────────────────────────────────────────
     let on_touch_start = {
         let bo  = base_offset.clone();
         let ds  = drag_start.clone();
         let isd = is_dragging.clone();
         Callback::from(move |e: TouchEvent| {
             if let Some(t) = e.touches().get(0) {
-                *ds.borrow_mut() = Some((t.client_x() as f64, *bo));
-                isd.set(true);
+                handle_drag_start(t.client_x() as f64, *bo, &ds, &isd);
             }
         })
     };
@@ -111,10 +128,7 @@ pub fn progress_bar(props: &ProgressBarProps) -> Html {
         let max = max_offset;
         Callback::from(move |e: TouchEvent| {
             if let Some(t) = e.touches().get(0) {
-                if let Some((sx, so)) = *ds.borrow() {
-                    let new_off = (so + sx - t.client_x() as f64).max(HALF_DOT).min(max);
-                    bo.set(new_off);
-                }
+                handle_drag_move(t.client_x() as f64, &ds, &bo, max);
             }
         })
     };
