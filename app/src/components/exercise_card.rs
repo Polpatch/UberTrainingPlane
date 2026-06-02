@@ -1,4 +1,11 @@
 use crate::components::progress_bar::ProgressBar;
+
+const STEP_VALUES: [f32; 5] = [0.5, 1.0, 2.0, 5.0, 10.0];
+
+/// Format a weight value: whole numbers without decimal, others with one decimal.
+fn fmt_weight(w: f32) -> String {
+    if w.fract() == 0.0 { format!("{:.0}", w) } else { format!("{:.1}", w) }
+}
 use crate::models::{get_input_with_fallback, weight_history_for_exercise, CompletedSet, Exercise, TimerState, WeightPoint};
 use std::collections::HashMap;
 use wasm_bindgen::JsCast;
@@ -125,8 +132,9 @@ pub struct ExerciseCardProps {
 
 #[function_component(ExerciseCard)]
 pub fn exercise_card(props: &ExerciseCardProps) -> Html {
-    let active_set = use_state(|| 0usize);
-    let chart_open = use_state(|| false);
+    let active_set  = use_state(|| 0usize);
+    let chart_open  = use_state(|| false);
+    let step_idx    = use_state(|| 0usize); // index into STEP_VALUES, default 1.0 kg
 
     let exercise    = &props.exercise;
     let exercise_id = exercise.id.clone();
@@ -148,6 +156,48 @@ pub fn exercise_card(props: &ExerciseCardProps) -> Html {
     // ── Input values (with fallback to most recent non-empty entry) ───────────
     let weight_value = get_input_with_fallback(&props.weight_inputs, &exercise_id, clamped, "");
     let reps_value   = get_input_with_fallback(&props.reps_inputs,   &exercise_id, clamped, &exercise.reps);
+
+    // ── Weight step controls ───────────────────────────────────────────────
+    let step = STEP_VALUES[*step_idx];
+
+    let on_cycle_step = {
+        let si = step_idx.clone();
+        Callback::from(move |e: MouseEvent| {
+            e.stop_propagation();
+            si.set((*si + 1) % STEP_VALUES.len());
+        })
+    };
+
+    let weight_f: f32 = weight_value.parse().unwrap_or(0.0);
+
+    let on_weight_minus = {
+        let cb  = props.on_weight_change.clone();
+        let eid = exercise_id.clone();
+        let val = fmt_weight((weight_f - step).max(0.0));
+        Callback::from(move |_: MouseEvent| cb.emit((eid.clone(), clamped, val.clone())))
+    };
+    let on_weight_plus = {
+        let cb  = props.on_weight_change.clone();
+        let eid = exercise_id.clone();
+        let val = fmt_weight(weight_f + step);
+        Callback::from(move |_: MouseEvent| cb.emit((eid.clone(), clamped, val.clone())))
+    };
+
+    // ── Reps step controls ─────────────────────────────────────────────────
+    let reps_n: i32 = reps_value.parse().unwrap_or(1);
+
+    let on_reps_minus = {
+        let cb  = props.on_reps_change.clone();
+        let eid = exercise_id.clone();
+        let val = (reps_n - 1).max(1).to_string();
+        Callback::from(move |_: MouseEvent| cb.emit((eid.clone(), clamped, val.clone())))
+    };
+    let on_reps_plus = {
+        let cb  = props.on_reps_change.clone();
+        let eid = exercise_id.clone();
+        let val = (reps_n + 1).to_string();
+        Callback::from(move |_: MouseEvent| cb.emit((eid.clone(), clamped, val.clone())))
+    };
 
     // ── Dot completion state ───────────────────────────────────────────────
     let dot_done: Vec<bool> = (0..n).map(|i| {
@@ -220,11 +270,14 @@ pub fn exercise_card(props: &ExerciseCardProps) -> Html {
                             } }
                         </div>
                         <div class="input-row">
-                            <label>
-                                {"Peso (kg)"}
+                            // ── Peso ──────────────────────────────────────
+                            <div class="input-field">
+                                <span class="input-label">{"Peso (kg)"}</span>
                                 <input
+                                    class="weight-val-input"
                                     value={weight_value}
-                                    placeholder="es. 80"
+                                    inputmode="decimal"
+                                    placeholder="0"
                                     oninput={{
                                         let cb  = props.on_weight_change.clone();
                                         let eid = exercise_id.clone();
@@ -235,23 +288,38 @@ pub fn exercise_card(props: &ExerciseCardProps) -> Html {
                                         })
                                     }}
                                 />
-                            </label>
-                            <label>
-                                {"Reps"}
-                                <input
-                                    value={reps_value}
-                                    placeholder={exercise.reps.clone()}
-                                    oninput={{
-                                        let cb  = props.on_reps_change.clone();
-                                        let eid = exercise_id.clone();
-                                        Callback::from(move |e: InputEvent| {
-                                            if let Some(i) = e.target().and_then(|t| t.dyn_into::<HtmlInputElement>().ok()) {
-                                                cb.emit((eid.clone(), clamped, i.value()));
-                                            }
-                                        })
-                                    }}
-                                />
-                            </label>
+                                <div class="step-row">
+                                    <button class="step-btn" onclick={on_weight_minus}>{"−"}</button>
+                                    <button class="step-selector" onclick={on_cycle_step}
+                                            title="Tocca per cambiare incremento">
+                                        { fmt_weight(step) }
+                                    </button>
+                                    <button class="step-btn" onclick={on_weight_plus}>{"+"}</button>
+                                </div>
+                            </div>
+                            // ── Reps ──────────────────────────────────────
+                            <div class="input-field">
+                                <span class="input-label">{"Reps"}</span>
+                                <div class="reps-row">
+                                    <button class="reps-btn" onclick={on_reps_minus}>{"−"}</button>
+                                    <input
+                                        class="reps-val-input"
+                                        value={reps_value}
+                                        inputmode="numeric"
+                                        placeholder={exercise.reps.clone()}
+                                        oninput={{
+                                            let cb  = props.on_reps_change.clone();
+                                            let eid = exercise_id.clone();
+                                            Callback::from(move |e: InputEvent| {
+                                                if let Some(i) = e.target().and_then(|t| t.dyn_into::<HtmlInputElement>().ok()) {
+                                                    cb.emit((eid.clone(), clamped, i.value()));
+                                                }
+                                            })
+                                        }}
+                                    />
+                                    <button class="reps-btn" onclick={on_reps_plus}>{"+"}</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
