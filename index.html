@@ -6,8 +6,8 @@
     <title>Allenamento WASM</title>
     
 <script type="module">
-import init, * as bindings from './fitness_wasm-8418ee83451993a2.js';
-const wasm = await init({ module_or_path: './fitness_wasm-8418ee83451993a2_bg.wasm' });
+import init, * as bindings from './fitness_wasm-59df9d2a0cc7c3dd.js';
+const wasm = await init({ module_or_path: './fitness_wasm-59df9d2a0cc7c3dd_bg.wasm' });
 
 
 window.wasmBindings = bindings;
@@ -110,9 +110,24 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
       .active-exercise { background: #fff; border-radius: 24px; padding: 24px; box-shadow: 0 16px 50px rgba(12,18,40,.08); border: 1px solid #e6e9f2; }
       .active-head { display: grid; gap: 10px; margin-bottom: 20px; }
       .active-label { color: #777; text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.82rem; }
-      .input-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
-      .input-row label { display: grid; gap: 8px; font-size: 0.95rem; color: #333; }
-      .input-row input { width: 100%; padding: 14px 16px; border-radius: 16px; border: 1px solid #d1d5db; font-size: 1rem; }
+      .input-row { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; }
+      .input-field { display: flex; flex-direction: column; gap: 8px; }
+      .input-label { font-size: 0.82rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.06em; }
+      /* Weight: large centred value input */
+      .weight-val-input { width: 100%; text-align: center; padding: 13px 12px; border-radius: 14px; border: 1.5px solid #d1d5db; font-size: 1.35rem; font-weight: 700; color: #111; }
+      .weight-val-input:focus { border-color: #2563eb; outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+      /* Step row: −  [step]  + */
+      .step-row { display: flex; align-items: center; gap: 8px; }
+      .step-btn { flex: 1; height: 46px; border-radius: 12px; background: #f3f4f6; border: 1.5px solid #e5e7eb; font-size: 1.4rem; font-weight: 700; color: #374151; cursor: pointer; transition: background .1s; }
+      .step-btn:active { background: #e5e7eb; }
+      .step-selector { flex-shrink: 0; min-width: 72px; height: 46px; border-radius: 12px; background: #eff6ff; border: 1.5px solid #bfdbfe; color: #2563eb; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background .1s; }
+      .step-selector:active { background: #dbeafe; }
+      /* Reps row: −  [input]  + */
+      .reps-row { display: flex; align-items: center; gap: 8px; }
+      .reps-btn { flex-shrink: 0; width: 48px; height: 48px; border-radius: 12px; background: #f3f4f6; border: 1.5px solid #e5e7eb; font-size: 1.4rem; font-weight: 700; color: #374151; cursor: pointer; transition: background .1s; }
+      .reps-btn:active { background: #e5e7eb; }
+      .reps-val-input { flex: 1; height: 48px; text-align: center; padding: 0 8px; border-radius: 12px; border: 1.5px solid #d1d5db; font-size: 1.2rem; font-weight: 700; color: #111; min-width: 0; }
+      .reps-val-input:focus { border-color: #2563eb; outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
       .action-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
       .primary-button, .secondary-button { border: 0; border-radius: 999px; padding: 12px 20px; cursor: pointer; font-weight: 600; }
       .primary-button { background: #111; color: white; }
@@ -178,7 +193,7 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
         .input-row { grid-template-columns: 1fr; }
       }
     </style>
-  <link rel="modulepreload" href="./fitness_wasm-8418ee83451993a2.js" crossorigin="anonymous" integrity="sha384-xKAG6DvDq1WYi8xPJR9+vxiWG1Y7pfoFxRVdEL+BcBagJOLlmzfb0nWUWR9ydfNx"><link rel="preload" href="./fitness_wasm-8418ee83451993a2_bg.wasm" crossorigin="anonymous" integrity="sha384-nkAR52VrjSC/5ccvs4jBx6GIPiggwBTixbINdnVUOl0/poCo8GGTwKa1avrtGEfI" as="fetch" type="application/wasm"></head>
+  <link rel="modulepreload" href="./fitness_wasm-59df9d2a0cc7c3dd.js" crossorigin="anonymous" integrity="sha384-qvQvxMJk1UraaTZMnnOF+q1wL7OoJBi8qdGwR/n2dtjl/XnN/zhhZt6uVQvlZNOM"><link rel="preload" href="./fitness_wasm-59df9d2a0cc7c3dd_bg.wasm" crossorigin="anonymous" integrity="sha384-wDZmPtTPzQUYDh+3fE6MDWUrPCIkXLlmGFWOVBw2s4Owu0C4VpfnJdqI9vG3Ak2K" as="fetch" type="application/wasm"></head>
   <body>
     <div id="root"></div>
   </body>
