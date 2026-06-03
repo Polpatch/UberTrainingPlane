@@ -73,7 +73,7 @@
         position: relative;
         overflow: hidden;
         margin: 0 12% 20px;   /* same side spacing as .series-progress padding */
-        height: 46px;          /* 34px dot + 6px breathing room top/bottom */
+        height: 54px;          /* 34px dot + 10px breathing room top/bottom */
         cursor: grab;
         user-select: none; -webkit-user-select: none;
         touch-action: none;
@@ -173,7 +173,7 @@
       .sheet-handle-pill { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 36px; height: 4px; border-radius: 2px; background: #d1d5db; }
       .sheet-ex-name { flex: 1; font-weight: 700; font-size: 1rem; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-top: 4px; }
       .sheet-progress-mini { font-size: 0.85rem; font-weight: 600; color: #6b7280; white-space: nowrap; }
-      .sheet-content { flex: 1; overflow-y: auto; padding: 4px 20px 8px; }
+      .sheet-content { flex: 1; overflow-y: auto; padding: 14px 20px 8px; }
       .sheet-actions { flex-shrink: 0; display: flex; gap: 10px; padding: 10px 20px 18px; border-top: 1px solid #f3f4f6; background: white; }
       .app-main { padding-bottom: 80px; }
       /* Resume-session dialog */
@@ -190,6 +190,31 @@
       .footer-btn { flex: 1; border: 0; border-radius: 999px; padding: 14px 20px; cursor: pointer; font-weight: 600; font-size: 0.95rem; }
       .footer-btn--save { background: #111; color: white; }
       .footer-btn--delete { background: #fff1f1; color: #b91c1c; border: 1.5px solid #fecaca; }
+      /* Dot pop animation on set registration */
+      @keyframes dot-pop {
+        0%   { transform: scale(1); }
+        35%  { transform: scale(1.45); box-shadow: 0 0 0 7px rgba(37,99,235,.22); }
+        100% { transform: scale(1);   box-shadow: none; }
+      }
+      .series-dot--just-saved         { animation: dot-pop 0.55s ease-out; }
+      .series-capsule--just-saved     { animation: dot-pop 0.55s ease-out; }
+      /* Session progress badge in day-header */
+      .day-header-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+      .session-progress-badge { font-size: 0.88rem; font-weight: 700; color: #2563eb; background: #eff6ff; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+      .session-progress-badge--done { color: #166534; background: #dcfce7; }
+      /* Workout completion modal */
+      .completion-overlay { position: fixed; inset: 0; background: rgba(12,18,40,.6); z-index: 160; display: flex; align-items: center; justify-content: center; padding: 24px; }
+      .completion-modal { background: white; border-radius: 28px; padding: 28px 24px; width: 100%; max-width: 380px; display: grid; gap: 22px; box-shadow: 0 32px 80px rgba(12,18,40,.25); }
+      .completion-modal-title { font-size: 1.3rem; font-weight: 800; color: #166534; text-align: center; }
+      .completion-stats { display: flex; justify-content: space-around; background: #f0fdf4; border-radius: 18px; padding: 16px 8px; }
+      .completion-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+      .completion-stat-value { font-size: 1.6rem; font-weight: 800; color: #166534; }
+      .completion-stat-label { font-size: 0.75rem; color: #16a34a; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+      .completion-modal-actions { display: flex; flex-direction: column; gap: 10px; }
+      .completion-save-btn { width: 100%; background: #16a34a; font-size: 1rem; padding: 14px 20px; }
+      .completion-modal-actions .secondary-button { width: 100%; text-align: center; padding: 12px 20px; }
+      /* Save button turns green when workout is complete */
+      .footer-btn--save--done { background: #16a34a; }
       @media (max-width: 720px) {
         .app-shell { padding: 16px; }
         .app-header { align-items: stretch; }

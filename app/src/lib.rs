@@ -106,9 +106,10 @@ fn app() -> Html {
     let timer_handle       = use_mut_ref(|| None::<Interval>);
     let reader_task        = use_mut_ref(|| None::<FileReader>);
     let import_reader      = use_mut_ref(|| None::<FileReader>);
-    let menu_open       = use_state(|| false);
-    let history_open    = use_state(|| false);
-    let viewing_history = use_state(|| false);
+    let menu_open          = use_state(|| false);
+    let history_open       = use_state(|| false);
+    let viewing_history    = use_state(|| false);
+    let show_completion    = use_state(|| false);
     // ID of the currently active session (empty = no workout loaded)
     let current_session_id  = use_state(|| String::new());
     // Non-empty when multiple open sessions exist and user must choose
@@ -716,6 +717,7 @@ fn app() -> Html {
         let current_session_id = current_session_id.clone();
         let resume_candidates  = resume_candidates.clone();
         let viewing_history    = viewing_history.clone();
+        let show_completion    = show_completion.clone();
         Rc::new(move || {
             timer_handle.borrow_mut().take();
             timer_running.set(false);
@@ -731,6 +733,7 @@ fn app() -> Html {
             current_session_id.set(String::new());
             resume_candidates.set(vec![]);
             viewing_history.set(false);
+            show_completion.set(false);
         })
     };
 
@@ -857,6 +860,50 @@ fn app() -> Html {
         );
     }
 
+    // Pre-compute session progress (done / total sets for current day)
+    let session_done: usize = saved_sets.len();
+    let session_total: usize = workout.as_ref()
+        .and_then(|w| w.giorni.get(*day_index))
+        .map(|d| d.esercizi.iter().map(|e| e.serie as usize).sum())
+        .unwrap_or(0);
+    let all_done = session_total > 0
+        && session_done >= session_total
+        && !(*current_session_id).is_empty()
+        && !*viewing_history;
+
+    // Pre-compute completion stats (only when all sets done)
+    let completion_duration: String = if all_done {
+        let wid = workout.as_ref().map(|w| w.id.clone()).unwrap_or_default();
+        let sid = (*current_session_id).clone();
+        load_sessions(&wid)
+            .into_iter()
+            .find(|s| s.id == sid)
+            .map(|s| {
+                let diff_ms = (js_sys::Date::now() - js_sys::Date::parse(&s.started)).max(0.0);
+                let mins = (diff_ms / 60000.0) as u32;
+                let secs = ((diff_ms % 60000.0) / 1000.0) as u32;
+                format!("{}:{:02}", mins, secs)
+            })
+            .unwrap_or_else(|| "-".to_string())
+    } else {
+        String::new()
+    };
+    let completion_weight: f32 = if all_done {
+        saved_sets.iter().filter_map(|s| s.peso).sum()
+    } else { 0.0 };
+
+    // Auto-open completion modal when the last set is registered
+    {
+        let sc = show_completion.clone();
+        use_effect_with_deps(
+            move |done: &bool| {
+                if *done { sc.set(true); }
+                || ()
+            },
+            all_done,
+        );
+    }
+
     // Pre-compute timer circle dashoffset (2π × r=19 ≈ 119.38)
     let timer_dashoffset: String = {
         const CIRCUM: f64 = 119.38;
@@ -888,6 +935,11 @@ fn app() -> Html {
             } else { vec![] }
         } else { vec![] }
     } else { vec![] };
+
+    let on_close_completion = {
+        let sc = show_completion.clone();
+        Callback::from(move |_: MouseEvent| sc.set(false))
+    };
 
     // ── Render ───────────────────────────────────────────────────────────────
     let open_menu  = { let m = menu_open.clone(); Callback::from(move |_| m.set(true))  };
@@ -985,7 +1037,17 @@ fn app() -> Html {
                                     html! {
                                         <>
                                             <div class="day-header">
-                                                <h2>{ day.etichetta.clone().unwrap_or_else(|| day.giorno.clone()) }</h2>
+                                                <div class="day-header-row">
+                                                    <h2>{ day.etichetta.clone().unwrap_or_else(|| day.giorno.clone()) }</h2>
+                                                    if session_total > 0 {
+                                                        <span class={classes!(
+                                                            "session-progress-badge",
+                                                            if all_done { Some("session-progress-badge--done") } else { None }
+                                                        )}>
+                                                            { format!("{} / {} serie", session_done, session_total) }
+                                                        </span>
+                                                    }
+                                                </div>
                                                 <p>{ format!("{} esercizi", day.esercizi.len()) }</p>
                                             </div>
                                             <section class="exercise-list">
@@ -1002,7 +1064,11 @@ fn app() -> Html {
                                                 }) }
                                             </section>
                                             <div class="workout-footer">
-                                                <button class="footer-btn footer-btn--save"
+                                                <button class={classes!(
+                                                    "footer-btn",
+                                                    "footer-btn--save",
+                                                    if all_done { Some("footer-btn--save--done") } else { None }
+                                                )}
                                                     onclick={on_save_and_finish.clone()}>
                                                     {"Salva e termina"}
                                                 </button>
@@ -1130,6 +1196,49 @@ fn app() -> Html {
                                 onclick={{ let cb = on_cancel_timer.clone(); Callback::from(move |_| cb.emit(())) }}>
                             {"✕"}
                         </button>
+                    </div>
+                </div>
+            }
+
+            // ── Workout completion modal ──────────────────────────────────────
+            if *show_completion {
+                <div class="completion-overlay"
+                    onclick={on_close_completion.clone()}>
+                    <div class="completion-modal"
+                        onclick={Callback::from(|e: MouseEvent| e.stop_propagation())}>
+                        <div class="completion-modal-title">{"Allenamento completato!"}</div>
+                        <div class="completion-stats">
+                            <div class="completion-stat">
+                                <span class="completion-stat-value">{ session_done.to_string() }</span>
+                                <span class="completion-stat-label">{"Serie"}</span>
+                            </div>
+                            <div class="completion-stat">
+                                <span class="completion-stat-value">
+                                    { format!("{:.0}kg", completion_weight) }
+                                </span>
+                                <span class="completion-stat-label">{"Peso totale"}</span>
+                            </div>
+                            <div class="completion-stat">
+                                <span class="completion-stat-value">{ completion_duration.clone() }</span>
+                                <span class="completion-stat-label">{"Durata"}</span>
+                            </div>
+                        </div>
+                        <div class="completion-modal-actions">
+                            <button class="primary-button completion-save-btn"
+                                onclick={{
+                                    let close = on_close_completion.clone();
+                                    let save  = on_save_and_finish.clone();
+                                    Callback::from(move |e: MouseEvent| {
+                                        close.emit(e.clone());
+                                        save.emit(e);
+                                    })
+                                }}>
+                                {"Salva e termina"}
+                            </button>
+                            <button class="secondary-button" onclick={on_close_completion.clone()}>
+                                {"Rivedi l'allenamento"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             }

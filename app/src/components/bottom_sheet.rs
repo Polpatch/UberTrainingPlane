@@ -3,6 +3,7 @@ use crate::models::{
     get_input_with_fallback, weight_history_for_exercise,
     CompletedSet, Day, Exercise, TimerState, WeightPoint,
 };
+use gloo_timers::callback::Timeout;
 use std::collections::HashMap;
 use wasm_bindgen::JsCast;
 use web_sys::HtmlInputElement;
@@ -117,10 +118,12 @@ pub struct BottomSheetProps {
 
 #[function_component(BottomSheet)]
 pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
-    let active_set = use_state(|| 0usize);
-    let step_idx   = use_state(|| 1usize); // 1.0 kg default
-    let chart_open = use_state(|| false);
-    let expanded   = use_state(|| true);
+    let active_set         = use_state(|| 0usize);
+    let step_idx           = use_state(|| 1usize); // 1.0 kg default
+    let chart_open         = use_state(|| false);
+    let expanded           = use_state(|| true);
+    let just_saved         = use_state(|| None::<usize>);
+    let just_saved_timeout = use_mut_ref(|| None::<Timeout>);
 
     // ── Values computed before hooks (hooks must run unconditionally) ─────────
     let exercise_id = props.exercise.as_ref().map(|e| e.id.clone()).unwrap_or_default();
@@ -185,6 +188,16 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
     // ── Input values ──────────────────────────────────────────────────────────
     let weight_value = get_input_with_fallback(&props.weight_inputs, &exercise_id, clamped, "");
     let reps_value   = get_input_with_fallback(&props.reps_inputs,   &exercise_id, clamped, &exercise.reps);
+
+    // Hint from last session — shown as placeholder when no weight entered yet
+    let weight_hint: String = if weight_value.is_empty() {
+        weight_history_for_exercise(&props.workout_id, &exercise.id)
+            .last()
+            .map(|p| fmt_weight(p.max_weight))
+            .unwrap_or_default()
+    } else {
+        String::new()
+    };
     let set_number   = (clamped + 1) as u32;
     let completed    = props.saved_sets.iter()
         .any(|s| s.exercise_id == exercise.id && s.set_number == set_number);
@@ -224,16 +237,23 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
         Callback::from(move |_: MouseEvent| cb.emit((eid.clone(), clamped, val.clone())))
     };
 
-    // ── Save set + active_set advance (same as before) ────────────────────────
+    // ── Save set + active_set advance + just-saved pulse ─────────────────────
     let on_register = {
-        let save          = props.on_save_set.clone();
-        let asc           = active_set.clone();
-        let dot_snap      = dot_done.clone();
-        let cancel_timer  = props.on_cancel_timer.clone();
-        let was_completed = completed;
-        let timer_active  = props.timer.running;
+        let save           = props.on_save_set.clone();
+        let asc            = active_set.clone();
+        let dot_snap       = dot_done.clone();
+        let cancel_timer   = props.on_cancel_timer.clone();
+        let was_completed  = completed;
+        let timer_active   = props.timer.running;
+        let js             = just_saved.clone();
+        let jst            = just_saved_timeout.clone();
         Callback::from(move |_: MouseEvent| {
             save.emit(clamped);
+            // Trigger pulse animation on the saved dot
+            js.set(Some(clamped));
+            let js2 = js.clone();
+            let t = Timeout::new(600, move || { js2.set(None); });
+            *jst.borrow_mut() = Some(t);
             if !was_completed {
                 if timer_active { cancel_timer.emit(()); }
                 let next = (1..n)
@@ -285,6 +305,7 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                         n={exercise.serie}
                         dot_done={dot_done.clone()}
                         active={clamped}
+                        just_saved={*just_saved}
                         on_select={{
                             let asc = active_set.clone();
                             Callback::from(move |idx: usize| asc.set(idx))
@@ -305,7 +326,8 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                             <div class="input-field">
                                 <span class="input-label">{"Peso (kg)"}</span>
                                 <input class="weight-val-input" value={weight_value}
-                                    inputmode="decimal" placeholder="0"
+                                    inputmode="decimal"
+                                    placeholder={if weight_hint.is_empty() { "0".to_string() } else { format!("{} (ultima)", weight_hint) }}
                                     oninput={{
                                         let cb = props.on_weight_change.clone();
                                         let eid = exercise_id.clone();
@@ -358,7 +380,6 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                         { if completed { "Aggiorna serie" } else { "Registra serie" } }
                     </button>
                     if !props.history_mode
-                        && exercise.recupero.is_some()
                         && (!completed || props.timer.running || props.timer.left > 0)
                     {
                         <button class="secondary-button" onclick={{
