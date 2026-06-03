@@ -66,6 +66,9 @@ fn inputs_from_sets(sets: &[CompletedSet]) -> (HashMap<String, Vec<String>>, Has
     (w, r)
 }
 
+/// JSON Schema for validating custom schede (VS Code / editor autocomplete).
+const SCHEDA_SCHEMA: &str = include_str!("../../examples/schede/workout_schema.json");
+
 /// Template JSON shown to the user as a starting point for custom schede.
 const TEMPLATE_SCHEDA: &str = r#"{
   "id": "mia_scheda",
@@ -220,6 +223,10 @@ fn app() -> Html {
 
     let on_download_template = Callback::from(|_| {
         trigger_download("template_scheda.json", TEMPLATE_SCHEDA);
+    });
+
+    let on_download_schema = Callback::from(|_| {
+        trigger_download("workout_schema.json", SCHEDA_SCHEMA);
     });
 
     let on_import_file = {
@@ -1316,8 +1323,12 @@ fn app() -> Html {
                             <span class="menu-action-icon">{"⬡"}</span>
                             {"Scarica template JSON"}
                         </button>
+                        <button class="menu-action-btn" onclick={on_download_schema}>
+                            <span class="menu-action-icon">{"◻"}</span>
+                            {"Scarica JSON Schema"}
+                        </button>
                         <p class="menu-hint">
-                            {"Struttura di esempio con tutti i campi disponibili. Modificala e caricala come scheda personalizzata."}
+                            {"Il template è un esempio completo da modificare. Lo schema permette la validazione e l'autocomplete in VS Code."}
                         </p>
                         <div class="local-data-indicator">
                             <span class="local-data-dot"></span>
