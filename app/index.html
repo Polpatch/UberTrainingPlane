@@ -87,6 +87,10 @@
         --amber-bg:     #fff7e0;
         --amber-border: #ffe4a3;
 
+        /* ── Primary action button ───────────────── */
+        --btn-primary-bg: #111111;
+        --btn-primary-fg: #f6f7fb;
+
         /* ── Shadows ─────────────────────────────── */
         --sh-sm:      rgba(12,18,40,.05);
         --sh-md:      rgba(12,18,40,.08);
@@ -140,6 +144,9 @@
           --amber-bg:     #2d1f00;
           --amber-border: #78350f;
 
+          --btn-primary-bg: #3b82f6;
+          --btn-primary-fg: #ffffff;
+
           --sh-sm:      rgba(0,0,0,.25);
           --sh-md:      rgba(0,0,0,.35);
           --sh-lg:      rgba(0,0,0,.45);
@@ -157,11 +164,11 @@
       .app-header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 24px; }
       .app-header h1 { margin: 0 0 6px; font-size: clamp(1.8rem, 2.5vw, 2.8rem); }
       .app-header p { margin: 0; color: var(--text-2); max-width: 640px; }
-      .clear-button { background: var(--text); color: var(--bg); border: 0; border-radius: 999px; padding: 12px 18px; cursor: pointer; font-weight: 600; }
+      .clear-button { background: var(--btn-primary-bg); color: var(--btn-primary-fg); border: 0; border-radius: 999px; padding: 12px 18px; cursor: pointer; font-weight: 600; }
       .app-main { display: grid; gap: 18px; padding-bottom: 80px; }
       .upload-panel { display: grid; gap: 18px; }
       .upload-card { background: var(--surface); border-radius: 24px; padding: 28px; box-shadow: 0 16px 48px var(--sh-sm); }
-      .file-label { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; background: var(--text); color: var(--bg); border-radius: 999px; padding: 14px 20px; font-weight: 600; border: 1px solid transparent; }
+      .file-label { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; background: var(--btn-primary-bg); color: var(--btn-primary-fg); border-radius: 999px; padding: 14px 20px; font-weight: 600; border: 1px solid transparent; }
       .file-label input { display: none; }
       .hint { margin: 14px 0 0; color: var(--text-3); line-height: 1.6; }
       .catalog-list { display: grid; gap: 12px; margin-top: 16px; }
@@ -264,7 +271,7 @@
       input::placeholder { color: var(--text-4); opacity: 1; }
       .action-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
       .primary-button, .secondary-button { border: 0; border-radius: 999px; padding: 12px 20px; cursor: pointer; font-weight: 600; }
-      .primary-button  { background: var(--text);     color: var(--bg); }
+      .primary-button  { background: var(--btn-primary-bg); color: var(--btn-primary-fg); }
       .secondary-button { background: var(--surface-3); color: var(--text); }
       .timer-toast { position: fixed; top: 12px; left: 12px; right: 12px; z-index: 150; height: 64px; background: var(--surface); border-radius: 18px; box-shadow: 0 4px 24px var(--sh-xl), 0 1px 6px var(--sh-md); display: flex; align-items: center; gap: 14px; padding: 0 20px; }
       .timer-toast-label { flex: 1; font-size: 0.95rem; font-weight: 600; color: var(--text-2); }
@@ -329,7 +336,7 @@
       .resume-option-meta { color: var(--text-3); font-size: 0.9rem; }
       .workout-footer { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
       .footer-btn { flex: 1; border: 0; border-radius: 999px; padding: 14px 20px; cursor: pointer; font-weight: 600; font-size: 0.95rem; }
-      .footer-btn--save { background: var(--text); color: var(--bg); }
+      .footer-btn--save { background: var(--btn-primary-bg); color: var(--btn-primary-fg); }
       .footer-btn--delete { background: var(--red-bg); color: var(--red); border: 1.5px solid var(--red-border); }
       /* Day / exercise transition animations */
       @keyframes list-in {
