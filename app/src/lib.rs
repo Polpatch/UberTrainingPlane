@@ -110,6 +110,7 @@ fn app() -> Html {
     let history_open       = use_state(|| false);
     let viewing_history    = use_state(|| false);
     let show_completion    = use_state(|| false);
+    let expand_trigger     = use_state(|| 0usize);
     // ID of the currently active session (empty = no workout loaded)
     let current_session_id  = use_state(|| String::new());
     // Non-empty when multiple open sessions exist and user must choose
@@ -308,7 +309,11 @@ fn app() -> Html {
     // ── Exercise / day selection ─────────────────────────────────────────────
     let on_select_exercise = {
         let selected_exercise = selected_exercise.clone();
-        Callback::from(move |idx: usize| selected_exercise.set(idx))
+        let expand_trigger    = expand_trigger.clone();
+        Callback::from(move |idx: usize| {
+            selected_exercise.set(idx);
+            expand_trigger.set(*expand_trigger + 1);
+        })
     };
 
     let on_change_day = {
@@ -1118,6 +1123,7 @@ fn app() -> Html {
                 workout_id={sheet_workout_id}
                 selected_exercise_idx={*selected_exercise}
                 on_select_exercise={on_select_exercise.clone()}
+                expand_trigger={*expand_trigger}
             />
 
             // ── Burger menu modal ────────────────────────────────────────────
@@ -1161,18 +1167,15 @@ fn app() -> Html {
                 <div class="timer-toast">
                     // Circular countdown
                     <svg viewBox="0 0 50 50" width="50" height="50" style="flex-shrink:0">
-                        // Background ring
-                        <circle cx="25" cy="25" r="19"
+                        <circle class="timer-ring-bg" cx="25" cy="25" r="19"
                                 fill="none" stroke="#dbeafe" stroke-width="3.5"/>
-                        // Progress arc (depletes as time runs out)
-                        <circle cx="25" cy="25" r="19"
+                        <circle class="timer-ring-arc" cx="25" cy="25" r="19"
                                 fill="none" stroke="#2563eb" stroke-width="3.5"
                                 stroke-linecap="round"
                                 stroke-dasharray="119.38"
                                 stroke-dashoffset={timer_dashoffset}
                                 transform="rotate(-90, 25, 25)"/>
-                        // Seconds label
-                        <text x="25" y="30" text-anchor="middle"
+                        <text class="timer-ring-text" x="25" y="30" text-anchor="middle"
                               font-size="13" font-weight="700" fill="#111">
                             { format!("{}s", *timer_left) }
                         </text>

@@ -55,17 +55,19 @@ fn render_weight_chart(points: &[WeightPoint]) -> Html {
     html! {
         <svg viewBox={format!("0 0 {view_width} {view_height}")} width="100%" height="130"
              style="display:block;overflow:visible">
-            <line x1={format!("{pad_left}")} y1={y_top_str.clone()}
+            <line class="chart-gridline-light"
+                  x1={format!("{pad_left}")} y1={y_top_str.clone()}
                   x2={format!("{:.0}", view_width - pad_right)} y2={y_top_str.clone()}
                   stroke="#f3f4f6" stroke-width="1"/>
-            <line x1={format!("{pad_left}")} y1={y_bot_str.clone()}
+            <line class="chart-gridline"
+                  x1={format!("{pad_left}")} y1={y_bot_str.clone()}
                   x2={format!("{:.0}", view_width - pad_right)} y2={y_bot_str.clone()}
                   stroke="#e5e7eb" stroke-width="1"/>
-            <text x={x_ylabel_str.clone()} y={y_top_str}
+            <text class="chart-ylabel" x={x_ylabel_str.clone()} y={y_top_str}
                   text-anchor="end" font-size="9" fill="#9ca3af">{ label_max_w }</text>
-            <text x={x_ylabel_str} y={format!("{:.1}", pad_top + inner_h + 3.0)}
+            <text class="chart-ylabel" x={x_ylabel_str} y={format!("{:.1}", pad_top + inner_h + 3.0)}
                   text-anchor="end" font-size="9" fill="#9ca3af">{ label_min_w }</text>
-            <path d={path_d} fill="none" stroke="#2563eb"
+            <path class="chart-line" d={path_d} fill="none" stroke="#2563eb"
                   stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
             { for points.iter().enumerate().map(|(i, p)| {
                 let x = to_x(i); let y = to_y(p.max_weight);
@@ -75,14 +77,17 @@ fn render_weight_chart(points: &[WeightPoint]) -> Html {
                 let dy        = format!("{:.1}", view_height - 4.0);
                 html! {
                     <g>
-                        <circle cx={format!("{x:.1}")} cy={format!("{y:.1}")} r="3.5"
+                        <circle class="chart-dot"
+                                cx={format!("{x:.1}")} cy={format!("{y:.1}")} r="3.5"
                                 fill="#2563eb" stroke="white" stroke-width="1.5"/>
-                        <text x={format!("{x:.1}")} y={format!("{:.1}", y - 7.0)}
+                        <text class="chart-value"
+                              x={format!("{x:.1}")} y={format!("{:.1}", y - 7.0)}
                               text-anchor="middle" font-size="9" fill="#111" font-weight="600">
                             { format!("{:.1}", p.max_weight) }
                         </text>
                         { if show_date { html! {
-                            <text x={format!("{x:.1}")} y={dy}
+                            <text class="chart-date"
+                                  x={format!("{x:.1}")} y={dy}
                                   text-anchor={anchor} font-size="9" fill="#9ca3af">
                                 { date_str }
                             </text>
@@ -114,6 +119,8 @@ pub struct BottomSheetProps {
     /// Index of the selected exercise in the day (for exercise-level auto-advance).
     pub selected_exercise_idx: usize,
     pub on_select_exercise:    Callback<usize>,
+    /// Increments every time the user taps an exercise card — forces sheet open.
+    pub expand_trigger: usize,
 }
 
 #[function_component(BottomSheet)]
@@ -179,6 +186,15 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                 || ()
             },
             n_saves,
+        );
+    }
+
+    // ── Hook: expand sheet whenever user taps a card (same or different) ──────
+    {
+        let exp = expanded.clone();
+        use_effect_with_deps(
+            move |_: &usize| { exp.set(true); || () },
+            props.expand_trigger,
         );
     }
 
