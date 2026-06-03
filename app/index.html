@@ -119,6 +119,8 @@
         }
       }
       * { box-sizing: border-box; }
+      /* Reset browser-default button styling so dark mode variables apply cleanly */
+      button { background: transparent; border: none; cursor: pointer; font-family: inherit; font-size: inherit; color: inherit; padding: 0; }
       body { margin: 0; min-height: 100vh; }
       .app-shell { max-width: 980px; margin: 0 auto; padding: 20px; }
       .app-shell--timer { padding-top: 96px; }
@@ -136,8 +138,19 @@
       .catalog-card { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; cursor: pointer; transition: box-shadow .2s ease; }
       .catalog-card:hover { box-shadow: 0 12px 30px var(--sh-md); }
       .catalog-info { display: grid; gap: 4px; }
+      .catalog-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
       .catalog-title { font-weight: 700; }
       .catalog-meta { color: var(--text-3); font-size: 0.92rem; }
+      /* Catalog select button */
+      .select-button { background: var(--surface-3); color: var(--text); border: 1.5px solid var(--border); border-radius: 999px; padding: 8px 18px; font-size: 0.9rem; font-weight: 600; white-space: nowrap; transition: background .15s; flex-shrink: 0; }
+      .select-button:hover { background: var(--border); }
+      .select-button--featured { background: var(--blue); color: white; border-color: var(--blue); }
+      .select-button--featured:hover { background: var(--blue-dk); border-color: var(--blue-dk); }
+      /* Featured catalog card */
+      .catalog-card--featured { flex-direction: column; align-items: flex-start; gap: 14px; border: 2px solid var(--blue); background: var(--blue-bg); padding: 20px; }
+      .catalog-card--featured .catalog-title { font-size: 1.05rem; }
+      .catalog-card--featured .select-button { width: 100%; text-align: center; }
+      .catalog-featured-badge { font-size: 0.72rem; font-weight: 700; color: var(--blue); background: var(--blue-soft); padding: 2px 8px; border-radius: 999px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
       .workout-details { display: grid; gap: 20px; }
       .workout-meta { background: var(--surface); border-radius: 24px; padding: 24px; box-shadow: 0 14px 34px var(--sh-sm); }
       .meta-label { font-size: 0.95rem; color: var(--text-4); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
