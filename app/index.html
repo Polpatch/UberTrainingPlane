@@ -288,6 +288,17 @@
       .footer-btn { flex: 1; border: 0; border-radius: 999px; padding: 14px 20px; cursor: pointer; font-weight: 600; font-size: 0.95rem; }
       .footer-btn--save { background: var(--text); color: var(--bg); }
       .footer-btn--delete { background: var(--red-bg); color: var(--red); border: 1.5px solid var(--red-border); }
+      /* Day / exercise transition animations */
+      @keyframes list-in {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: none; }
+      }
+      @keyframes content-in {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: none; }
+      }
+      .exercise-list { animation: list-in 0.22s ease-out; }
+      .sheet-content { animation: content-in 0.18s ease-out; }
       /* Dot pop animation */
       @keyframes dot-pop {
         0%   { transform: scale(1); }

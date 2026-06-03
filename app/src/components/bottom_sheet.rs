@@ -310,7 +310,7 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
 
             // ── Expandable content ────────────────────────────────────────
             if *expanded {
-                <div class="sheet-content">
+                <div class="sheet-content" key={exercise_id.clone()}>
                     if *chart_open {
                         <div class="weight-chart-section">
                             { render_weight_chart(&chart_points) }

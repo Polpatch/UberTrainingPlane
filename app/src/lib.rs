@@ -106,11 +106,13 @@ fn app() -> Html {
     let timer_handle       = use_mut_ref(|| None::<Interval>);
     let reader_task        = use_mut_ref(|| None::<FileReader>);
     let import_reader      = use_mut_ref(|| None::<FileReader>);
-    let menu_open          = use_state(|| false);
-    let history_open       = use_state(|| false);
-    let viewing_history    = use_state(|| false);
-    let show_completion    = use_state(|| false);
-    let expand_trigger     = use_state(|| 0usize);
+    let menu_open               = use_state(|| false);
+    let history_open            = use_state(|| false);
+    let viewing_history         = use_state(|| false);
+    let show_completion         = use_state(|| false);
+    let expand_trigger          = use_state(|| 0usize);
+    let session_elapsed         = use_state(|| 0u32);
+    let session_elapsed_handle  = use_mut_ref(|| None::<Interval>);
     // ID of the currently active session (empty = no workout loaded)
     let current_session_id  = use_state(|| String::new());
     // Non-empty when multiple open sessions exist and user must choose
@@ -708,26 +710,30 @@ fn app() -> Html {
     // Shared: reset all workout-related state handles to their initial values.
     // Used by on_save_and_finish, on_delete_workout, and clear_workout.
     let reset_workout_state: Rc<dyn Fn()> = {
-        let timer_handle       = timer_handle.clone();
-        let timer_running      = timer_running.clone();
-        let timer_left         = timer_left.clone();
-        let timer_total        = timer_total.clone();
-        let workout            = workout.clone();
-        let error              = error.clone();
-        let day_index          = day_index.clone();
-        let selected_exercise  = selected_exercise.clone();
-        let saved_sets         = saved_sets.clone();
-        let weight_inputs      = weight_inputs.clone();
-        let reps_inputs        = reps_inputs.clone();
-        let current_session_id = current_session_id.clone();
-        let resume_candidates  = resume_candidates.clone();
-        let viewing_history    = viewing_history.clone();
-        let show_completion    = show_completion.clone();
+        let timer_handle           = timer_handle.clone();
+        let timer_running          = timer_running.clone();
+        let timer_left             = timer_left.clone();
+        let timer_total            = timer_total.clone();
+        let workout                = workout.clone();
+        let error                  = error.clone();
+        let day_index              = day_index.clone();
+        let selected_exercise      = selected_exercise.clone();
+        let saved_sets             = saved_sets.clone();
+        let weight_inputs          = weight_inputs.clone();
+        let reps_inputs            = reps_inputs.clone();
+        let current_session_id     = current_session_id.clone();
+        let resume_candidates      = resume_candidates.clone();
+        let viewing_history        = viewing_history.clone();
+        let show_completion        = show_completion.clone();
+        let session_elapsed        = session_elapsed.clone();
+        let session_elapsed_handle = session_elapsed_handle.clone();
         Rc::new(move || {
             timer_handle.borrow_mut().take();
             timer_running.set(false);
             timer_left.set(0);
             timer_total.set(0);
+            session_elapsed_handle.borrow_mut().take();
+            session_elapsed.set(0);
             workout.set(None);
             error.set(None);
             day_index.set(0);
@@ -865,6 +871,45 @@ fn app() -> Html {
         );
     }
 
+    // ── Session elapsed timer ────────────────────────────────────────────────
+    {
+        let elapsed = session_elapsed.clone();
+        let handle  = session_elapsed_handle.clone();
+        let wk      = workout.clone();
+        use_effect_with_deps(
+            move |(sid, in_history): &(String, bool)| {
+                handle.borrow_mut().take();
+                if sid.is_empty() || *in_history {
+                    elapsed.set(0);
+                } else {
+                    let initial = wk.as_ref()
+                        .and_then(|w| {
+                            load_sessions(&w.id)
+                                .into_iter()
+                                .find(|s| &s.id == sid)
+                                .map(|s| {
+                                    let diff = (js_sys::Date::now() - js_sys::Date::parse(&s.started)).max(0.0);
+                                    (diff / 1000.0) as u32
+                                })
+                        })
+                        .unwrap_or(0);
+                    elapsed.set(initial);
+                    let elapsed2 = elapsed.clone();
+                    let count    = Rc::new(Cell::new(initial));
+                    let count2   = count.clone();
+                    let h = Interval::new(1000, move || {
+                        let n = count2.get() + 1;
+                        count2.set(n);
+                        elapsed2.set(n);
+                    });
+                    *handle.borrow_mut() = Some(h);
+                }
+                || ()
+            },
+            ((*current_session_id).clone(), *viewing_history),
+        );
+    }
+
     // Pre-compute session progress (done / total sets for current day)
     let session_done: usize = saved_sets.len();
     let session_total: usize = workout.as_ref()
@@ -908,6 +953,12 @@ fn app() -> Html {
             all_done,
         );
     }
+
+    // Pre-compute session elapsed display string
+    let elapsed_str: String = {
+        let s = *session_elapsed;
+        if s > 0 { format!("{}:{:02}", s / 60, s % 60) } else { String::new() }
+    };
 
     // Pre-compute timer circle dashoffset (2π × r=19 ≈ 119.38)
     let timer_dashoffset: String = {
@@ -1053,9 +1104,14 @@ fn app() -> Html {
                                                         </span>
                                                     }
                                                 </div>
-                                                <p>{ format!("{} esercizi", day.esercizi.len()) }</p>
+                                                <p>
+                                                    { format!("{} esercizi", day.esercizi.len()) }
+                                                    if !elapsed_str.is_empty() {
+                                                        { format!(" · {}", elapsed_str.clone()) }
+                                                    }
+                                                </p>
                                             </div>
-                                            <section class="exercise-list">
+                                            <section class="exercise-list" key={*day_index}>
                                                 { for day.esercizi.iter().enumerate().map(|(idx, exercise)| {
                                                     let on_select_exercise = on_select_exercise.clone();
                                                     html! {
