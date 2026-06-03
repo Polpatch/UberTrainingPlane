@@ -149,7 +149,7 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
     let active_set         = use_state(|| 0usize);
     let step_idx           = use_state(|| 1usize); // 1.0 kg default
     let chart_open         = use_state(|| false);
-    let expanded           = use_state(|| true);
+    let expanded           = use_state(|| false);
     let just_saved         = use_state(|| None::<usize>);
     let just_saved_timeout = use_mut_ref(|| None::<Timeout>);
 
@@ -170,13 +170,12 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
 
     let completed_count = dot_done.iter().filter(|&&d| d).count();
 
-    // ── Hook: reset active_set and expand when exercise changes ───────────────
+    // ── Hook: reset active_set when exercise changes ──────────────────────────
     {
-        let asc       = active_set.clone();
-        let exp       = expanded.clone();
-        let saved     = props.saved_sets.clone();
-        let eid       = exercise_id.clone();
-        let n_effect  = n;
+        let asc      = active_set.clone();
+        let saved    = props.saved_sets.clone();
+        let eid      = exercise_id.clone();
+        let n_effect = n;
         use_effect_with_deps(
             move |_id: &String| {
                 let first = (0..n_effect).find(|&i| {
@@ -184,7 +183,6 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                     !saved.iter().any(|set| set.exercise_id == eid && set.set_number == s)
                 }).unwrap_or(0);
                 asc.set(first);
-                exp.set(true);
                 || ()
             },
             exercise_id.clone(),
