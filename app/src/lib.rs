@@ -86,7 +86,8 @@ const TEMPLATE_SCHEDA: &str = r#"{
           "serie": 4,
           "reps": "8-10",
           "recupero": 120,
-          "note": "Nota opzionale: tecnica, variante, focus muscolare..."
+          "note": "Nota opzionale: tecnica, variante, focus muscolare...",
+          "video": "https://www.youtube.com/watch?v=vcBig73ojpE"
         },
         {
           "id": "esercizio_2",

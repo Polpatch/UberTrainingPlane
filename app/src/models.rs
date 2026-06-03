@@ -29,6 +29,7 @@ pub struct Exercise {
     pub reps: String,
     pub recupero: Option<u32>,
     pub note: Option<String>,
+    pub video: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
