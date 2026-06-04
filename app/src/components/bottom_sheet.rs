@@ -1,6 +1,7 @@
+use crate::components::icons::{icon_chart, icon_play};
 use crate::components::progress_bar::ProgressBar;
 use crate::models::{
-    get_input_with_fallback, weight_history_for_exercise,
+    get_input_with_fallback, parse_reps_range, weight_history_for_exercise,
     CompletedSet, Day, Exercise, TimerState, WeightPoint,
 };
 use gloo_timers::callback::Timeout;
@@ -10,6 +11,7 @@ use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
 const STEP_VALUES: [f32; 5] = [0.5, 1.0, 2.0, 5.0, 10.0];
+
 
 /// Convert any YouTube URL format to an embeddable URL with autoplay.
 fn youtube_embed_url(url: &str) -> Option<String> {
@@ -182,6 +184,22 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
             .any(|e| e.exercise_id == exercise_id && e.set_number == s)
     }).collect();
 
+    let (reps_min, reps_max) = props.exercise.as_ref()
+        .map(|e| parse_reps_range(&e.reps))
+        .unwrap_or((0, 0));
+    let dot_reps_hint: Vec<Option<i8>> = (0..n).map(|i| {
+        let s = (i + 1) as u32;
+        props.saved_sets.iter()
+            .find(|e| e.exercise_id == exercise_id && e.set_number == s)
+            .and_then(|set| set.reps.as_ref())
+            .and_then(|r| r.parse::<i32>().ok())
+            .map(|actual| {
+                if reps_min > 0 && actual < reps_min { -1i8 }
+                else if reps_max > 0 && actual > reps_max { 1i8 }
+                else { 0i8 }
+            })
+    }).collect();
+
     let n_saves = props.saved_sets.iter()
         .filter(|s| s.exercise_id == exercise_id)
         .count();
@@ -352,7 +370,7 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                                 e.stop_propagation();
                                 vo.set(true);
                             })
-                        }}>{"▶"}</button>
+                        }}>{ icon_play() }</button>
                 }
                 <button class="chart-icon-btn" title="Grafico avanzamento peso"
                     onclick={{
@@ -361,7 +379,7 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                             e.stop_propagation();
                             co.set(!*co);
                         })
-                    }}>{"📈"}</button>
+                    }}>{ icon_chart() }</button>
             </div>
 
             // ── Expandable content ────────────────────────────────────────
@@ -376,6 +394,7 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                     <ProgressBar
                         n={exercise.serie}
                         dot_done={dot_done.clone()}
+                        dot_reps_hint={dot_reps_hint.clone()}
                         active={clamped}
                         just_saved={*just_saved}
                         on_select={{
@@ -448,7 +467,8 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                 </div>
                 // ── Action footer — outside scrollable area, always visible ──
                 <div class="sheet-actions">
-                    <button class="primary-button" onclick={on_register}>
+                    <button class="primary-button" onclick={on_register}
+                        disabled={props.timer.running || props.timer.left > 0}>
                         { if completed { "Aggiorna serie" } else { "Registra serie" } }
                     </button>
                     if !props.history_mode

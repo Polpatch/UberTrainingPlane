@@ -5,6 +5,7 @@ use components::bottom_sheet::BottomSheet;
 use components::catalog_panel::CatalogPanel;
 use components::day_tabs::DayTabs;
 use components::exercise_card::ExerciseCard;
+use components::icons::*;
 use gloo_file::callbacks::{read_as_text, FileReader};
 use gloo_file::File as GlooFile;
 use gloo_net::http::Request;
@@ -210,6 +211,7 @@ fn app() -> Html {
     let expand_trigger          = use_state(|| 0usize);
     let session_elapsed         = use_state(|| 0u32);
     let session_elapsed_handle  = use_mut_ref(|| None::<Interval>);
+    let desc_expanded           = use_state(|| false);
     // ID of the currently active session (empty = no workout loaded)
     let current_session_id  = use_state(|| String::new());
     // Non-empty when multiple open sessions exist and user must choose
@@ -289,6 +291,74 @@ fn app() -> Html {
             (),
         )
     };
+
+    // ── Auto-resume on mount ─────────────────────────────────────────────────
+    // On startup, if the user has an open (unfinished) session, restore the
+    // workout + day + sets from localStorage — no network request needed because
+    // upsert_schedule() caches every loaded workout in "schedules".
+    {
+        let workout            = workout.clone();
+        let error              = error.clone();
+        let day_index          = day_index.clone();
+        let selected_exercise  = selected_exercise.clone();
+        let saved_sets         = saved_sets.clone();
+        let weight_inputs      = weight_inputs.clone();
+        let reps_inputs        = reps_inputs.clone();
+        let current_session_id = current_session_id.clone();
+        let resume_candidates  = resume_candidates.clone();
+        use_effect_with_deps(
+            move |_| {
+                let open: Vec<SessionMeta> = load_sessions_index()
+                    .into_iter()
+                    .filter(|s| !s.done)
+                    .collect();
+
+                if let Some(meta) = open.iter().max_by_key(|s| &s.updated) {
+                    if let Some(data) = load_schedules().into_iter().find(|w| w.id == meta.workout_id) {
+                        let day      = meta.day.clone();
+                        let day_idx  = data.giorni.iter().position(|d| d.giorno == day).unwrap_or(0);
+                        let open_day = open_sessions_for_day(&data.id, &day);
+
+                        match open_day.len() {
+                            0 => {
+                                day_index.set(day_idx);
+                                selected_exercise.set(0);
+                                saved_sets.set(vec![]);
+                                weight_inputs.set(HashMap::new());
+                                reps_inputs.set(HashMap::new());
+                                current_session_id.set(String::new());
+                                workout.set(Some(data));
+                                error.set(None);
+                            }
+                            1 => {
+                                if let Some((sid, sets, active_ex)) = find_open_session(&data.id, &day) {
+                                    let (wi, ri) = inputs_from_sets(&sets);
+                                    day_index.set(day_idx);
+                                    selected_exercise.set(active_ex);
+                                    saved_sets.set(sets);
+                                    weight_inputs.set(wi);
+                                    reps_inputs.set(ri);
+                                    current_session_id.set(sid);
+                                }
+                                workout.set(Some(data));
+                                error.set(None);
+                            }
+                            _ => {
+                                day_index.set(day_idx);
+                                weight_inputs.set(HashMap::new());
+                                reps_inputs.set(HashMap::new());
+                                resume_candidates.set(open_day);
+                                workout.set(Some(data));
+                                error.set(None);
+                            }
+                        }
+                    }
+                }
+                || ()
+            },
+            (),
+        );
+    }
 
     // ── Shared workout-open logic ────────────────────────────────────────────
     // Called after a Workout is successfully parsed (file or catalog).
@@ -832,6 +902,7 @@ fn app() -> Html {
         let show_completion        = show_completion.clone();
         let session_elapsed        = session_elapsed.clone();
         let session_elapsed_handle = session_elapsed_handle.clone();
+        let desc_expanded          = desc_expanded.clone();
         Rc::new(move || {
             timer_handle.borrow_mut().take();
             timer_running.set(false);
@@ -850,6 +921,7 @@ fn app() -> Html {
             resume_candidates.set(vec![]);
             viewing_history.set(false);
             show_completion.set(false);
+            desc_expanded.set(false);
         })
     };
 
@@ -1180,7 +1252,19 @@ fn app() -> Html {
                                 <section class="workout-meta">
                                     <div class="meta-label">{ format!("Scheda: {}", workout_data.nome) }</div>
                                     if let Some(desc) = &workout_data.descrizione {
-                                        <p class="meta-desc">{ desc.clone() }</p>
+                                        if desc.len() > 100 {
+                                            <p class={if *desc_expanded { "meta-desc" } else { "meta-desc meta-desc--clamped" }}>
+                                                { desc.clone() }
+                                            </p>
+                                            <button class="meta-expand-btn" onclick={{
+                                                let de = desc_expanded.clone();
+                                                Callback::from(move |_: MouseEvent| de.set(!*de))
+                                            }}>
+                                                { if *desc_expanded { "Mostra meno ↑" } else { "Mostra di più ↓" } }
+                                            </button>
+                                        } else {
+                                            <p class="meta-desc">{ desc.clone() }</p>
+                                        }
                                     }
                                     if let Some(cat) = &workout_data.categoria {
                                         <div class="meta-tag">{ cat.clone() }</div>
@@ -1294,25 +1378,25 @@ fn app() -> Html {
                         onclick={Callback::from(|e: MouseEvent| e.stop_propagation())}>
                         <div class="menu-modal-header">
                             <span class="menu-modal-title">{"Menu"}</span>
-                            <button class="menu-close-btn" onclick={close_menu}>{"✕"}</button>
+                            <button class="menu-close-btn" onclick={close_menu}>{ icon_x() }</button>
                         </div>
                         if workout.is_some() {
                             <>
                                 <div class="menu-section-title">{"Sessione"}</div>
                                 <button class="menu-action-btn"
                                     onclick={on_open_history.clone()}>
-                                    <span class="menu-action-icon">{"◷"}</span>
+                                    <span class="menu-action-icon">{ icon_clock() }</span>
                                     {"Storico sessioni"}
                                 </button>
                             </>
                         }
                         <div class="menu-section-title">{"Portabilità dati"}</div>
                         <button class="menu-action-btn" onclick={on_export}>
-                            <span class="menu-action-icon">{"↓"}</span>
+                            <span class="menu-action-icon">{ icon_download() }</span>
                             {"Esporta backup"}
                         </button>
                         <label class="menu-action-btn menu-action-btn--file">
-                            <span class="menu-action-icon">{"↑"}</span>
+                            <span class="menu-action-icon">{ icon_upload() }</span>
                             <span>{"Importa backup"}</span>
                             <input type="file" accept=".json" onchange={on_import_file} />
                         </label>
@@ -1321,11 +1405,11 @@ fn app() -> Html {
                         </p>
                         <div class="menu-section-title">{"Crea scheda"}</div>
                         <button class="menu-action-btn" onclick={on_download_template}>
-                            <span class="menu-action-icon">{"⬡"}</span>
+                            <span class="menu-action-icon">{ icon_document() }</span>
                             {"Scarica template JSON"}
                         </button>
                         <button class="menu-action-btn" onclick={on_download_schema}>
-                            <span class="menu-action-icon">{"◻"}</span>
+                            <span class="menu-action-icon">{ icon_code() }</span>
                             {"Scarica JSON Schema"}
                         </button>
                         <p class="menu-hint">
@@ -1364,17 +1448,15 @@ fn app() -> Html {
                         // Pause / Resume
                         <button class="timer-action-btn" title="Pausa / Riprendi"
                                 onclick={{ let cb = on_start_timer.clone(); Callback::from(move |_| cb.emit(())) }}>
-                            { if *timer_running { "⏸" } else { "▶" } }
+                            { if *timer_running { icon_pause() } else { icon_play() } }
                         </button>
-                        // Skip — stop timer and save the set immediately
                         <button class="timer-action-btn timer-action-btn--skip" title="Salta e registra"
                                 onclick={{ let cb = on_skip_timer.clone(); Callback::from(move |_| cb.emit(())) }}>
-                            {"⏭"}
+                            { icon_skip() }
                         </button>
-                        // Stop — cancel without saving
                         <button class="timer-action-btn timer-action-btn--stop" title="Annulla"
                                 onclick={{ let cb = on_cancel_timer.clone(); Callback::from(move |_| cb.emit(())) }}>
-                            {"✕"}
+                            { icon_x() }
                         </button>
                     </div>
                 </div>
@@ -1431,7 +1513,7 @@ fn app() -> Html {
                         <div class="menu-modal-header">
                             <span class="menu-modal-title">{"Storico sessioni"}</span>
                             <button class="menu-close-btn"
-                                onclick={on_close_history}>{"✕"}</button>
+                                onclick={on_close_history}>{ icon_x() }</button>
                         </div>
                         { if history_sessions.is_empty() {
                             html! { <p class="menu-hint">{"Nessuna sessione terminata per questo giorno."}</p> }
