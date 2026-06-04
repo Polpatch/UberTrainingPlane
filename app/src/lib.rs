@@ -290,6 +290,74 @@ fn app() -> Html {
         )
     };
 
+    // ── Auto-resume on mount ─────────────────────────────────────────────────
+    // On startup, if the user has an open (unfinished) session, restore the
+    // workout + day + sets from localStorage — no network request needed because
+    // upsert_schedule() caches every loaded workout in "schedules".
+    {
+        let workout            = workout.clone();
+        let error              = error.clone();
+        let day_index          = day_index.clone();
+        let selected_exercise  = selected_exercise.clone();
+        let saved_sets         = saved_sets.clone();
+        let weight_inputs      = weight_inputs.clone();
+        let reps_inputs        = reps_inputs.clone();
+        let current_session_id = current_session_id.clone();
+        let resume_candidates  = resume_candidates.clone();
+        use_effect_with_deps(
+            move |_| {
+                let open: Vec<SessionMeta> = load_sessions_index()
+                    .into_iter()
+                    .filter(|s| !s.done)
+                    .collect();
+
+                if let Some(meta) = open.iter().max_by_key(|s| &s.updated) {
+                    if let Some(data) = load_schedules().into_iter().find(|w| w.id == meta.workout_id) {
+                        let day      = meta.day.clone();
+                        let day_idx  = data.giorni.iter().position(|d| d.giorno == day).unwrap_or(0);
+                        let open_day = open_sessions_for_day(&data.id, &day);
+
+                        match open_day.len() {
+                            0 => {
+                                day_index.set(day_idx);
+                                selected_exercise.set(0);
+                                saved_sets.set(vec![]);
+                                weight_inputs.set(HashMap::new());
+                                reps_inputs.set(HashMap::new());
+                                current_session_id.set(String::new());
+                                workout.set(Some(data));
+                                error.set(None);
+                            }
+                            1 => {
+                                if let Some((sid, sets, active_ex)) = find_open_session(&data.id, &day) {
+                                    let (wi, ri) = inputs_from_sets(&sets);
+                                    day_index.set(day_idx);
+                                    selected_exercise.set(active_ex);
+                                    saved_sets.set(sets);
+                                    weight_inputs.set(wi);
+                                    reps_inputs.set(ri);
+                                    current_session_id.set(sid);
+                                }
+                                workout.set(Some(data));
+                                error.set(None);
+                            }
+                            _ => {
+                                day_index.set(day_idx);
+                                weight_inputs.set(HashMap::new());
+                                reps_inputs.set(HashMap::new());
+                                resume_candidates.set(open_day);
+                                workout.set(Some(data));
+                                error.set(None);
+                            }
+                        }
+                    }
+                }
+                || ()
+            },
+            (),
+        );
+    }
+
     // ── Shared workout-open logic ────────────────────────────────────────────
     // Called after a Workout is successfully parsed (file or catalog).
     // Saves/updates the schedule, finds or creates the session for day 0,
