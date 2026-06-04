@@ -208,7 +208,7 @@
       .exercise-card:not(.selected) .exercise-meta,
       .exercise-card:not(.selected) .exercise-rec { display: none; }
       .exercise-head { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
-      .chart-icon-btn { flex-shrink: 0; background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: 0.55; padding: 2px 4px; border-radius: 8px; transition: opacity .15s, background .15s; }
+      .chart-icon-btn { flex-shrink: 0; background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: 0.55; padding: 2px 4px; border-radius: 8px; transition: opacity .15s, background .15s; display: inline-flex; align-items: center; }
       .chart-icon-btn:hover { opacity: 1; background: var(--surface-3); }
       .weight-chart-section { margin: 12px 0 4px; padding: 12px 10px 6px; background: var(--surface-2); border-radius: 16px; border: 1px solid var(--border); }
       .chart-empty { font-size: 0.88rem; color: var(--text-4); margin: 0; padding: 8px 0; }
@@ -306,7 +306,7 @@
       .menu-modal { background: var(--surface); width: 300px; max-width: 88vw; height: 100vh; padding: 28px 24px; box-shadow: 4px 0 32px var(--sh-lg); display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
       .menu-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
       .menu-modal-title { font-size: 1.15rem; font-weight: 700; }
-      .menu-close-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-3); padding: 4px 8px; border-radius: 8px; }
+      .menu-close-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-3); padding: 4px 8px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; }
       .menu-close-btn:hover { background: var(--surface-3); color: var(--text); }
       .menu-section-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-4); margin: 16px 0 8px; }
       .menu-action-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 13px 16px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; cursor: pointer; font-size: 0.95rem; font-weight: 600; color: var(--text); text-align: left; transition: background .15s; }
@@ -383,7 +383,7 @@
       .video-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.88); z-index: 300; display: flex; align-items: center; justify-content: center; padding: 20px; }
       .video-modal { width: 100%; max-width: 560px; }
       .video-iframe-wrapper { position: relative; padding-top: 56.25%; border-radius: 14px; overflow: hidden; background: #000; }
-      .video-icon-btn { flex-shrink: 0; background: var(--blue-bg); border: none; cursor: pointer; font-size: 0.85rem; color: var(--blue); padding: 4px 8px; border-radius: 8px; font-weight: 700; transition: background .15s; line-height: 1; }
+      .video-icon-btn { flex-shrink: 0; background: var(--blue-bg); border: none; cursor: pointer; font-size: 1rem; color: var(--blue); padding: 4px 8px; border-radius: 8px; transition: background .15s; display: inline-flex; align-items: center; }
       .video-icon-btn:hover { background: var(--blue-soft); }
       /* Local data indicator in menu */
       .local-data-indicator { display: flex; align-items: center; gap: 8px; margin-top: 16px; padding: 10px 0; font-size: 0.85rem; color: var(--text-3); border-top: 1px solid var(--border); }

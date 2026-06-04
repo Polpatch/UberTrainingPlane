@@ -1,3 +1,4 @@
+use crate::components::icons::{icon_chart, icon_play};
 use crate::components::progress_bar::ProgressBar;
 use crate::models::{
     get_input_with_fallback, parse_reps_range, weight_history_for_exercise,
@@ -369,7 +370,7 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                                 e.stop_propagation();
                                 vo.set(true);
                             })
-                        }}>{"▶"}</button>
+                        }}>{ icon_play() }</button>
                 }
                 <button class="chart-icon-btn" title="Grafico avanzamento peso"
                     onclick={{
@@ -378,7 +379,7 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                             e.stop_propagation();
                             co.set(!*co);
                         })
-                    }}>{"📈"}</button>
+                    }}>{ icon_chart() }</button>
             </div>
 
             // ── Expandable content ────────────────────────────────────────

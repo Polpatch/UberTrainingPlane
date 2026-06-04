@@ -5,6 +5,7 @@ use components::bottom_sheet::BottomSheet;
 use components::catalog_panel::CatalogPanel;
 use components::day_tabs::DayTabs;
 use components::exercise_card::ExerciseCard;
+use components::icons::*;
 use gloo_file::callbacks::{read_as_text, FileReader};
 use gloo_file::File as GlooFile;
 use gloo_net::http::Request;
@@ -1377,25 +1378,25 @@ fn app() -> Html {
                         onclick={Callback::from(|e: MouseEvent| e.stop_propagation())}>
                         <div class="menu-modal-header">
                             <span class="menu-modal-title">{"Menu"}</span>
-                            <button class="menu-close-btn" onclick={close_menu}>{"✕"}</button>
+                            <button class="menu-close-btn" onclick={close_menu}>{ icon_x() }</button>
                         </div>
                         if workout.is_some() {
                             <>
                                 <div class="menu-section-title">{"Sessione"}</div>
                                 <button class="menu-action-btn"
                                     onclick={on_open_history.clone()}>
-                                    <span class="menu-action-icon">{"◷"}</span>
+                                    <span class="menu-action-icon">{ icon_clock() }</span>
                                     {"Storico sessioni"}
                                 </button>
                             </>
                         }
                         <div class="menu-section-title">{"Portabilità dati"}</div>
                         <button class="menu-action-btn" onclick={on_export}>
-                            <span class="menu-action-icon">{"↓"}</span>
+                            <span class="menu-action-icon">{ icon_download() }</span>
                             {"Esporta backup"}
                         </button>
                         <label class="menu-action-btn menu-action-btn--file">
-                            <span class="menu-action-icon">{"↑"}</span>
+                            <span class="menu-action-icon">{ icon_upload() }</span>
                             <span>{"Importa backup"}</span>
                             <input type="file" accept=".json" onchange={on_import_file} />
                         </label>
@@ -1404,11 +1405,11 @@ fn app() -> Html {
                         </p>
                         <div class="menu-section-title">{"Crea scheda"}</div>
                         <button class="menu-action-btn" onclick={on_download_template}>
-                            <span class="menu-action-icon">{"⬡"}</span>
+                            <span class="menu-action-icon">{ icon_document() }</span>
                             {"Scarica template JSON"}
                         </button>
                         <button class="menu-action-btn" onclick={on_download_schema}>
-                            <span class="menu-action-icon">{"◻"}</span>
+                            <span class="menu-action-icon">{ icon_code() }</span>
                             {"Scarica JSON Schema"}
                         </button>
                         <p class="menu-hint">
@@ -1447,17 +1448,15 @@ fn app() -> Html {
                         // Pause / Resume
                         <button class="timer-action-btn" title="Pausa / Riprendi"
                                 onclick={{ let cb = on_start_timer.clone(); Callback::from(move |_| cb.emit(())) }}>
-                            { if *timer_running { "⏸" } else { "▶" } }
+                            { if *timer_running { icon_pause() } else { icon_play() } }
                         </button>
-                        // Skip — stop timer and save the set immediately
                         <button class="timer-action-btn timer-action-btn--skip" title="Salta e registra"
                                 onclick={{ let cb = on_skip_timer.clone(); Callback::from(move |_| cb.emit(())) }}>
-                            {"⏭"}
+                            { icon_skip() }
                         </button>
-                        // Stop — cancel without saving
                         <button class="timer-action-btn timer-action-btn--stop" title="Annulla"
                                 onclick={{ let cb = on_cancel_timer.clone(); Callback::from(move |_| cb.emit(())) }}>
-                            {"✕"}
+                            { icon_x() }
                         </button>
                     </div>
                 </div>
@@ -1514,7 +1513,7 @@ fn app() -> Html {
                         <div class="menu-modal-header">
                             <span class="menu-modal-title">{"Storico sessioni"}</span>
                             <button class="menu-close-btn"
-                                onclick={on_close_history}>{"✕"}</button>
+                                onclick={on_close_history}>{ icon_x() }</button>
                         </div>
                         { if history_sessions.is_empty() {
                             html! { <p class="menu-hint">{"Nessuna sessione terminata per questo giorno."}</p> }
