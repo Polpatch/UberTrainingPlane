@@ -432,8 +432,8 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                                 <div class="step-row">
                                     <button class="step-btn" onclick={on_weight_minus}>{"−"}</button>
                                     <button class="step-selector" onclick={on_cycle_step}
-                                            title="Tocca per cambiare incremento">
-                                        { fmt_weight(step) }
+                                            title="Tocca per cambiare passo">
+                                        { format!("±{} kg", fmt_weight(step)) }
                                     </button>
                                     <button class="step-btn" onclick={on_weight_plus}>{"+"}</button>
                                 </div>
