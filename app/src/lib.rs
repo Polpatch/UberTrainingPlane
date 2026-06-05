@@ -838,6 +838,12 @@ fn app() -> Html {
         let timer_end_ts       = timer_end_ts.clone();
         let sw_handle          = sw_handle.clone();
         Callback::from(move |_: ()| {
+            // iOS requires requestPermission() to be called synchronously from a
+            // user gesture — this is the earliest tap that makes sense to ask.
+            if let Ok(promise) = web_sys::Notification::request_permission() {
+                spawn_local(async move { let _ = JsFuture::from(promise).await; });
+            }
+
             if *timer_running {
                 // Pause: stop the interval but keep timer_left intact
                 timer_handle.borrow_mut().take();
@@ -1338,20 +1344,14 @@ fn app() -> Html {
                     // Fast path: controller is set when SW already controls the page
                     if let Some(ctrl) = sw_container.controller() {
                         *sw_handle.borrow_mut() = Some(ctrl);
-                    }
-
-                    // Request notification permission — errors silently ignored
-                    if let Ok(promise) = web_sys::Notification::request_permission() {
-                        let _ = JsFuture::from(promise).await;
+                        return;
                     }
 
                     // Slow path: wait for SW to be ready (covers first-load case)
-                    if sw_handle.borrow().is_none() {
-                        if let Ok(ready_promise) = sw_container.ready() {
-                            if let Ok(reg) = JsFuture::from(ready_promise).await {
-                                let reg: web_sys::ServiceWorkerRegistration = reg.unchecked_into();
-                                *sw_handle.borrow_mut() = reg.active();
-                            }
+                    if let Ok(ready_promise) = sw_container.ready() {
+                        if let Ok(reg) = JsFuture::from(ready_promise).await {
+                            let reg: web_sys::ServiceWorkerRegistration = reg.unchecked_into();
+                            *sw_handle.borrow_mut() = reg.active();
                         }
                     }
                 });
