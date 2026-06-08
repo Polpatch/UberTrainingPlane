@@ -160,8 +160,7 @@
       /* Reset browser-default button styling so dark mode variables apply cleanly */
       button { background: transparent; border: none; cursor: pointer; font-family: inherit; font-size: inherit; color: inherit; padding: 0; }
       body { margin: 0; min-height: 100vh; }
-      .app-shell { max-width: 980px; margin: 0 auto; padding: 20px; }
-      .app-shell.app-shell--timer { padding-top: 96px; }
+      .app-shell { max-width: 980px; margin: 0 auto; padding: 20px; padding-top: 96px; }
       .app-header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 24px; }
       .app-header h1 { margin: 0 0 6px; font-size: clamp(1.8rem, 2.5vw, 2.8rem); }
       .app-header p { margin: 0; color: var(--text-2); max-width: 640px; }
@@ -439,7 +438,7 @@
       .local-data-indicator { display: flex; align-items: center; gap: 8px; margin-top: 16px; padding: 10px 0; font-size: 0.85rem; color: var(--text-3); border-top: 1px solid var(--border); }
       .local-data-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green-mid); flex-shrink: 0; }
       @media (max-width: 720px) {
-        .app-shell { padding: 16px; }
+        .app-shell { padding: 16px; padding-top: 96px; }
         .app-header { align-items: stretch; }
         .workout-meta, .upload-card { padding: 20px; }
         .input-row { grid-template-columns: 1fr; }

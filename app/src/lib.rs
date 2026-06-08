@@ -658,6 +658,26 @@ fn app() -> Html {
                         let total = total_day_sets(workout, &day.giorno);
                         update_session_sets(&workout.id, &sid, &list, next_active, total);
                         saved_sets.set(list);
+                        let next_si = set_index + 1;
+                        if next_si < exercise.serie as usize {
+                            let cur_w = weight_inputs
+                                .get(&exercise.id)
+                                .and_then(|v| v.get(set_index))
+                                .cloned()
+                                .unwrap_or_default();
+                            if !cur_w.is_empty() {
+                                let already_set = weight_inputs
+                                    .get(&exercise.id)
+                                    .and_then(|v| v.get(next_si))
+                                    .map(|v| !v.is_empty())
+                                    .unwrap_or(false);
+                                if !already_set {
+                                    weight_inputs.set(update_input_map(
+                                        (*weight_inputs).clone(), exercise.id.clone(), next_si, cur_w,
+                                    ));
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -787,9 +807,10 @@ fn app() -> Html {
                             .unwrap_or(existing.len() as u32 + 1);
                         if next_set > exercise.serie { return; }
                         let next_idx = (next_set - 1) as usize;
-                        let peso = weight_inputs.get(&exercise.id)
-                            .and_then(|v| v.get(next_idx))
-                            .and_then(|v| v.parse::<f32>().ok());
+                        let peso_str = get_input_with_fallback(
+                            &weight_inputs, &exercise.id, next_idx, "",
+                        );
+                        let peso = peso_str.parse::<f32>().ok();
                         let reps = reps_inputs.get(&exercise.id)
                             .and_then(|v| v.get(next_idx))
                             .cloned();
@@ -816,6 +837,19 @@ fn app() -> Html {
                         let total = total_day_sets(workout, &day.giorno);
                         update_session_sets(&workout.id, &sid, &list, next_active, total);
                         saved_sets.set(list);
+                        let after_idx = next_idx + 1;
+                        if after_idx < exercise.serie as usize {
+                            let already_set = weight_inputs
+                                .get(&exercise.id)
+                                .and_then(|v| v.get(after_idx))
+                                .map(|v| !v.is_empty())
+                                .unwrap_or(false);
+                            if !already_set && !peso_str.is_empty() {
+                                weight_inputs.set(update_input_map(
+                                    (*weight_inputs).clone(), exercise.id.clone(), after_idx, peso_str.clone(),
+                                ));
+                            }
+                        }
                     }
                 }
             }
@@ -903,10 +937,10 @@ fn app() -> Html {
                                                 .find(|n| !existing.contains(n))
                                                 .unwrap_or(existing.len() as u32 + 1);
                                             let next_idx = (next_set - 1) as usize;
-                                            let peso = weight_inputs_for_timer
-                                                .get(&exercise.id)
-                                                .and_then(|v| v.get(next_idx))
-                                                .and_then(|v| v.parse::<f32>().ok());
+                                            let peso_str = get_input_with_fallback(
+                                                &weight_inputs_for_timer, &exercise.id, next_idx, "",
+                                            );
+                                            let peso = peso_str.parse::<f32>().ok();
                                             let reps = reps_inputs_for_timer
                                                 .get(&exercise.id)
                                                 .and_then(|v| v.get(next_idx))
@@ -944,6 +978,22 @@ fn app() -> Html {
                                                 next_active, total,
                                             );
                                             saved_sets_for_timer.set(list);
+                                            let after_idx = next_idx + 1;
+                                            if after_idx < exercise.serie as usize {
+                                                let already_set = weight_inputs_for_timer
+                                                    .get(&exercise.id)
+                                                    .and_then(|v| v.get(after_idx))
+                                                    .map(|v| !v.is_empty())
+                                                    .unwrap_or(false);
+                                                if !already_set && !peso_str.is_empty() {
+                                                    weight_inputs_for_timer.set(update_input_map(
+                                                        (*weight_inputs_for_timer).clone(),
+                                                        exercise.id.clone(),
+                                                        after_idx,
+                                                        peso_str.clone(),
+                                                    ));
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1548,7 +1598,7 @@ fn app() -> Html {
     let close_menu = { let m = menu_open.clone(); Callback::from(move |_| m.set(false)) };
 
     html! {
-        <div class={classes!("app-shell", if *timer_running || *timer_left > 0 { Some("app-shell--timer") } else { None })}>
+        <div class="app-shell">
             <header class="app-header">
                 <button class="burger-btn" onclick={open_menu} title="Menu">
                     <span></span><span></span><span></span>
