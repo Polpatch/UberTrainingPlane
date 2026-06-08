@@ -1,3 +1,6 @@
+import * as import1 from "./snippets/fitness_wasm-9ec66ad0e0bbca8f/inline0.js"
+
+
 export function start() {
     wasm.start();
 }
@@ -678,6 +681,7 @@ function __wbg_get_imports() {
     return {
         __proto__: null,
         "./fitness_wasm_bg.js": import0,
+        "./snippets/fitness_wasm-9ec66ad0e0bbca8f/inline0.js": import1,
     };
 }
 
