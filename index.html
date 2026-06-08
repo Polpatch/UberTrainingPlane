@@ -34,8 +34,8 @@
     <!-- Trunk build -->
     
 <script type="module">
-import init, * as bindings from './fitness_wasm-628b67259e3110b5.js';
-const wasm = await init({ module_or_path: './fitness_wasm-628b67259e3110b5_bg.wasm' });
+import init, * as bindings from './fitness_wasm-6c83699d912f886d.js';
+const wasm = await init({ module_or_path: './fitness_wasm-6c83699d912f886d_bg.wasm' });
 
 
 window.wasmBindings = bindings;
@@ -171,8 +171,7 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
       /* Reset browser-default button styling so dark mode variables apply cleanly */
       button { background: transparent; border: none; cursor: pointer; font-family: inherit; font-size: inherit; color: inherit; padding: 0; }
       body { margin: 0; min-height: 100vh; }
-      .app-shell { max-width: 980px; margin: 0 auto; padding: 20px; }
-      .app-shell.app-shell--timer { padding-top: 96px; }
+      .app-shell { max-width: 980px; margin: 0 auto; padding: 20px; padding-top: 96px; }
       .app-header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 24px; }
       .app-header h1 { margin: 0 0 6px; font-size: clamp(1.8rem, 2.5vw, 2.8rem); }
       .app-header p { margin: 0; color: var(--text-2); max-width: 640px; }
@@ -450,13 +449,13 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
       .local-data-indicator { display: flex; align-items: center; gap: 8px; margin-top: 16px; padding: 10px 0; font-size: 0.85rem; color: var(--text-3); border-top: 1px solid var(--border); }
       .local-data-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green-mid); flex-shrink: 0; }
       @media (max-width: 720px) {
-        .app-shell { padding: 16px; }
+        .app-shell { padding: 16px; padding-top: 96px; }
         .app-header { align-items: stretch; }
         .workout-meta, .upload-card { padding: 20px; }
         .input-row { grid-template-columns: 1fr; }
       }
     </style>
-  <link rel="modulepreload" href="./fitness_wasm-628b67259e3110b5.js" crossorigin="anonymous" integrity="sha384-sKr0I41+WJRNvsPMADtUg1VifFrKDwOT43K5k7T4wgJvLVpoDDksr+vu47OXc0Iz"><link rel="preload" href="./fitness_wasm-628b67259e3110b5_bg.wasm" crossorigin="anonymous" integrity="sha384-FTtcx6Kgj9JpI/EyJx7CzwTgvERH8LP/cXY9S3OssIpbHaBE+sICiIi9UkTB3wZz" as="fetch" type="application/wasm"></head>
+  <link rel="modulepreload" href="./fitness_wasm-6c83699d912f886d.js" crossorigin="anonymous" integrity="sha384-2bx0xNHY3Vw0vtafB0aVx9KvZqr4NSpI4Oa7SZxf5L1WwPwlaJQYXeFBWAmSNZ9x"><link rel="preload" href="./fitness_wasm-6c83699d912f886d_bg.wasm" crossorigin="anonymous" integrity="sha384-8XlPqa7fAeemr657n0MYctgA+Uvz+07PDuYYrRg+UGJyhYjcDvgWBBq+exvWW3Bv" as="fetch" type="application/wasm"></head>
   <body>
     <div id="root"></div>
   </body>
