@@ -437,14 +437,27 @@ impl TimerState {
 
 /// Insert or update a CompletedSet in `list`. Sorts by set_number before returning.
 pub fn upsert_completed_set(
-    mut list: Vec<CompletedSet>,
+    list: Vec<CompletedSet>,
     exercise: &Exercise,
     set_number: u32,
     peso: Option<f32>,
     reps: Option<String>,
     durata_min: Option<u32>,
 ) -> Vec<CompletedSet> {
-    let timestamp = now_iso();
+    upsert_completed_set_at(list, exercise, set_number, peso, reps, durata_min, now_iso())
+}
+
+/// Pure core of [`upsert_completed_set`] with an injectable timestamp,
+/// so it can be unit-tested natively (no JS `Date`).
+pub fn upsert_completed_set_at(
+    mut list: Vec<CompletedSet>,
+    exercise: &Exercise,
+    set_number: u32,
+    peso: Option<f32>,
+    reps: Option<String>,
+    durata_min: Option<u32>,
+    timestamp: String,
+) -> Vec<CompletedSet> {
     if let Some(e) = list.iter_mut().find(|s| {
         s.exercise_id == exercise.id && s.set_number == set_number
     }) {
@@ -560,21 +573,8 @@ pub fn register_set(
         }
     }
 
-    // Propagate the weight to the next set's input slot, but only if that slot is
-    // still empty (don't overwrite a value the user already typed ahead).
-    let next_idx = set_number as usize; // 1-based set number == 0-based index of the next set
-    let next_slot_filled = weight_inputs.get(&exercise.id)
-        .and_then(|v| v.get(next_idx))
-        .map(|v| !v.is_empty())
-        .unwrap_or(false);
-    let prefill_weight = if next_idx < exercise.serie as usize
-        && !weight_str.is_empty()
-        && !next_slot_filled
-    {
-        Some((next_idx, weight_str.to_string()))
-    } else {
-        None
-    };
+    let prefill_weight =
+        compute_prefill_weight(weight_inputs, &exercise.id, exercise.serie, set_number, weight_str);
 
     SetRegistration {
         sets: list,
@@ -583,6 +583,28 @@ pub fn register_set(
         session_created,
         prefill_weight,
         storage_error,
+    }
+}
+
+/// Decide whether the weight just used for `set_number` (1-based) should
+/// pre-fill the NEXT set's input slot: only when a next set exists, the weight
+/// is non-empty and the next slot hasn't already been typed ahead by the user.
+pub fn compute_prefill_weight(
+    weight_inputs: &HashMap<String, Vec<String>>,
+    exercise_id: &str,
+    serie: u32,
+    set_number: u32,
+    weight_str: &str,
+) -> Option<(usize, String)> {
+    let next_idx = set_number as usize; // 1-based set number == 0-based index of the next set
+    let next_slot_filled = weight_inputs.get(exercise_id)
+        .and_then(|v| v.get(next_idx))
+        .map(|v| !v.is_empty())
+        .unwrap_or(false);
+    if next_idx < serie as usize && !weight_str.is_empty() && !next_slot_filled {
+        Some((next_idx, weight_str.to_string()))
+    } else {
+        None
     }
 }
 
@@ -787,6 +809,249 @@ pub fn parse_reps_range(reps: &str) -> (i32, i32) {
     } else {
         let n = clean.parse().unwrap_or(0);
         (n, n)
+    }
+}
+
+// ── Unit tests (native: `cargo test` from app/) ──────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn ex(id: &str, serie: u32) -> Exercise {
+        Exercise {
+            id: id.into(),
+            nome: id.to_uppercase(),
+            serie,
+            reps: "8-10".into(),
+            recupero: Some(90),
+            note: None,
+            video: None,
+            tipo: None,
+            durata: None,
+        }
+    }
+
+    fn done_set(eid: &str, n: u32) -> CompletedSet {
+        CompletedSet {
+            exercise_id: eid.into(),
+            nome: eid.to_uppercase(),
+            set_number: n,
+            peso: Some(10.0),
+            reps: Some("8".into()),
+            timestamp: "t".into(),
+            durata_min: None,
+        }
+    }
+
+    fn day(esercizi: Vec<Exercise>) -> Day {
+        Day { giorno: "A".into(), etichetta: None, esercizi }
+    }
+
+    fn inputs(eid: &str, vals: &[&str]) -> HashMap<String, Vec<String>> {
+        let mut m = HashMap::new();
+        m.insert(eid.to_string(), vals.iter().map(|s| s.to_string()).collect());
+        m
+    }
+
+    // ── parse_reps_range ─────────────────────────────────────────────────────
+
+    #[test]
+    fn reps_range_plain_number() {
+        assert_eq!(parse_reps_range("12"), (12, 12));
+    }
+
+    #[test]
+    fn reps_range_dash() {
+        assert_eq!(parse_reps_range("8-10"), (8, 10));
+    }
+
+    #[test]
+    fn reps_range_spaces() {
+        assert_eq!(parse_reps_range(" 8 - 10 "), (8, 10));
+    }
+
+    #[test]
+    fn reps_range_open_ended_uses_lo() {
+        assert_eq!(parse_reps_range("8-"), (8, 8));
+    }
+
+    #[test]
+    fn reps_range_non_numeric_is_zero() {
+        assert_eq!(parse_reps_range("max"), (0, 0));
+    }
+
+    // ── get_input_with_fallback ──────────────────────────────────────────────
+
+    #[test]
+    fn input_direct_hit() {
+        let m = inputs("e1", &["20", "22.5"]);
+        assert_eq!(get_input_with_fallback(&m, "e1", 1, ""), "22.5");
+    }
+
+    #[test]
+    fn input_falls_back_to_most_recent_lower() {
+        let m = inputs("e1", &["20", "", ""]);
+        assert_eq!(get_input_with_fallback(&m, "e1", 2, ""), "20");
+    }
+
+    #[test]
+    fn input_fallback_prefers_nearest() {
+        let m = inputs("e1", &["20", "25", ""]);
+        assert_eq!(get_input_with_fallback(&m, "e1", 2, ""), "25");
+    }
+
+    #[test]
+    fn input_default_when_all_empty() {
+        let m = inputs("e1", &["", ""]);
+        assert_eq!(get_input_with_fallback(&m, "e1", 1, "8-10"), "8-10");
+    }
+
+    #[test]
+    fn input_default_when_key_missing() {
+        let m = HashMap::new();
+        assert_eq!(get_input_with_fallback(&m, "e1", 0, "x"), "x");
+    }
+
+    // ── update_input_map ─────────────────────────────────────────────────────
+
+    #[test]
+    fn update_map_resizes_and_sets() {
+        let m = update_input_map(HashMap::new(), "e1".into(), 2, "30".into());
+        assert_eq!(m["e1"], vec!["", "", "30"]);
+    }
+
+    #[test]
+    fn update_map_overwrites_in_place() {
+        let m = inputs("e1", &["20", "25"]);
+        let m = update_input_map(m, "e1".into(), 0, "21".into());
+        assert_eq!(m["e1"], vec!["21", "25"]);
+    }
+
+    // ── next_incomplete_exercise ─────────────────────────────────────────────
+
+    #[test]
+    fn next_exercise_skips_complete_and_wraps() {
+        // e0 complete, e1 complete, e2 incomplete; from e1 → e2
+        let d = day(vec![ex("e0", 1), ex("e1", 1), ex("e2", 2)]);
+        let sets = vec![done_set("e0", 1), done_set("e1", 1), done_set("e2", 1)];
+        assert_eq!(next_incomplete_exercise(&d, &sets, 1), 2);
+        // from e2 (still incomplete itself): search starts FORWARD, wraps past
+        // complete e0/e1 and returns current_idx because nothing else is open
+        assert_eq!(next_incomplete_exercise(&d, &sets, 2), 2);
+    }
+
+    #[test]
+    fn next_exercise_wraps_to_earlier() {
+        // e0 incomplete, e1 complete; from e1 → wraps to e0
+        let d = day(vec![ex("e0", 2), ex("e1", 1)]);
+        let sets = vec![done_set("e0", 1), done_set("e1", 1)];
+        assert_eq!(next_incomplete_exercise(&d, &sets, 1), 0);
+    }
+
+    #[test]
+    fn next_exercise_all_done_returns_current() {
+        let d = day(vec![ex("e0", 1), ex("e1", 1)]);
+        let sets = vec![done_set("e0", 1), done_set("e1", 1)];
+        assert_eq!(next_incomplete_exercise(&d, &sets, 0), 0);
+    }
+
+    // ── upsert_completed_set_at ──────────────────────────────────────────────
+
+    #[test]
+    fn upsert_inserts_sorted() {
+        let e = ex("e1", 3);
+        let list = upsert_completed_set_at(vec![], &e, 3, Some(50.0), None, None, "t1".into());
+        let list = upsert_completed_set_at(list, &e, 1, Some(40.0), None, None, "t2".into());
+        let nums: Vec<u32> = list.iter().map(|s| s.set_number).collect();
+        assert_eq!(nums, vec![1, 3]);
+    }
+
+    #[test]
+    fn upsert_updates_existing_in_place() {
+        let e = ex("e1", 3);
+        let list = upsert_completed_set_at(vec![], &e, 1, Some(40.0), Some("8".into()), None, "t1".into());
+        let list = upsert_completed_set_at(list, &e, 1, Some(45.0), Some("6".into()), None, "t2".into());
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].peso, Some(45.0));
+        assert_eq!(list[0].reps.as_deref(), Some("6"));
+        assert_eq!(list[0].timestamp, "t2");
+    }
+
+    #[test]
+    fn upsert_distinguishes_exercises() {
+        let e1 = ex("e1", 3);
+        let e2 = ex("e2", 3);
+        let list = upsert_completed_set_at(vec![], &e1, 1, Some(40.0), None, None, "t".into());
+        let list = upsert_completed_set_at(list, &e2, 1, Some(60.0), None, None, "t".into());
+        assert_eq!(list.len(), 2);
+    }
+
+    // ── compute_prefill_weight ───────────────────────────────────────────────
+
+    #[test]
+    fn prefill_propagates_to_empty_next_slot() {
+        let m = inputs("e1", &["40"]);
+        assert_eq!(
+            compute_prefill_weight(&m, "e1", 3, 1, "40"),
+            Some((1, "40".to_string()))
+        );
+    }
+
+    #[test]
+    fn prefill_respects_typed_ahead_value() {
+        let m = inputs("e1", &["40", "45"]);
+        assert_eq!(compute_prefill_weight(&m, "e1", 3, 1, "40"), None);
+    }
+
+    #[test]
+    fn prefill_skips_last_set() {
+        let m = inputs("e1", &["40", "40", "40"]);
+        assert_eq!(compute_prefill_weight(&m, "e1", 3, 3, "40"), None);
+    }
+
+    #[test]
+    fn prefill_skips_empty_weight() {
+        let m = inputs("e1", &[""]);
+        assert_eq!(compute_prefill_weight(&m, "e1", 3, 1, ""), None);
+    }
+
+    #[test]
+    fn prefill_works_with_missing_slot_vec() {
+        // No input vec at all for the exercise: next slot counts as empty.
+        let m = HashMap::new();
+        assert_eq!(
+            compute_prefill_weight(&m, "e1", 3, 1, "40"),
+            Some((1, "40".to_string()))
+        );
+    }
+
+    // ── completion_pct / total_day_sets ──────────────────────────────────────
+
+    #[test]
+    fn completion_pct_clamps_and_handles_zero() {
+        let mut s = Session {
+            id: "1".into(), workout_id: "w".into(), workout_nome: "W".into(),
+            day: "A".into(), started: "t".into(), updated: "t".into(),
+            done: false, active_exercise: 0,
+            sets: vec![done_set("e1", 1), done_set("e1", 2)],
+        };
+        assert_eq!(s.completion_pct(0), 0.0);
+        assert_eq!(s.completion_pct(4), 50.0);
+        s.sets.push(done_set("e1", 3));
+        s.sets.push(done_set("e1", 4));
+        s.sets.push(done_set("e1", 5)); // over-complete
+        assert_eq!(s.completion_pct(4), 100.0);
+    }
+
+    #[test]
+    fn total_day_sets_sums_serie() {
+        let w = Workout {
+            id: "w".into(), nome: "W".into(), descrizione: None, categoria: None,
+            giorni: vec![day(vec![ex("e0", 3), ex("e1", 4)])],
+        };
+        assert_eq!(total_day_sets(&w, "A"), 7);
+        assert_eq!(total_day_sets(&w, "B"), 0);
     }
 }
 
