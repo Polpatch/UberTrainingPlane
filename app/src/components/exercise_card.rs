@@ -1,3 +1,4 @@
+use crate::components::icons::icon_revert;
 use crate::components::progress_bar::ProgressBar;
 use crate::models::{parse_reps_range, CompletedSet, Exercise};
 use gloo_timers::callback::Timeout;
@@ -101,7 +102,7 @@ pub fn exercise_card(props: &ExerciseCardProps) -> Html {
                                     })
                                 }}
                                 title="Ripristina esercizio originale">
-                                {"↩"}
+                                { icon_revert() }
                             </button>
                         }
                     </div>
