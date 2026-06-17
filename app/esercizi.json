@@ -2,132 +2,112 @@
   "version": 1,
   "esercizi": [
     {
+      "id": "abductor_machine",
+      "nome": "Macchina abduttori (Abductor Machine)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": "1 min 30 sec recupero.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "abductor_machine_legs3",
+      "nome": "abductor_machine_legs3",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": null,
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "adductor_machine",
+      "nome": "Macchina adduttori (Adductor Machine)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": "1 min 30 sec recupero.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "adductor_machine_legs3",
+      "nome": "adductor_machine_legs3",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": null,
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "back_squat",
+      "nome": "Squat con bilanciere o Safety Bar (Back Squat / Safety Bar Squat)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": "Fondamentale. Eseguilo prima di tutto, quando sei fresco.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "back_squat_legs3",
+      "nome": "Squat con bilanciere (Back Squat)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=tr5PgWEebNA",
+      "note": "Fondamentale assoluto. Eseguilo per primo quando sei più fresco. Profondità almeno parallela. Grande dispendio calorico.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "bb_deadlift",
+      "nome": "Stacco da terra con bilanciere (BB Deadlift)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=op9kVnSso6Q",
+      "note": "Fondamentale. 2 min recupero.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "bb_row",
+      "nome": "Rematore con bilanciere (BB Row)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=FWJR5Ve8bnQ",
+      "note": "Fondamentale. 2 min recupero.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "bb_squat",
+      "nome": "Squat con bilanciere (BB Squat)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": "Fondamentale. 2 min recupero.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "bulgarian_split_squat",
+      "nome": "bulgarian_split_squat",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": null,
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
       "id": "bulgarian_split_squat_legs3",
       "nome": "Affondi bulgari con manubri (Bulgarian Split Squat)",
       "tipo": "reps",
       "durata_default": null,
       "video": "https://www.youtube.com/watch?v=T88u8y70Qf8",
       "note": "Per gamba. Uno degli esercizi più efficaci per ipertrofia quadricipite e glutei. Recupero tra le gambe 60s, tra le serie 90s. RIR 1.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "lateral_raises_cable_push1",
-      "nome": "Alzate laterali al cavo (Cable Lateral Raises)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=CSZ9AsIgt9E",
-      "note": "Preferisci il cavo ai manubri: tensione costante per tutto il ROM. Braccio leggermente in avanti, alza fino all'altezza delle spalle. Leggero ma con controllo.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "lateral_raises",
-      "nome": "Alzate laterali con manubri o ai cavi (Lateral Raises)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "Braccio leggermente avanti. Alza al massimo fino all'altezza delle spalle. Riduci carico se dà fastidio.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "db_standing_shoulder_raises",
-      "nome": "Alzate laterali in piedi con manubri (DB Standing Shoulder Raises)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "1 min 30 sec recupero.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "rear_delt_fly_cable_pull2",
-      "nome": "Alzate posteriori ai cavi incrociati (Rear Delt Cable Fly)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=9Z5HxpwJHvc",
-      "note": "Fondamentale per deltoide posteriore e salute della spalla. Sempre leggero.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "rear_delt_flyes",
-      "nome": "Alzate posteriori ai cavi o Pec Deck inversa (Rear Delt Flyes)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "Leggero e controllato. Fondamentale per la salute della spalla.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "pec_dek_rear_delt_flyes",
-      "nome": "Alzate posteriori al pec deck (Rear Delt Flyes)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=RToB2KDDZ9E",
-      "note": "1 min 30 sec recupero.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "cardio_legs",
-      "nome": "Cardio (Tapis roulant / Cyclette)",
-      "tipo": "cardio",
-      "durata_default": null,
-      "video": null,
-      "note": "Riscaldamento cardio iniziale",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "cardio_liss_pull2",
-      "nome": "Cardio LISS finale (Tapis roulant camminata veloce / Cyclette)",
-      "tipo": "cardio",
-      "durata_default": null,
-      "video": null,
-      "note": "Zona 2: 60-70% FCmax. Vedi note Giorno 1.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "cardio_liss_legs3",
-      "nome": "Cardio LISS finale (Tapis roulant camminata veloce)",
-      "tipo": "cardio",
-      "durata_default": null,
-      "video": null,
-      "note": "Zona 2: 60-70% FCmax. Nel giorno gambe è particolarmente efficace: i muscoli delle gambe già stimolati aumentano il dispendio calorico complessivo. Facoltativo se stanco.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "cardio_riscaldamento_pull",
-      "nome": "Cardio riscaldamento (Tapis roulant / Cyclette)",
-      "tipo": "cardio",
-      "durata_default": null,
-      "video": null,
-      "note": "Zona 1-2. Breve riscaldamento.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "cardio_riscaldamento_legs",
-      "nome": "Cardio riscaldamento (Tapis roulant — camminata/leggero jogging)",
-      "tipo": "cardio",
-      "durata_default": null,
-      "video": null,
-      "note": "Nel giorno gambe preferisci il tapis roulant: riscalda anche le gambe. Zona 1.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "machine_chest_press_push1",
-      "nome": "Chest Press alla macchina (Machine Chest Press)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=Kb0AAz8HJJ8",
-      "note": "Fondamentale. ROM controllato, spalla-friendly. Ultime 2 serie vicino al cedimento (RIR 1-2). Progressione di carico prioritaria.",
       "descrizione": null,
       "muscoli": []
     },
@@ -142,22 +122,152 @@
       "muscoli": []
     },
     {
-      "id": "low_incline_db_flyes",
-      "nome": "Croci su panca bassa inclinata con manubri (Low Incline DB Flyes)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "Inclinazione 30°. 1 min 30 sec recupero.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
       "id": "cable_crunch_legs3",
       "nome": "Crunch al cavo (Cable Crunch)",
       "tipo": "reps",
       "durata_default": null,
       "video": "https://www.youtube.com/watch?v=w8_MqckpTGU",
       "note": "Core finale. Preferisci il crunch al cavo ai sit-up classici: tensione costante e minore stress sul rachide lombare.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "cardio_legs",
+      "nome": "Cardio (Tapis roulant / Cyclette)",
+      "tipo": "cardio",
+      "durata_default": null,
+      "video": null,
+      "note": "Riscaldamento cardio iniziale",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "cardio_liss_legs3",
+      "nome": "Cardio LISS finale (Tapis roulant camminata veloce)",
+      "tipo": "cardio",
+      "durata_default": null,
+      "video": null,
+      "note": "Zona 2: 60-70% FCmax. Nel giorno gambe è particolarmente efficace: i muscoli delle gambe già stimolati aumentano il dispendio calorico complessivo. Facoltativo se stanco.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "cardio_liss_pull2",
+      "nome": "Cardio LISS finale (Tapis roulant camminata veloce / Cyclette)",
+      "tipo": "cardio",
+      "durata_default": null,
+      "video": null,
+      "note": "Zona 2: 60-70% FCmax. Vedi note Giorno 1.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "cardio_liss_push1",
+      "nome": "cardio_liss_push1",
+      "tipo": "cardio",
+      "durata_default": null,
+      "video": null,
+      "note": null,
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "cardio_pull",
+      "nome": "cardio_pull",
+      "tipo": "cardio",
+      "durata_default": null,
+      "video": null,
+      "note": null,
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "cardio_push",
+      "nome": "cardio_push",
+      "tipo": "cardio",
+      "durata_default": null,
+      "video": null,
+      "note": null,
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "cardio_riscaldamento_legs",
+      "nome": "Cardio riscaldamento (Tapis roulant — camminata/leggero jogging)",
+      "tipo": "cardio",
+      "durata_default": null,
+      "video": null,
+      "note": "Nel giorno gambe preferisci il tapis roulant: riscalda anche le gambe. Zona 1.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "cardio_riscaldamento_pull",
+      "nome": "Cardio riscaldamento (Tapis roulant / Cyclette)",
+      "tipo": "cardio",
+      "durata_default": null,
+      "video": null,
+      "note": "Zona 1-2. Breve riscaldamento.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "cardio_riscaldamento_push",
+      "nome": "cardio_riscaldamento_push",
+      "tipo": "cardio",
+      "durata_default": null,
+      "video": null,
+      "note": null,
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "chest_supported_row",
+      "nome": "Rematore su panca inclinata con manubri o macchina (Chest-Supported Row)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": "Versione con petto appoggiato: più sicura per la spalla. Presa neutra/stretta.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "chest_supported_row_pull2",
+      "nome": "Rematore su panca inclinata con manubri (Chest-Supported DB Row)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=2wTkynZUh7c",
+      "note": "Fondamentale. Petto appoggiato = niente slancio, massimo lavoro del gran dorsale. Porta il gomito su, non troppo dietro al busto.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "db_flat_bench_or_floor_press",
+      "nome": "Distensioni panca piana con manubri o Floor Press (DB Flat Bench / Floor Press)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": "Scegli Floor Press se la spalla è irritata: limita il ROM nell'allungamento.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "db_standing_shoulder_raises",
+      "nome": "Alzate laterali in piedi con manubri (DB Standing Shoulder Raises)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": "1 min 30 sec recupero.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "dips_parallel_bars",
+      "nome": "Dips alle parallele (Dips Parallel Bars)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": "Ausiliario. 2 min recupero. Attenzione alla spalla.",
       "descrizione": null,
       "muscoli": []
     },
@@ -192,112 +302,42 @@
       "muscoli": []
     },
     {
-      "id": "incline_db_curl",
-      "nome": "Curl con manubri su panca inclinata (Incline DB Curl)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "Massimo allungamento del bicipite.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "incline_bench_bicep_curls",
-      "nome": "Curl su panca inclinata con manubri (Incline Bench Bicep Curls)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=soxrZlIl35U",
-      "note": "1 min 30 sec recupero.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "incline_db_curl_pull2",
-      "nome": "Curl su panca inclinata con manubri (Incline DB Curl)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=cqNUDtjF2eg",
-      "note": "Massimo allungamento del capo lungo del bicipite. Scientificamente provato come altamente efficace per ipertrofia bicipite (Pedrosa et al., 2022).",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "dips_parallel_bars",
-      "nome": "Dips alle parallele (Dips Parallel Bars)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "Ausiliario. 2 min recupero. Attenzione alla spalla.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "db_flat_bench_or_floor_press",
-      "nome": "Distensioni panca piana con manubri o Floor Press (DB Flat Bench / Floor Press)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "Scegli Floor Press se la spalla è irritata: limita il ROM nell'allungamento.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "low_incline_db_press_push1",
-      "nome": "Distensioni su panca bassa inclinata con manubri (Low-Incline DB Press 30°)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=iKRv8OOtwAs",
-      "note": "30° di inclinazione. Non portare i gomiti troppo larghi. Se la spalla dà fastidio, usa Floor Press. RIR 1-2 nelle ultime serie.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "low_incline_db_press",
-      "nome": "Distensioni su panca inclinata bassa con manubri (Low-Incline DB Press)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "Inclinazione 30°. Tieni i gomiti non troppo larghi.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "overhead_tricep_extension",
-      "nome": "Estensioni sopra la testa per i tricipiti con manubrio o cavo (Overhead Tricep Extension)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "Evita se la spalla è in fase infiammatoria acuta.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "straight_bar_tricep_extensions",
-      "nome": "Estensioni tricipiti al cavo con barra dritta (Straight Bar Tricep Extensions)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "1 min 30 sec recupero.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "overhead_tricep_ext_push1",
-      "nome": "Estensioni tricipiti sopra la testa al cavo (Overhead Cable Tricep Extension)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=3m56x6O8sS8",
-      "note": "Allungamento lungo del tricipite = maggior danno meccanico e ipertrofia. Evita se la spalla è in fase acuta.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
       "id": "face_pull_push1",
       "nome": "Face Pull ai cavi con corda",
       "tipo": "reps",
       "durata_default": null,
       "video": "https://www.youtube.com/watch?v=0Po47vvj9g4",
       "note": "Essenziale per la salute della spalla e il rinforzo della cuffia dei rotatori. Non saltare mai questo esercizio. Sempre leggero.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "flat_bench_bb_press",
+      "nome": "Panca piana con bilanciere (Flat Bench BB Press)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": "Fondamentale. 2 min recupero.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "gluteus_machine",
+      "nome": "Macchina glutei (Gluteus Machine)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": "1 min 30 sec recupero.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "hip_thrust",
+      "nome": "Ponte per i glutei / Hip Thrust con bilanciere o macchina (Glute Bridge / Hip Thrust)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": null,
       "descrizione": null,
       "muscoli": []
     },
@@ -322,22 +362,42 @@
       "muscoli": []
     },
     {
-      "id": "neutral_grip_lat_pulldown",
-      "nome": "Lat Machine presa neutra (Neutral Grip Lat Pulldown)",
+      "id": "incline_bench_bb_press",
+      "nome": "Panca inclinata con bilanciere (Incline Bench BB Press)",
       "tipo": "reps",
       "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=CAwf7n6Luuc",
+      "video": null,
+      "note": "Inclinazione 45°. 2 min recupero.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "incline_bench_bicep_curls",
+      "nome": "Curl su panca inclinata con manubri (Incline Bench Bicep Curls)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=soxrZlIl35U",
       "note": "1 min 30 sec recupero.",
       "descrizione": null,
       "muscoli": []
     },
     {
-      "id": "lat_pulldown_neutral_pull2",
-      "nome": "Lat Machine presa neutra o stretta (Lat Pulldown Neutral Grip)",
+      "id": "incline_db_curl",
+      "nome": "Curl con manubri su panca inclinata (Incline DB Curl)",
       "tipo": "reps",
       "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=2X8_FsP0dso",
-      "note": "Concentrati sulla depressione della scapola: abbassa le spalle prima di tirare. RIR 1-2.",
+      "video": null,
+      "note": "Massimo allungamento del bicipite.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "incline_db_curl_pull2",
+      "nome": "Curl su panca inclinata con manubri (Incline DB Curl)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=cqNUDtjF2eg",
+      "note": "Massimo allungamento del capo lungo del bicipite. Scientificamente provato come altamente efficace per ipertrofia bicipite (Pedrosa et al., 2022).",
       "descrizione": null,
       "muscoli": []
     },
@@ -352,22 +412,42 @@
       "muscoli": []
     },
     {
+      "id": "lat_pulldown_neutral_pull2",
+      "nome": "Lat Machine presa neutra o stretta (Lat Pulldown Neutral Grip)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=2X8_FsP0dso",
+      "note": "Concentrati sulla depressione della scapola: abbassa le spalle prima di tirare. RIR 1-2.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "lateral_raises",
+      "nome": "Alzate laterali con manubri o ai cavi (Lateral Raises)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": "Braccio leggermente avanti. Alza al massimo fino all'altezza delle spalle. Riduci carico se dà fastidio.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "lateral_raises_cable_push1",
+      "nome": "Alzate laterali al cavo (Cable Lateral Raises)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=CSZ9AsIgt9E",
+      "note": "Preferisci il cavo ai manubri: tensione costante per tutto il ROM. Braccio leggermente in avanti, alza fino all'altezza delle spalle. Leggero ma con controllo.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
       "id": "leg_curl_machine_legs3",
       "nome": "Leg Curl alla macchina (Seated / Lying Leg Curl)",
       "tipo": "reps",
       "durata_default": null,
       "video": "https://www.youtube.com/watch?v=pp-Ht2889_4",
       "note": "Femorali. Preferisci il Seated Leg Curl se disponibile: maggior allungamento del muscolo nella posizione seduta = ipertrofia superiore (Maeo et al., 2021).",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "leg_press_legs3",
-      "nome": "Leg Press a 45° (Leg Press)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=IERpP9JvoyE",
-      "note": "Piedi posizionati in alto e larghi per enfatizzare i glutei. Porta le ginocchia vicino al petto senza staccare i glutei dalla sedia.",
       "descrizione": null,
       "muscoli": []
     },
@@ -382,52 +462,102 @@
       "muscoli": []
     },
     {
-      "id": "abductor_machine",
-      "nome": "Macchina abduttori (Abductor Machine)",
+      "id": "leg_press_legs3",
+      "nome": "Leg Press a 45° (Leg Press)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=IERpP9JvoyE",
+      "note": "Piedi posizionati in alto e larghi per enfatizzare i glutei. Porta le ginocchia vicino al petto senza staccare i glutei dalla sedia.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "low_incline_db_flyes",
+      "nome": "Croci su panca bassa inclinata con manubri (Low Incline DB Flyes)",
       "tipo": "reps",
       "durata_default": null,
       "video": null,
+      "note": "Inclinazione 30°. 1 min 30 sec recupero.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "low_incline_db_press",
+      "nome": "Distensioni su panca inclinata bassa con manubri (Low-Incline DB Press)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": "Inclinazione 30°. Tieni i gomiti non troppo larghi.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "low_incline_db_press_push1",
+      "nome": "Distensioni su panca bassa inclinata con manubri (Low-Incline DB Press 30°)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=iKRv8OOtwAs",
+      "note": "30° di inclinazione. Non portare i gomiti troppo larghi. Se la spalla dà fastidio, usa Floor Press. RIR 1-2 nelle ultime serie.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "machine_chest_press",
+      "nome": "machine_chest_press",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": null,
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "machine_chest_press_push1",
+      "nome": "Chest Press alla macchina (Machine Chest Press)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=Kb0AAz8HJJ8",
+      "note": "Fondamentale. ROM controllato, spalla-friendly. Ultime 2 serie vicino al cedimento (RIR 1-2). Progressione di carico prioritaria.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "neutral_grip_lat_pulldown",
+      "nome": "Lat Machine presa neutra (Neutral Grip Lat Pulldown)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=CAwf7n6Luuc",
       "note": "1 min 30 sec recupero.",
       "descrizione": null,
       "muscoli": []
     },
     {
-      "id": "adductor_machine",
-      "nome": "Macchina adduttori (Adductor Machine)",
+      "id": "overhead_tricep_ext_push1",
+      "nome": "Estensioni tricipiti sopra la testa al cavo (Overhead Cable Tricep Extension)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=3m56x6O8sS8",
+      "note": "Allungamento lungo del tricipite = maggior danno meccanico e ipertrofia. Evita se la spalla è in fase acuta.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "overhead_tricep_extension",
+      "nome": "Estensioni sopra la testa per i tricipiti con manubrio o cavo (Overhead Tricep Extension)",
       "tipo": "reps",
       "durata_default": null,
       "video": null,
+      "note": "Evita se la spalla è in fase infiammatoria acuta.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "pec_dek_rear_delt_flyes",
+      "nome": "Alzate posteriori al pec deck (Rear Delt Flyes)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=RToB2KDDZ9E",
       "note": "1 min 30 sec recupero.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "gluteus_machine",
-      "nome": "Macchina glutei (Gluteus Machine)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "1 min 30 sec recupero.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "incline_bench_bb_press",
-      "nome": "Panca inclinata con bilanciere (Incline Bench BB Press)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "Inclinazione 45°. 2 min recupero.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "flat_bench_bb_press",
-      "nome": "Panca piana con bilanciere (Flat Bench BB Press)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "Fondamentale. 2 min recupero.",
       "descrizione": null,
       "muscoli": []
     },
@@ -438,176 +568,6 @@
       "durata_default": 60,
       "video": "https://www.youtube.com/watch?v=7DLUazTMImw",
       "note": "Mantieni corpo rigido come una tavola. Ottimo per la stabilità del core e la colonna. Superset con il crunch al cavo per risparmiare tempo.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "hip_thrust",
-      "nome": "Ponte per i glutei / Hip Thrust con bilanciere o macchina (Glute Bridge / Hip Thrust)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": null,
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "bb_row",
-      "nome": "Rematore con bilanciere (BB Row)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=FWJR5Ve8bnQ",
-      "note": "Fondamentale. 2 min recupero.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "single_arm_cable_row_pull2",
-      "nome": "Rematore singolo al cavo (Single-Arm Cable Row)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=cRMt3enhpcE",
-      "note": "Per lato. Permette di correggere asimmetrie. Ferma quando la mano arriva al fianco.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "chest_supported_row_pull2",
-      "nome": "Rematore su panca inclinata con manubri (Chest-Supported DB Row)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=2wTkynZUh7c",
-      "note": "Fondamentale. Petto appoggiato = niente slancio, massimo lavoro del gran dorsale. Porta il gomito su, non troppo dietro al busto.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "chest_supported_row",
-      "nome": "Rematore su panca inclinata con manubri o macchina (Chest-Supported Row)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "Versione con petto appoggiato: più sicura per la spalla. Presa neutra/stretta.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "weighted_sit_ups",
-      "nome": "Sit-up con sovraccarico (Weighted Sit-Ups)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=1fbU_MkV7NE",
-      "note": "1 min 30 sec recupero.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "weighted_situp_or_cable_crunch",
-      "nome": "Sit-up con sovraccarico o Crunch al cavo (Weighted Sit-Up / Cable Crunch)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": null,
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "skullcrushers",
-      "nome": "Skull Crushers (French Press)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "1 min 30 sec recupero.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "rope_pushdown_push1",
-      "nome": "Spinte in basso al cavo con corda — Tricipiti (Rope Pushdown)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=C_1T8ptvcw4",
-      "note": "Dividi la corda alla fine della spinta per massimizzare la contrazione. RIR 1.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "back_squat_legs3",
-      "nome": "Squat con bilanciere (Back Squat)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=tr5PgWEebNA",
-      "note": "Fondamentale assoluto. Eseguilo per primo quando sei più fresco. Profondità almeno parallela. Grande dispendio calorico.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "bb_squat",
-      "nome": "Squat con bilanciere (BB Squat)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "Fondamentale. 2 min recupero.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "back_squat",
-      "nome": "Squat con bilanciere o Safety Bar (Back Squat / Safety Bar Squat)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "Fondamentale. Eseguilo prima di tutto, quando sei fresco.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "bb_deadlift",
-      "nome": "Stacco da terra con bilanciere (BB Deadlift)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=op9kVnSso6Q",
-      "note": "Fondamentale. 2 min recupero.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "romanian_deadlift_pull2",
-      "nome": "Stacco rumeno con bilanciere o manubri (Romanian Deadlift)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=sVyjYCOYyp4",
-      "note": "Catena posteriore: femorali e glutei. Schiena neutra, senti lo stretch ai femorali. Fondamentale per dimagrimento: grande massa muscolare coinvolta.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "romanian_deadlift_or_leg_curl",
-      "nome": "Stacco rumeno o Leg Curl alla macchina (Romanian Deadlift / Leg Curl)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": null,
-      "note": "Focalizzato sui femorali.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "upright_row",
-      "nome": "Tirate al mento con bilanciere (Upright Row)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=um3VLfkjdFU",
-      "note": "1 min 30 sec recupero.",
-      "descrizione": null,
-      "muscoli": []
-    },
-    {
-      "id": "pull_up_wide_grip",
-      "nome": "Trazioni alla sbarra presa larga (Pull-Up Wide Grip)",
-      "tipo": "reps",
-      "durata_default": null,
-      "video": "https://www.youtube.com/watch?v=eGo4IYlbE5g",
-      "note": "Fondamentale. 2 min recupero.",
       "descrizione": null,
       "muscoli": []
     },
@@ -628,6 +588,156 @@
       "durata_default": null,
       "video": null,
       "note": "Evita la presa larga e le tirate dietro la nuca. Concentrati sulle scapole che si chiudono.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "pull_up_wide_grip",
+      "nome": "Trazioni alla sbarra presa larga (Pull-Up Wide Grip)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=eGo4IYlbE5g",
+      "note": "Fondamentale. 2 min recupero.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "rear_delt_fly_cable_pull2",
+      "nome": "Alzate posteriori ai cavi incrociati (Rear Delt Cable Fly)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=9Z5HxpwJHvc",
+      "note": "Fondamentale per deltoide posteriore e salute della spalla. Sempre leggero.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "rear_delt_flyes",
+      "nome": "Alzate posteriori ai cavi o Pec Deck inversa (Rear Delt Flyes)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": "Leggero e controllato. Fondamentale per la salute della spalla.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "romanian_deadlift_or_leg_curl",
+      "nome": "Stacco rumeno o Leg Curl alla macchina (Romanian Deadlift / Leg Curl)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": "Focalizzato sui femorali.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "romanian_deadlift_pull",
+      "nome": "romanian_deadlift_pull",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": null,
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "romanian_deadlift_pull2",
+      "nome": "Stacco rumeno con bilanciere o manubri (Romanian Deadlift)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=sVyjYCOYyp4",
+      "note": "Catena posteriore: femorali e glutei. Schiena neutra, senti lo stretch ai femorali. Fondamentale per dimagrimento: grande massa muscolare coinvolta.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "rope_pushdown",
+      "nome": "rope_pushdown",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": null,
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "rope_pushdown_push1",
+      "nome": "Spinte in basso al cavo con corda — Tricipiti (Rope Pushdown)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=C_1T8ptvcw4",
+      "note": "Dividi la corda alla fine della spinta per massimizzare la contrazione. RIR 1.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "single_arm_cable_row",
+      "nome": "single_arm_cable_row",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": null,
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "single_arm_cable_row_pull2",
+      "nome": "Rematore singolo al cavo (Single-Arm Cable Row)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=cRMt3enhpcE",
+      "note": "Per lato. Permette di correggere asimmetrie. Ferma quando la mano arriva al fianco.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "skullcrushers",
+      "nome": "Skull Crushers (French Press)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": "1 min 30 sec recupero.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "straight_bar_tricep_extensions",
+      "nome": "Estensioni tricipiti al cavo con barra dritta (Straight Bar Tricep Extensions)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": "1 min 30 sec recupero.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "upright_row",
+      "nome": "Tirate al mento con bilanciere (Upright Row)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=um3VLfkjdFU",
+      "note": "1 min 30 sec recupero.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "weighted_sit_ups",
+      "nome": "Sit-up con sovraccarico (Weighted Sit-Ups)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": "https://www.youtube.com/watch?v=1fbU_MkV7NE",
+      "note": "1 min 30 sec recupero.",
+      "descrizione": null,
+      "muscoli": []
+    },
+    {
+      "id": "weighted_situp_or_cable_crunch",
+      "nome": "Sit-up con sovraccarico o Crunch al cavo (Weighted Sit-Up / Cable Crunch)",
+      "tipo": "reps",
+      "durata_default": null,
+      "video": null,
+      "note": null,
       "descrizione": null,
       "muscoli": []
     },

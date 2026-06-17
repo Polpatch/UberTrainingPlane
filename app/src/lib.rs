@@ -240,6 +240,10 @@ fn app() -> Html {
     let exercise_library = use_memo(|_| {
         let mut lib: Vec<ExerciseDef> = load_exercise_library().into_values().collect();
         lib.sort_by(|a, b| a.nome.cmp(&b.nome));
+        // Deduplicate by nome for the picker display only (library JSON keeps all IDs
+        // for merge lookups; picker only needs one entry per distinct exercise name).
+        let mut seen = std::collections::HashSet::new();
+        lib.retain(|e| seen.insert(e.nome.to_lowercase()));
         lib
     }, ());
     // HashMap version for O(1) lookup in picker_select callback.
