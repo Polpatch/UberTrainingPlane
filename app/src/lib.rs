@@ -411,7 +411,15 @@ fn app() -> Html {
         let workout = workout.clone();
         let error   = error.clone();
         let apply   = apply_day_session.clone();
-        Rc::new(move |data: Workout, day_idx: usize| {
+        Rc::new(move |mut data: Workout, day_idx: usize| {
+            // Ensure static exercise fields (tipo, nome, video, note, durata)
+            // are always populated from the library regardless of load path.
+            let lib = load_exercise_library();
+            for day in &mut data.giorni {
+                for ex in &mut day.esercizi {
+                    merge_exercise_with_library(ex, &lib);
+                }
+            }
             let day_label = data.giorni.get(day_idx)
                 .map(|d| d.giorno.clone()).unwrap_or_default();
             apply(day_idx, resolve_day_session(&data.id, &day_label));
@@ -468,23 +476,16 @@ fn app() -> Html {
         let error           = error.clone();
         let open_workout_fn = open_workout_fn.clone();
         Rc::new(move |text: String| {
-            match serde_json::from_str::<Workout>(&text) {
-                Ok(data) => {
-                    let lib = load_exercise_library();
-                    let mut workout_merged = data.clone();
-                    for day in &mut workout_merged.giorni {
-                        for ex in &mut day.esercizi {
-                            merge_exercise_with_library(ex, &lib);
-                        }
-                    }
-                    // The in-memory workout still opens fine; the banner is set
-                    // AFTER open_workout_fn because that clears prior errors.
-                    let save_err = upsert_schedule(&workout_merged).err();
-                    open_workout_fn(workout_merged, 0);
-                    if let Some(e) = save_err { error.set(Some(e)); }
-                }
-                Err(e) => error.set(Some(format!("Errore JSON: {}", e))),
+        match serde_json::from_str::<Workout>(&text) {
+            Ok(data) => {
+                // open_workout_fn applies the library merge before setting state;
+                // upsert_schedule persists the raw schema (merge is always re-applied on load).
+                let save_err = upsert_schedule(&data).err();
+                open_workout_fn(data, 0);
+                if let Some(e) = save_err { error.set(Some(e)); }
             }
+            Err(e) => error.set(Some(format!("Errore JSON: {}", e))),
+        }
         })
     };
 

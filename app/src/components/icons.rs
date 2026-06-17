@@ -66,3 +66,8 @@ pub fn icon_star_empty() -> Html {
 pub fn icon_star_radiant() -> Html {
     svg(r#"<path fill="currentColor" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"><line x1="3.5" y1="3.5" x2="5" y2="5"/><line x1="20.5" y1="3.5" x2="19" y2="5"/><line x1="3.5" y1="20.5" x2="5" y2="19"/><line x1="20.5" y1="20.5" x2="19" y2="19"/></g>"#)
 }
+
+/// Arrow rotating counter-clockwise — restore / revert action.
+pub fn icon_revert() -> Html {
+    svg(r#"<path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"/>"#)
+}
