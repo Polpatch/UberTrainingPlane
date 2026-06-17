@@ -10,86 +10,57 @@
       "esercizi": [
         {
           "id": "cardio_riscaldamento_push",
-          "nome": "Cardio riscaldamento (Tapis roulant / Cyclette)",
           "serie": 1,
           "reps": "5-8 min",
-          "recupero": null,
-          "video": null,
-          "note": "Zona 1-2 (60-65% FCmax). Breve: serve solo ad alzare temperatura corporea e lubrificare le articolazioni, non ad esaurirsi.",
-          "tipo": "cardio"
+          "recupero": null
         },
         {
           "id": "machine_chest_press_push1",
-          "nome": "Chest Press alla macchina (Machine Chest Press)",
           "serie": 4,
           "reps": "6-8",
-          "recupero": 120,
-          "video": "https://www.youtube.com/watch?v=Kb0AAz8HJJ8",
-          "note": "Fondamentale. ROM controllato, spalla-friendly. Ultime 2 serie vicino al cedimento (RIR 1-2). Progressione di carico prioritaria."
+          "recupero": 120
         },
         {
           "id": "low_incline_db_press_push1",
-          "nome": "Distensioni su panca bassa inclinata con manubri (Low-Incline DB Press 30°)",
           "serie": 3,
           "reps": "10-12",
-          "recupero": 90,
-          "video": "https://www.youtube.com/watch?v=iKRv8OOtwAs",
-          "note": "30° di inclinazione. Non portare i gomiti troppo larghi. Se la spalla dà fastidio, usa Floor Press. RIR 1-2 nelle ultime serie."
+          "recupero": 90
         },
         {
           "id": "cable_crossover_low_push1",
-          "nome": "Croci ai cavi bassi (Low Cable Crossover / Pec Fly)",
           "serie": 3,
           "reps": "12-15",
-          "recupero": 60,
-          "video": "https://www.youtube.com/watch?v=jzKDCuJVLjo",
-          "note": "Massimo allungamento e contrazione del pettorale. Carico leggero, focus sulla qualità del movimento. Ottimo per stress metabolico."
+          "recupero": 60
         },
         {
           "id": "lateral_raises_cable_push1",
-          "nome": "Alzate laterali al cavo (Cable Lateral Raises)",
           "serie": 4,
           "reps": "12-15",
-          "recupero": 60,
-          "video": "https://www.youtube.com/watch?v=CSZ9AsIgt9E",
-          "note": "Preferisci il cavo ai manubri: tensione costante per tutto il ROM. Braccio leggermente in avanti, alza fino all'altezza delle spalle. Leggero ma con controllo."
+          "recupero": 60
         },
         {
           "id": "face_pull_push1",
-          "nome": "Face Pull ai cavi con corda",
           "serie": 3,
           "reps": "15-20",
-          "recupero": 60,
-          "video": "https://www.youtube.com/watch?v=0Po47vvj9g4",
-          "note": "Essenziale per la salute della spalla e il rinforzo della cuffia dei rotatori. Non saltare mai questo esercizio. Sempre leggero."
+          "recupero": 60
         },
         {
           "id": "rope_pushdown_push1",
-          "nome": "Spinte in basso al cavo con corda — Tricipiti (Rope Pushdown)",
           "serie": 3,
           "reps": "10-12",
-          "recupero": 60,
-          "video": "https://www.youtube.com/watch?v=C_1T8ptvcw4",
-          "note": "Dividi la corda alla fine della spinta per massimizzare la contrazione. RIR 1."
+          "recupero": 60
         },
         {
           "id": "overhead_tricep_ext_push1",
-          "nome": "Estensioni tricipiti sopra la testa al cavo (Overhead Cable Tricep Extension)",
           "serie": 3,
           "reps": "12-15",
-          "recupero": 60,
-          "video": "https://www.youtube.com/watch?v=3m56x6O8sS8",
-          "note": "Allungamento lungo del tricipite = maggior danno meccanico e ipertrofia. Evita se la spalla è in fase acuta."
+          "recupero": 60
         },
         {
           "id": "cardio_liss_push1",
-          "nome": "Cardio LISS finale (Tapis roulant camminata veloce / Cyclette)",
           "serie": 1,
           "reps": "10-15 min",
-          "recupero": null,
-          "video": null,
-          "note": "Zona 2: 60-70% FCmax. Massimizza l'ossidazione dei grassi post-allenamento (finestra EPOC). Mantieni passo costante, non ti esaurire. Facoltativo se il tempo stringe.",
-          "tipo": "cardio"
+          "recupero": null
         }
       ]
     },
@@ -99,95 +70,63 @@
       "esercizi": [
         {
           "id": "cardio_riscaldamento_pull",
-          "nome": "Cardio riscaldamento (Tapis roulant / Cyclette)",
           "serie": 1,
           "reps": "5-8 min",
-          "recupero": null,
-          "video": null,
-          "note": "Zona 1-2. Breve riscaldamento.",
-          "tipo": "cardio"
+          "recupero": null
         },
         {
           "id": "pull_up_neutral_pull2",
-          "nome": "Trazioni alla sbarra presa neutra (Neutral Grip Pull-Up)",
           "serie": 4,
           "reps": "6-8",
-          "recupero": 120,
-          "video": "https://www.youtube.com/watch?v=FahINVgBXvs",
-          "note": "Fondamentale. Presa neutra = più sicura per la spalla rispetto alla presa larga. Se non riesci a fare 6 reps, usa la lat machine. Aggiungi zavorra se fai più di 8 reps pulite."
+          "recupero": 120
         },
         {
           "id": "chest_supported_row_pull2",
-          "nome": "Rematore su panca inclinata con manubri (Chest-Supported DB Row)",
           "serie": 4,
           "reps": "8-10",
-          "recupero": 90,
-          "video": "https://www.youtube.com/watch?v=2wTkynZUh7c",
-          "note": "Fondamentale. Petto appoggiato = niente slancio, massimo lavoro del gran dorsale. Porta il gomito su, non troppo dietro al busto."
+          "recupero": 90
         },
         {
           "id": "lat_pulldown_neutral_pull2",
-          "nome": "Lat Machine presa neutra o stretta (Lat Pulldown Neutral Grip)",
           "serie": 3,
           "reps": "10-12",
-          "recupero": 90,
-          "video": "https://www.youtube.com/watch?v=2X8_FsP0dso",
-          "note": "Concentrati sulla depressione della scapola: abbassa le spalle prima di tirare. RIR 1-2."
+          "recupero": 90
         },
         {
           "id": "single_arm_cable_row_pull2",
-          "nome": "Rematore singolo al cavo (Single-Arm Cable Row)",
           "serie": 3,
           "reps": "10-12",
-          "recupero": 60,
-          "video": "https://www.youtube.com/watch?v=cRMt3enhpcE",
-          "note": "Per lato. Permette di correggere asimmetrie. Ferma quando la mano arriva al fianco."
+          "recupero": 60
         },
         {
           "id": "rear_delt_fly_cable_pull2",
-          "nome": "Alzate posteriori ai cavi incrociati (Rear Delt Cable Fly)",
           "serie": 3,
           "reps": "15-20",
-          "recupero": 60,
-          "video": "https://www.youtube.com/watch?v=9Z5HxpwJHvc",
-          "note": "Fondamentale per deltoide posteriore e salute della spalla. Sempre leggero."
+          "recupero": 60
         },
         {
           "id": "romanian_deadlift_pull2",
-          "nome": "Stacco rumeno con bilanciere o manubri (Romanian Deadlift)",
           "serie": 3,
           "reps": "8-10",
-          "recupero": 120,
-          "video": "https://www.youtube.com/watch?v=sVyjYCOYyp4",
-          "note": "Catena posteriore: femorali e glutei. Schiena neutra, senti lo stretch ai femorali. Fondamentale per dimagrimento: grande massa muscolare coinvolta."
+          "recupero": 120
         },
         {
           "id": "ez_bar_curl_pull2",
-          "nome": "Curl con bilanciere EZ (EZ Bar Curl)",
           "serie": 3,
           "reps": "8-10",
-          "recupero": 60,
-          "video": "https://www.youtube.com/watch?v=BV6gPYF5JmE",
-          "note": "Supina/semi-supina. Niente slancio delle spalle."
+          "recupero": 60
         },
         {
           "id": "incline_db_curl_pull2",
-          "nome": "Curl su panca inclinata con manubri (Incline DB Curl)",
           "serie": 3,
           "reps": "10-12",
-          "recupero": 60,
-          "video": "https://www.youtube.com/watch?v=cqNUDtjF2eg",
-          "note": "Massimo allungamento del capo lungo del bicipite. Scientificamente provato come altamente efficace per ipertrofia bicipite (Pedrosa et al., 2022)."
+          "recupero": 60
         },
         {
           "id": "cardio_liss_pull2",
-          "nome": "Cardio LISS finale (Tapis roulant camminata veloce / Cyclette)",
           "serie": 1,
           "reps": "10-15 min",
-          "recupero": null,
-          "video": null,
-          "note": "Zona 2: 60-70% FCmax. Vedi note Giorno 1.",
-          "tipo": "cardio"
+          "recupero": null
         }
       ]
     },
@@ -197,104 +136,69 @@
       "esercizi": [
         {
           "id": "cardio_riscaldamento_legs",
-          "nome": "Cardio riscaldamento (Tapis roulant — camminata/leggero jogging)",
           "serie": 1,
           "reps": "5-8 min",
-          "recupero": null,
-          "video": null,
-          "note": "Nel giorno gambe preferisci il tapis roulant: riscalda anche le gambe. Zona 1.",
-          "tipo": "cardio"
+          "recupero": null
         },
         {
           "id": "back_squat_legs3",
-          "nome": "Squat con bilanciere (Back Squat)",
           "serie": 4,
           "reps": "5-7",
-          "recupero": 150,
-          "video": "https://www.youtube.com/watch?v=tr5PgWEebNA",
-          "note": "Fondamentale assoluto. Eseguilo per primo quando sei più fresco. Profondità almeno parallela. Grande dispendio calorico."
+          "recupero": 150
         },
         {
           "id": "leg_press_legs3",
-          "nome": "Leg Press a 45° (Leg Press)",
           "serie": 3,
           "reps": "10-12",
-          "recupero": 120,
-          "video": "https://www.youtube.com/watch?v=IERpP9JvoyE",
-          "note": "Piedi posizionati in alto e larghi per enfatizzare i glutei. Porta le ginocchia vicino al petto senza staccare i glutei dalla sedia."
+          "recupero": 120
         },
         {
           "id": "bulgarian_split_squat_legs3",
-          "nome": "Affondi bulgari con manubri (Bulgarian Split Squat)",
           "serie": 3,
           "reps": "8-10",
-          "recupero": 90,
-          "video": "https://www.youtube.com/watch?v=T88u8y70Qf8",
-          "note": "Per gamba. Uno degli esercizi più efficaci per ipertrofia quadricipite e glutei. Recupero tra le gambe 60s, tra le serie 90s. RIR 1."
+          "recupero": 90
         },
         {
           "id": "leg_curl_machine_legs3",
-          "nome": "Leg Curl alla macchina (Seated / Lying Leg Curl)",
           "serie": 3,
           "reps": "10-12",
-          "recupero": 90,
-          "video": "https://www.youtube.com/watch?v=pp-Ht2889_4",
-          "note": "Femorali. Preferisci il Seated Leg Curl se disponibile: maggior allungamento del muscolo nella posizione seduta = ipertrofia superiore (Maeo et al., 2021)."
+          "recupero": 90
         },
         {
           "id": "hip_thrust_legs3",
-          "nome": "Hip Thrust con bilanciere o macchina (Hip Thrust)",
           "serie": 4,
           "reps": "10-12",
-          "recupero": 90,
-          "video": "https://www.youtube.com/watch?v=85hMSKdJ2do",
-          "note": "4 serie perché i glutei reggono bene i volumi alti. Spingi le anche in avanti e stringi i glutei in cima. Ottimo rapporto sforzo/risultato."
+          "recupero": 90
         },
         {
           "id": "adductor_machine_legs3",
-          "nome": "Macchina adduttori (Adductor Machine)",
           "serie": 3,
           "reps": "12-15",
-          "recupero": 60,
-          "video": "https://www.youtube.com/watch?v=MaufPIKdn6M",
-          "note": null
+          "recupero": 60
         },
         {
           "id": "abductor_machine_legs3",
-          "nome": "Macchina abduttori (Abductor Machine)",
           "serie": 3,
           "reps": "12-15",
-          "recupero": 60,
-          "video": "https://www.youtube.com/watch?v=jfhMQsSZVUU",
-          "note": null
+          "recupero": 60
         },
         {
           "id": "cable_crunch_legs3",
-          "nome": "Crunch al cavo (Cable Crunch)",
           "serie": 3,
           "reps": "12-15",
-          "recupero": 60,
-          "video": "https://www.youtube.com/watch?v=w8_MqckpTGU",
-          "note": "Core finale. Preferisci il crunch al cavo ai sit-up classici: tensione costante e minore stress sul rachide lombare."
+          "recupero": 60
         },
         {
           "id": "plank_legs3",
-          "nome": "Plank isometrico",
           "serie": 3,
           "reps": "30-45 sec",
-          "recupero": 45,
-          "video": "https://www.youtube.com/watch?v=7DLUazTMImw",
-          "note": "Mantieni corpo rigido come una tavola. Ottimo per la stabilità del core e la colonna. Superset con il crunch al cavo per risparmiare tempo."
+          "recupero": 45
         },
         {
           "id": "cardio_liss_legs3",
-          "nome": "Cardio LISS finale (Tapis roulant camminata veloce)",
           "serie": 1,
           "reps": "10-15 min",
-          "recupero": null,
-          "video": null,
-          "note": "Zona 2: 60-70% FCmax. Nel giorno gambe è particolarmente efficace: i muscoli delle gambe già stimolati aumentano il dispendio calorico complessivo. Facoltativo se stanco.",
-          "tipo": "cardio"
+          "recupero": null
         }
       ]
     }

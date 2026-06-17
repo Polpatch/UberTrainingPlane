@@ -8,7 +8,8 @@
 
 use crate::components::day_tabs::DayTabs;
 use crate::components::exercise_card::ExerciseCard;
-use crate::models::{CompletedSet, Workout};
+use crate::models::{CompletedSet, Exercise, Workout};
+use std::collections::HashMap;
 use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
@@ -26,9 +27,12 @@ pub struct WorkoutViewProps {
     pub on_exit_history: Callback<MouseEvent>,
     pub on_toggle_desc: Callback<MouseEvent>,
     pub on_change_day: Callback<usize>,
-    pub on_select_exercise: Callback<usize>,
-    pub on_save_and_finish: Callback<MouseEvent>,
-    pub on_delete_workout: Callback<MouseEvent>,
+    pub on_select_exercise:     Callback<usize>,
+    pub on_long_press_exercise: Callback<usize>,
+    pub on_revert_exercise:     Callback<usize>,
+    pub exercise_overrides:     HashMap<usize, Exercise>,
+    pub on_save_and_finish:     Callback<MouseEvent>,
+    pub on_delete_workout:      Callback<MouseEvent>,
 }
 
 #[function_component(WorkoutView)]
@@ -96,13 +100,24 @@ pub fn workout_view(props: &WorkoutViewProps) -> Html {
                         </div>
                         <section class="exercise-list" key={props.day_index}>
                             { for day.esercizi.iter().enumerate().map(|(idx, exercise)| {
-                                let on_select_exercise = props.on_select_exercise.clone();
+                                let on_select_exercise     = props.on_select_exercise.clone();
+                                let on_long_press_exercise = props.on_long_press_exercise.clone();
+                                let on_revert_exercise     = props.on_revert_exercise.clone();
+                                let is_overridden          = props.exercise_overrides.contains_key(&idx);
+                                // Use the overridden exercise for display if present.
+                                let eff_exercise = props.exercise_overrides
+                                    .get(&idx)
+                                    .cloned()
+                                    .unwrap_or_else(|| exercise.clone());
                                 html! {
                                     <ExerciseCard
-                                        exercise={exercise.clone()}
+                                        exercise={eff_exercise}
                                         saved_sets={props.saved_sets.clone()}
                                         is_selected={selected == idx}
+                                        is_overridden={is_overridden}
                                         on_select={Callback::from(move |_: ()| on_select_exercise.emit(idx))}
+                                        on_long_press={Callback::from(move |_: ()| on_long_press_exercise.emit(idx))}
+                                        on_revert={Callback::from(move |_: ()| on_revert_exercise.emit(idx))}
                                     />
                                 }
                             }) }

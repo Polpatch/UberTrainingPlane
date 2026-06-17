@@ -1,19 +1,26 @@
 use crate::components::progress_bar::ProgressBar;
 use crate::models::{parse_reps_range, CompletedSet, Exercise};
+use gloo_timers::callback::Timeout;
 use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct ExerciseCardProps {
-    pub exercise:  Exercise,
-    pub saved_sets: Vec<CompletedSet>,
-    pub is_selected: bool,
-    pub on_select:   Callback<()>,
+    pub exercise:      Exercise,
+    pub saved_sets:    Vec<CompletedSet>,
+    pub is_selected:   bool,
+    pub is_overridden: bool,
+    pub on_select:     Callback<()>,
+    /// Called after a 400ms long-press on the exercise name — opens the picker.
+    pub on_long_press: Callback<()>,
+    /// Called when the user taps "↩ Ripristina" on an overridden exercise.
+    pub on_revert:     Callback<()>,
 }
 
 #[function_component(ExerciseCard)]
 pub fn exercise_card(props: &ExerciseCardProps) -> Html {
     let exercise = &props.exercise;
     let n        = exercise.serie as usize;
+    let lp_timeout = use_mut_ref(|| None::<Timeout>);
 
     let dot_done: Vec<bool> = (0..n).map(|i| {
         let s = (i + 1) as u32;
@@ -42,6 +49,26 @@ pub fn exercise_card(props: &ExerciseCardProps) -> Html {
         Callback::from(move |_: MouseEvent| on_select.emit(()))
     };
 
+    // ── Long-press on the name: 400ms hold → open picker ─────────────────────
+    let on_name_pointerdown = {
+        let cb  = props.on_long_press.clone();
+        let lpt = lp_timeout.clone();
+        Callback::from(move |e: PointerEvent| {
+            e.stop_propagation();
+            let cb2 = cb.clone();
+            let t   = Timeout::new(400, move || cb2.emit(()));
+            *lpt.borrow_mut() = Some(t);
+        })
+    };
+    let on_name_pointerup = {
+        let lpt = lp_timeout.clone();
+        Callback::from(move |_: PointerEvent| { lpt.borrow_mut().take(); })
+    };
+    let on_name_pointercancel = {
+        let lpt = lp_timeout.clone();
+        Callback::from(move |_: PointerEvent| { lpt.borrow_mut().take(); })
+    };
+
     let is_cardio = exercise.tipo.as_deref() == Some("cardio");
 
     let cardio_done_mins: Option<u32> = if is_cardio {
@@ -56,11 +83,33 @@ pub fn exercise_card(props: &ExerciseCardProps) -> Html {
             onclick={onclick_card}
         >
             <div class="exercise-head">
-                <div>
-                    <h3>{ &exercise.nome }</h3>
+                <div style="flex:1;min-width:0;">
+                    <div class="exercise-name-row">
+                        <h3
+                            onpointerdown={on_name_pointerdown}
+                            onpointerup={on_name_pointerup}
+                            onpointercancel={on_name_pointercancel}
+                            style="user-select:none;-webkit-user-select:none;touch-action:none;"
+                        >{ exercise.display_name() }</h3>
+                        if props.is_overridden {
+                            <button class="revert-btn"
+                                onclick={{
+                                    let cb = props.on_revert.clone();
+                                    Callback::from(move |e: MouseEvent| {
+                                        e.stop_propagation();
+                                        cb.emit(());
+                                    })
+                                }}
+                                title="Ripristina esercizio originale">
+                                {"↩"}
+                            </button>
+                        }
+                    </div>
                     <div class="exercise-meta">
                         if is_cardio {
                             { format!("Cardio · {}", exercise.reps) }
+                        } else if exercise.tipo.as_deref() == Some("temporale") {
+                            { format!("Isometrico · {}", exercise.reps) }
                         } else {
                             { format!("{} serie · {}", exercise.serie, exercise.reps) }
                         }
