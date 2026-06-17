@@ -34,8 +34,8 @@
     <!-- Trunk build -->
     
 <script type="module">
-import init, * as bindings from './fitness_wasm-215e39792dcc8b1b.js';
-const wasm = await init({ module_or_path: './fitness_wasm-215e39792dcc8b1b_bg.wasm' });
+import init, * as bindings from './fitness_wasm-e4f093a04574e5d6.js';
+const wasm = await init({ module_or_path: './fitness_wasm-e4f093a04574e5d6_bg.wasm' });
 
 
 window.wasmBindings = bindings;
@@ -476,7 +476,7 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
         .input-row { grid-template-columns: 1fr; }
       }
     </style>
-  <link rel="modulepreload" href="./fitness_wasm-215e39792dcc8b1b.js" crossorigin="anonymous" integrity="sha384-GG9IP72w5tkW6uJsyI4Bu8OMdDva/CCTlxff+IGckVkOIGZMlT3uF7s9W1SfWTMo"><link rel="modulepreload" href="./snippets/fitness_wasm-9ec66ad0e0bbca8f/inline0.js" crossorigin="anonymous" integrity="sha384-tZUEjYYw98GngozbM/8fnMlZUa0y4EbVwKvo3qfrSToLtmvmlr1VxO3Q05R+N/a7"><link rel="preload" href="./fitness_wasm-215e39792dcc8b1b_bg.wasm" crossorigin="anonymous" integrity="sha384-RFjtASLfnOOPz9y16G+Oxwt9X/eGRHq3eBNBsfrLXfn28/xreJ1llLfn40z527p6" as="fetch" type="application/wasm"></head>
+  <link rel="modulepreload" href="./fitness_wasm-e4f093a04574e5d6.js" crossorigin="anonymous" integrity="sha384-Qnc19qsHkFyJdgApc8dFZMUiFjKsbZLWhK9DaLuzXgf+qdVMOSbkvA4VXP28UvQz"><link rel="modulepreload" href="./snippets/fitness_wasm-9ec66ad0e0bbca8f/inline0.js" crossorigin="anonymous" integrity="sha384-tZUEjYYw98GngozbM/8fnMlZUa0y4EbVwKvo3qfrSToLtmvmlr1VxO3Q05R+N/a7"><link rel="preload" href="./fitness_wasm-e4f093a04574e5d6_bg.wasm" crossorigin="anonymous" integrity="sha384-imp/Xqg9w1BsOFhoclCLUWNVE2l4iHnmA1jIGbs7SYstG7uFpnZRimeATrHbFqkB" as="fetch" type="application/wasm"></head>
   <body>
     <div id="root"></div>
   </body>
