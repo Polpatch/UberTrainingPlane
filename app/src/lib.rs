@@ -5,6 +5,7 @@ mod recovery_timer;
 use components::bottom_sheet::BottomSheet;
 use components::calendar::Calendar;
 use components::catalog_panel::CatalogPanel;
+use components::exercise_picker::ExercisePicker;
 use components::workout_view::WorkoutView;
 use components::icons::*;
 use gloo_file::callbacks::{read_as_text, FileReader};
@@ -215,6 +216,7 @@ fn app() -> Html {
     let catalog            = use_state(|| Vec::<CatalogEntry>::new());
     let catalog_loading    = use_state(|| true);
     let timer              = use_recovery_timer();
+    let timed_timer        = use_recovery_timer();
     let reader_task        = use_mut_ref(|| None::<FileReader>);
     let import_reader      = use_mut_ref(|| None::<FileReader>);
     let menu_open               = use_state(|| false);
@@ -228,6 +230,20 @@ fn app() -> Html {
     let user_preferred          = use_state(load_user_preferred);
     let cardio_elapsed          = use_state(|| 0u32);
     let cardio_running          = use_state(|| false);
+    let sheet_expanded          = use_state(|| false);
+    let picker_open         = use_state(|| false);
+    let picker_exercise_idx = use_state(|| 0usize);
+    // Maps exercise index → patched Exercise for the current session.
+    // Cleared when the day or workout changes.
+    let exercise_overrides: UseStateHandle<HashMap<usize, Exercise>> = use_state(HashMap::new);
+    // Sorted library for the picker; built once (static JSON, never changes).
+    let exercise_library = use_memo(|_| {
+        let mut lib: Vec<ExerciseDef> = load_exercise_library().into_values().collect();
+        lib.sort_by(|a, b| a.nome.cmp(&b.nome));
+        lib
+    }, ());
+    // HashMap version for O(1) lookup in picker_select callback.
+    let lib_map = use_memo(|_| load_exercise_library(), ());
     let cardio_handle           = use_mut_ref(|| None::<Interval>);
     // ID of the currently active session (empty = no workout loaded)
     let current_session_id  = use_state(|| String::new());
@@ -238,6 +254,8 @@ fn app() -> Html {
     // start and kept across pause/resume + exercise navigation, so the at-zero
     // save always completes the right exercise's set.
     let timer_target = use_mut_ref(|| 0usize);
+    // Same for timed exercises (tipo=="temporale").
+    let timed_timer_target = use_mut_ref(|| 0usize);
 
     // Live mirror (see RegLive) — refreshed below on every render.
     let reg_live = use_mut_ref(RegLive::default);
@@ -452,10 +470,17 @@ fn app() -> Html {
         Rc::new(move |text: String| {
             match serde_json::from_str::<Workout>(&text) {
                 Ok(data) => {
+                    let lib = load_exercise_library();
+                    let mut workout_merged = data.clone();
+                    for day in &mut workout_merged.giorni {
+                        for ex in &mut day.esercizi {
+                            merge_exercise_with_library(ex, &lib);
+                        }
+                    }
                     // The in-memory workout still opens fine; the banner is set
                     // AFTER open_workout_fn because that clears prior errors.
-                    let save_err = upsert_schedule(&data).err();
-                    open_workout_fn(data, 0);
+                    let save_err = upsert_schedule(&workout_merged).err();
+                    open_workout_fn(workout_merged, 0);
                     if let Some(e) = save_err { error.set(Some(e)); }
                 }
                 Err(e) => error.set(Some(format!("Errore JSON: {}", e))),
@@ -515,12 +540,14 @@ fn app() -> Html {
         let cardio_elapsed    = cardio_elapsed.clone();
         let cardio_running    = cardio_running.clone();
         let cardio_handle     = cardio_handle.clone();
+        let timed_timer       = timed_timer.clone();
         let workout           = workout.clone();
         let day_index         = day_index.clone();
         let saved_sets        = saved_sets.clone();
         Callback::from(move |idx: usize| {
             cardio_handle.borrow_mut().take();
             cardio_running.set(false);
+            timed_timer.stop();
             // Restore saved duration if this is a completed cardio exercise
             let restored = workout.as_ref()
                 .and_then(|w| w.giorni.get(*day_index))
@@ -543,10 +570,14 @@ fn app() -> Html {
         let cardio_elapsed     = cardio_elapsed.clone();
         let cardio_running     = cardio_running.clone();
         let cardio_handle      = cardio_handle.clone();
+        let timed_timer        = timed_timer.clone();
+        let exercise_overrides = exercise_overrides.clone();
         Callback::from(move |idx: usize| {
             cardio_handle.borrow_mut().take();
             cardio_running.set(false);
             cardio_elapsed.set(0);
+            timed_timer.stop();
+            exercise_overrides.set(HashMap::new());
             match workout.as_ref()
                 .and_then(|w| w.giorni.get(idx).map(|d| (w.id.clone(), d.giorno.clone())))
             {
@@ -817,6 +848,82 @@ fn app() -> Html {
             let register = register.clone();
             let tt = timer_target.clone();
             timer.toggle(fresh_secs, move || register(*tt.borrow()));
+        })
+    };
+
+    // ── Timed exercise countdown (tipo=="temporale") ──────────────────────────
+    let on_timed_stop = {
+        let timed_timer = timed_timer.clone();
+        Callback::from(move |_: ()| timed_timer.stop())
+    };
+
+    let on_timed_toggle = {
+        let timed_timer       = timed_timer.clone();
+        let workout_state     = workout.clone();
+        let day_index         = day_index.clone();
+        let selected_exercise = selected_exercise.clone();
+        let register          = register_set_for.clone();
+        let timed_target      = timed_timer_target.clone();
+        Callback::from(move |_: ()| {
+            let is_fresh = !timed_timer.running && timed_timer.left == 0;
+            if is_fresh {
+                *timed_target.borrow_mut() = *selected_exercise;
+            }
+            let target = *timed_target.borrow();
+            let fresh_secs = workout_state.as_ref()
+                .and_then(|w| w.giorni.get(*day_index))
+                .and_then(|d| d.esercizi.get(target))
+                .and_then(|e| e.durata)
+                .unwrap_or(60);
+            let register = register.clone();
+            let tt = timed_target.clone();
+            timed_timer.toggle(fresh_secs, move || register(*tt.borrow()));
+        })
+    };
+
+    // ── Exercise picker (alternative exercise selection) ─────────────────────
+    let on_open_picker = {
+        let picker_open         = picker_open.clone();
+        let picker_exercise_idx = picker_exercise_idx.clone();
+        Callback::from(move |idx: usize| {
+            picker_exercise_idx.set(idx);
+            picker_open.set(true);
+        })
+    };
+
+    let on_picker_cancel = {
+        let picker_open = picker_open.clone();
+        Callback::from(move |_: ()| picker_open.set(false))
+    };
+
+    let on_picker_select = {
+        let picker_open         = picker_open.clone();
+        let picker_exercise_idx = picker_exercise_idx.clone();
+        let exercise_overrides  = exercise_overrides.clone();
+        let workout_state       = workout.clone();
+        let day_index           = day_index.clone();
+        let lib_map             = lib_map.clone();
+        Callback::from(move |chosen_id: String| {
+            let idx = *picker_exercise_idx;
+            // Build the patched Exercise: scheda's serie/reps/recupero + library's static fields.
+            if let Some(def) = lib_map.get(&chosen_id) {
+                if let Some(scheda_ex) = workout_state.as_ref()
+                    .and_then(|w| w.giorni.get(*day_index))
+                    .and_then(|d| d.esercizi.get(idx))
+                {
+                    let mut patched = scheda_ex.clone();
+                    patched.id    = def.id.clone();
+                    patched.nome  = Some(def.nome.clone());
+                    patched.video = def.video.clone();
+                    patched.note  = def.note.clone();
+                    patched.tipo  = Some(def.tipo.clone());
+                    patched.durata = def.durata_default;
+                    let mut map = (*exercise_overrides).clone();
+                    map.insert(idx, patched);
+                    exercise_overrides.set(map);
+                }
+            }
+            picker_open.set(false);
         })
     };
 
@@ -1277,7 +1384,10 @@ fn app() -> Html {
     let sheet_exercise: Option<crate::models::Exercise> = workout.as_ref()
         .and_then(|w| w.giorni.get(*day_index))
         .and_then(|d| d.esercizi.get(*selected_exercise))
-        .cloned();
+        .map(|e| {
+            // Apply override if the user selected an alternative exercise.
+            exercise_overrides.get(&*selected_exercise).cloned().unwrap_or_else(|| e.clone())
+        });
     let sheet_day: Option<crate::models::Day> = workout.as_ref()
         .and_then(|w| w.giorni.get(*day_index))
         .cloned();
@@ -1323,7 +1433,7 @@ fn app() -> Html {
                 }
             </header>
 
-            <main class="app-main">
+            <main class="app-main" style={if *sheet_expanded { "padding-bottom: calc(62vh + 24px)" } else { "" }}>
                 {
                     if let Some(workout_data) = &*workout {
                         if !resume_candidates.is_empty() {
@@ -1383,6 +1493,13 @@ fn app() -> Html {
                                     on_toggle_desc={on_toggle_desc.clone()}
                                     on_change_day={on_change_day.clone()}
                                     on_select_exercise={on_select_exercise.clone()}
+                                    on_long_press_exercise={{ let cb = on_open_picker.clone(); Callback::from(move |idx: usize| cb.emit(idx)) }}
+                                    on_revert_exercise={{ let eo = exercise_overrides.clone(); Callback::from(move |idx: usize| {
+                                        let mut map = (*eo).clone();
+                                        map.remove(&idx);
+                                        eo.set(map);
+                                    }) }}
+                                    exercise_overrides={(*exercise_overrides).clone()}
                                     on_save_and_finish={on_save_and_finish.clone()}
                                     on_delete_workout={on_delete_workout.clone()}
                                 />
@@ -1437,7 +1554,20 @@ fn app() -> Html {
                 cardio_running={*cardio_running}
                 on_cardio_toggle={on_cardio_toggle}
                 on_cardio_stop={on_cardio_stop}
+                timed_timer={TimerState { running: timed_timer.running, left: timed_timer.left, total: timed_timer.total }}
+                on_timed_toggle={on_timed_toggle}
+                on_timed_stop={on_timed_stop}
+                on_expand_change={{ let se = sheet_expanded.clone(); Callback::from(move |v: bool| se.set(v)) }}
             />
+
+            // ── Exercise picker modal ────────────────────────────────────────
+            if *picker_open {
+                <ExercisePicker
+                    library={(*exercise_library).clone()}
+                    on_select={on_picker_select.clone()}
+                    on_cancel={on_picker_cancel.clone()}
+                />
+            }
 
             // ── Burger menu modal ────────────────────────────────────────────
             if *menu_open {

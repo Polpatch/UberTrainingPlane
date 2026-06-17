@@ -24,16 +24,25 @@ pub struct Day {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Exercise {
     pub id: String,
-    pub nome: String,
+    #[serde(default)]
+    pub nome: Option<String>,
     pub serie: u32,
     pub reps: String,
     pub recupero: Option<u32>,
+    #[serde(default)]
     pub note: Option<String>,
+    #[serde(default)]
     pub video: Option<String>,
     #[serde(default)]
     pub tipo: Option<String>,
     #[serde(default)]
     pub durata: Option<u32>,
+}
+
+impl Exercise {
+    pub fn display_name(&self) -> &str {
+        self.nome.as_deref().unwrap_or(&self.id)
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -44,6 +53,20 @@ pub struct CatalogEntry {
     pub mese: Option<String>,
     pub anno: Option<String>,
     pub preferita: Option<bool>,
+}
+
+/// Static exercise definition from the exercise library (esercizi.json).
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct ExerciseDef {
+    pub id: String,
+    pub nome: String,
+    pub tipo: String,
+    pub durata_default: Option<u32>,
+    pub video: Option<String>,
+    pub note: Option<String>,
+    pub descrizione: Option<String>,
+    #[serde(default)]
+    pub muscoli: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -468,7 +491,7 @@ pub fn upsert_completed_set_at(
     } else {
         list.push(CompletedSet {
             exercise_id: exercise.id.clone(),
-            nome:        exercise.nome.clone(),
+            nome:        exercise.display_name().to_owned(),
             set_number,
             peso,
             reps,
@@ -812,6 +835,32 @@ pub fn parse_reps_range(reps: &str) -> (i32, i32) {
     }
 }
 
+// ── Exercise library ─────────────────────────────────────────────────────────
+
+static EXERCISE_LIBRARY_JSON: &str = include_str!("../esercizi.json");
+
+pub fn load_exercise_library() -> HashMap<String, ExerciseDef> {
+    #[derive(Deserialize)]
+    struct LibraryFile {
+        esercizi: Vec<ExerciseDef>,
+    }
+    let lib: LibraryFile = serde_json::from_str(EXERCISE_LIBRARY_JSON)
+        .unwrap_or(LibraryFile { esercizi: vec![] });
+    lib.esercizi.into_iter().map(|e| (e.id.clone(), e)).collect()
+}
+
+/// Fill in any None field in `exercise` from the library entry for its id.
+/// Scheda values (if present) win; this only fills gaps.
+pub fn merge_exercise_with_library(exercise: &mut Exercise, lib: &HashMap<String, ExerciseDef>) {
+    if let Some(def) = lib.get(&exercise.id) {
+        if exercise.nome.is_none()   { exercise.nome  = Some(def.nome.clone()); }
+        if exercise.video.is_none()  { exercise.video = def.video.clone(); }
+        if exercise.note.is_none()   { exercise.note  = def.note.clone(); }
+        if exercise.tipo.is_none()   { exercise.tipo  = Some(def.tipo.clone()); }
+        if exercise.durata.is_none() { exercise.durata = def.durata_default; }
+    }
+}
+
 // ── Unit tests (native: `cargo test` from app/) ──────────────────────────────
 
 #[cfg(test)]
@@ -821,7 +870,7 @@ mod tests {
     fn ex(id: &str, serie: u32) -> Exercise {
         Exercise {
             id: id.into(),
-            nome: id.to_uppercase(),
+            nome: Some(id.to_uppercase()),
             serie,
             reps: "8-10".into(),
             recupero: Some(90),

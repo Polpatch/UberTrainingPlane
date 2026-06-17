@@ -1,4 +1,5 @@
 pub mod bottom_sheet;
+pub mod exercise_picker;
 pub mod calendar;
 pub mod icons;
 pub mod catalog_panel;

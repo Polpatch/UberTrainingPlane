@@ -166,6 +166,12 @@ pub struct BottomSheetProps {
     pub cardio_running:   bool,
     pub on_cardio_toggle: Callback<()>,
     pub on_cardio_stop:   Callback<()>,
+    /// Timer for exercises of tipo=="temporale" (countdown from exercise.durata).
+    pub timed_timer:      TimerState,
+    pub on_timed_toggle:  Callback<()>,
+    pub on_timed_stop:    Callback<()>,
+    /// Called whenever the sheet expands or collapses — lets the parent adjust layout.
+    pub on_expand_change: Callback<bool>,
 }
 
 #[function_component(BottomSheet)]
@@ -261,10 +267,23 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
         );
     }
 
+    // ── Hook: notify parent when sheet expands/collapses (for layout padding) ──
+    {
+        let cb = props.on_expand_change.clone();
+        use_effect_with_deps(
+            move |is_expanded: &bool| {
+                cb.emit(*is_expanded);
+                || ()
+            },
+            *expanded,
+        );
+    }
+
     // ── Early return when no exercise ─────────────────────────────────────────
     let exercise = match &props.exercise { Some(e) => e, None => return html! {} };
 
     let is_cardio   = exercise.tipo.as_deref() == Some("cardio");
+    let is_timed    = exercise.tipo.as_deref() == Some("temporale");
     let cardio_done = completed_count > 0;
 
     // ── Input values ──────────────────────────────────────────────────────────
@@ -338,8 +357,10 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
         let asc            = active_set.clone();
         let dot_snap       = dot_done.clone();
         let cancel_timer   = props.on_cancel_timer.clone();
+        let stop_timed     = props.on_timed_stop.clone();
         let was_completed  = completed;
         let timer_active   = props.timer.running;
+        let timed_active   = props.timed_timer.running || props.timed_timer.left > 0;
         let js             = just_saved.clone();
         let jst            = just_saved_timeout.clone();
         Callback::from(move |_: MouseEvent| {
@@ -352,7 +373,8 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
             let t = Timeout::new(600, move || { js2.set(None); });
             *jst.borrow_mut() = Some(t);
             if !was_completed {
-                if timer_active { cancel_timer.emit(()); }
+                if timer_active  { cancel_timer.emit(()); }
+                if timed_active  { stop_timed.emit(());  }
                 let next = (1..n)
                     .map(|off| (clamped + off) % n)
                     .find(|&i| !dot_snap.get(i).copied().unwrap_or(false));
@@ -379,7 +401,7 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
             <div class="sheet-handle-area"
                  onclick={{ let exp = expanded.clone(); Callback::from(move |_| exp.set(!*exp)) }}>
                 <div class="sheet-handle-pill"></div>
-                <span class="sheet-ex-name">{ &exercise.nome }</span>
+                <span class="sheet-ex-name">{ exercise.display_name() }</span>
                 <span class="sheet-progress-mini">
                     if is_cardio {
                         {
@@ -405,7 +427,7 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                             })
                         }}>{ icon_play() }</button>
                 }
-                if !is_cardio {
+                if !is_cardio && !is_timed {
                     <button class="chart-icon-btn" title="Grafico avanzamento peso"
                         onclick={{
                             let co = chart_open.clone();
@@ -447,7 +469,7 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                     </div>
                     if !props.history_mode {
                         <div class="sheet-actions">
-                            <button class="secondary-button" onclick={{
+                            <button class="primary-button" onclick={{
                                 let cb = props.on_cardio_toggle.clone();
                                 Callback::from(move |_: MouseEvent| cb.emit(()))
                             }}>
@@ -455,12 +477,66 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                                   else if props.cardio_elapsed > 0 { "Riprendi" }
                                   else { "Avvia" } }
                             </button>
-                            <button class="primary-button" onclick={{
+                            <button class="secondary-button" onclick={{
                                 let cb = props.on_cardio_stop.clone();
                                 Callback::from(move |_: MouseEvent| cb.emit(()))
                             }}
                                 disabled={props.cardio_elapsed == 0 && !props.cardio_running}>
                                 { if cardio_done { "Aggiorna" } else { "Registra" } }
+                            </button>
+                        </div>
+                    }
+                } else if is_timed {
+                    // ── Timed exercise UI (countdown) ──────────────────────
+                    <div class="sheet-content" key={exercise_id.clone()}>
+                        <ProgressBar
+                            n={exercise.serie}
+                            dot_done={dot_done.clone()}
+                            dot_reps_hint={vec![]}
+                            active={clamped}
+                            just_saved={*just_saved}
+                            on_select={{
+                                let asc = active_set.clone();
+                                Callback::from(move |idx: usize| asc.set(idx))
+                            }}
+                        />
+                        <div class="cardio-stopwatch">
+                            <div class="cardio-timer-wrap">
+                                <span class="cardio-timer-label">{"isometrico"}</span>
+                                <div class="cardio-time">
+                                    { format!("{:02}:{:02}",
+                                        props.timed_timer.left / 60,
+                                        props.timed_timer.left % 60)
+                                    }
+                                </div>
+                            </div>
+                            if let Some(dur) = exercise.durata {
+                                <div class="cardio-target">
+                                    { if dur >= 60 {
+                                        format!("Obiettivo: {}'{:02}\"", dur / 60, dur % 60)
+                                    } else {
+                                        format!("Obiettivo: {}\"", dur)
+                                    } }
+                                </div>
+                            }
+                        </div>
+                        if let Some(note) = &exercise.note {
+                            <p class="exercise-note">{ note.clone() }</p>
+                        }
+                    </div>
+                    if !props.history_mode {
+                        <div class="sheet-actions">
+                            <button class="primary-button" onclick={{
+                                let cb = props.on_timed_toggle.clone();
+                                Callback::from(move |_: MouseEvent| cb.emit(()))
+                            }}>
+                                { if props.timed_timer.running { "Pausa" }
+                                  else if props.timed_timer.left > 0 { "Riprendi" }
+                                  else { "Avvia" } }
+                            </button>
+                            <button class="secondary-button" onclick={on_register}
+                                disabled={completed}>
+                                { if completed { "Completata" } else { "Registra" } }
                             </button>
                         </div>
                     }
@@ -484,6 +560,16 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                                 Callback::from(move |idx: usize| asc.set(idx))
                             }}
                         />
+
+                        if let Some(rec) = exercise.recupero {
+                            <div class="recovery-badge">
+                                { if rec >= 60 {
+                                    format!("Recupero: {}'{:02}\"", rec / 60, rec % 60)
+                                } else {
+                                    format!("Recupero: {}\"", rec)
+                                } }
+                            </div>
+                        }
 
                         <div class="series-row">
                             <div class="series-row-header">
@@ -549,14 +635,10 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                     </div>
                     // ── Action footer — outside scrollable area, always visible ──
                     <div class="sheet-actions">
-                        <button class="primary-button" onclick={on_register}
-                            disabled={props.timer.running || props.timer.left > 0}>
-                            { if completed { "Aggiorna serie" } else { "Registra serie" } }
-                        </button>
                         if !props.history_mode
                             && (!completed || props.timer.running || props.timer.left > 0)
                         {
-                            <button class="secondary-button" onclick={{
+                            <button class="primary-button" onclick={{
                                 let cb = props.on_start_timer.clone();
                                 Callback::from(move |_: MouseEvent| cb.emit(()))
                             }}>
@@ -565,6 +647,10 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                                   else { "Avvia recupero" } }
                             </button>
                         }
+                        <button class="secondary-button" onclick={on_register}
+                            disabled={props.timer.running || props.timer.left > 0}>
+                            { if completed { "Aggiorna serie" } else { "Registra serie" } }
+                        </button>
                     </div>
                 }
             }
