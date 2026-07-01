@@ -34,8 +34,8 @@
     <!-- Trunk build -->
     
 <script type="module">
-import init, * as bindings from './fitness_wasm-e8868bf88de30f93.js';
-const wasm = await init({ module_or_path: './fitness_wasm-e8868bf88de30f93_bg.wasm' });
+import init, * as bindings from './fitness_wasm-72f55911deae3e2b.js';
+const wasm = await init({ module_or_path: './fitness_wasm-72f55911deae3e2b_bg.wasm' });
 
 
 window.wasmBindings = bindings;
@@ -394,9 +394,9 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
       .history-session-date { font-weight: 700; font-size: 0.95rem; color: var(--text); }
       .history-session-meta { font-size: 0.85rem; color: var(--text-3); }
       .bottom-sheet { position: fixed; bottom: 0; left: 0; right: 0; z-index: 90; background: var(--surface); border-radius: 24px 24px 0 0; box-shadow: 0 -4px 24px var(--sh-lg); transition: height 0.28s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; overflow: hidden; }
-      .bottom-sheet--expanded  { height: 62vh; }
+      .bottom-sheet--expanded  { height: calc(62vh + 1.5em); }
       .bottom-sheet--minimized { height: 72px; }
-      .sheet-backdrop { position: fixed; inset: 0; bottom: 62vh; z-index: 89; }
+      .sheet-backdrop { position: fixed; inset: 0; bottom: calc(62vh + 1.5em); z-index: 89; }
       .sheet-handle-area { flex-shrink: 0; height: 72px; padding: 0 20px; display: flex; align-items: center; gap: 10px; cursor: pointer; position: relative; user-select: none; -webkit-user-select: none; touch-action: none; }
       .sheet-handle-pill { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 36px; height: 4px; border-radius: 2px; background: var(--border-2); }
       .sheet-ex-name { flex: 1; font-weight: 700; font-size: 1rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-top: 4px; }
@@ -499,7 +499,7 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
         .input-row { grid-template-columns: 1fr; }
       }
     </style>
-  <link rel="modulepreload" href="./fitness_wasm-e8868bf88de30f93.js" crossorigin="anonymous" integrity="sha384-TyV1Eee/0G9+R+18Hk56VtoHcQRiQ2DhW+U9Kpx6qPwPx+LbGjqSyqInp4Odw3Ur"><link rel="modulepreload" href="./snippets/fitness_wasm-9ec66ad0e0bbca8f/inline0.js" crossorigin="anonymous" integrity="sha384-tZUEjYYw98GngozbM/8fnMlZUa0y4EbVwKvo3qfrSToLtmvmlr1VxO3Q05R+N/a7"><link rel="preload" href="./fitness_wasm-e8868bf88de30f93_bg.wasm" crossorigin="anonymous" integrity="sha384-StFumBP0Y3URtxDihf6/iJzViOIIe1FGKuQG88KAZSTcElqp9H/wQ0hzcRNRWRwr" as="fetch" type="application/wasm"></head>
+  <link rel="modulepreload" href="./fitness_wasm-72f55911deae3e2b.js" crossorigin="anonymous" integrity="sha384-TyV1Eee/0G9+R+18Hk56VtoHcQRiQ2DhW+U9Kpx6qPwPx+LbGjqSyqInp4Odw3Ur"><link rel="modulepreload" href="./snippets/fitness_wasm-9ec66ad0e0bbca8f/inline0.js" crossorigin="anonymous" integrity="sha384-tZUEjYYw98GngozbM/8fnMlZUa0y4EbVwKvo3qfrSToLtmvmlr1VxO3Q05R+N/a7"><link rel="preload" href="./fitness_wasm-72f55911deae3e2b_bg.wasm" crossorigin="anonymous" integrity="sha384-6WWwHRSGrFAS9KycB5QTqXbV50JhRzC/kH04hZfeDT94LJXLL+JY7fC0hPzSAcFW" as="fetch" type="application/wasm"></head>
   <body>
     <div id="root"></div>
   </body>
