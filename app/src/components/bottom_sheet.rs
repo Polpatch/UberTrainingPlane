@@ -1,7 +1,7 @@
-use crate::components::icons::{icon_chart, icon_play};
+use crate::components::icons::{icon_chart, icon_photo, icon_play};
 use crate::components::progress_bar::ProgressBar;
 use crate::models::{
-    get_input_with_fallback, last_reps_for_exercise_set, parse_reps_range,
+    get_input_with_fallback, image_url, last_reps_for_exercise_set, parse_reps_range,
     weight_history_for_exercise, CompletedSet, Day, Exercise, TimerState, WeightPoint,
 };
 use gloo_timers::callback::Timeout;
@@ -183,6 +183,8 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
     let chart_open         = use_state(|| false);
     let expanded           = use_state(|| false);
     let video_open         = use_state(|| false);
+    let photo_open         = use_state(|| false);
+    let photo_idx          = use_state(|| 0usize);
     let just_saved         = use_state(|| None::<usize>);
     let just_saved_timeout = use_mut_ref(|| None::<Timeout>);
     // Swipe-to-expand/collapse: track Y at pointerdown on the handle.
@@ -407,6 +409,11 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
     // Video embed URL (None if no video or unrecognised URL)
     let video_embed: Option<String> = exercise.video.as_deref().and_then(youtube_embed_url);
 
+    // Photo carousel: current image URL + count, clamped to bounds (None if no images)
+    let n_photos = exercise.images.len();
+    let photo_clamped = (*photo_idx).min(n_photos.saturating_sub(1));
+    let current_photo_url: Option<String> = exercise.images.get(photo_clamped).map(|p| image_url(p));
+
     let sheet_class = if *expanded { "bottom-sheet bottom-sheet--expanded" }
                       else         { "bottom-sheet bottom-sheet--minimized" };
 
@@ -481,6 +488,20 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                                 vo.set(true);
                             })
                         }}>{ icon_play() }</button>
+                }
+                if video_embed.is_none() && !exercise.images.is_empty() {
+                    <button class="video-icon-btn" title="Foto dimostrative esercizio"
+                        onpointerdown={Callback::from(|e: PointerEvent| e.stop_propagation())}
+                        onpointerup={Callback::from(|e: PointerEvent| e.stop_propagation())}
+                        onclick={{
+                            let po = photo_open.clone();
+                            let pi = photo_idx.clone();
+                            Callback::from(move |e: MouseEvent| {
+                                e.stop_propagation();
+                                pi.set(0);
+                                po.set(true);
+                            })
+                        }}>{ icon_photo() }</button>
                 }
                 if !is_cardio && !is_timed {
                     <button class="chart-icon-btn" title="Grafico avanzamento peso"
@@ -771,6 +792,38 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                                 allowfullscreen={true}
                                 style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:14px;"
                             />
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+
+        // ── Photo carousel overlay (position:fixed, renders over everything) ──
+        if *photo_open {
+            if let Some(src) = current_photo_url {
+                <div class="video-overlay"
+                    onclick={{ let po = photo_open.clone(); Callback::from(move |_| po.set(false)) }}>
+                    <div class="video-modal photo-modal"
+                        onclick={Callback::from(|e: MouseEvent| e.stop_propagation())}>
+                        <div class="photo-frame">
+                            <img src={src} alt="Dimostrazione esercizio" class="photo-img" />
+                            if n_photos > 1 {
+                                <button class="photo-nav photo-nav--prev" title="Precedente"
+                                    onclick={{
+                                        let pi = photo_idx.clone();
+                                        Callback::from(move |_: MouseEvent| {
+                                            pi.set((*pi + n_photos - 1) % n_photos);
+                                        })
+                                    }}>{"‹"}</button>
+                                <button class="photo-nav photo-nav--next" title="Successiva"
+                                    onclick={{
+                                        let pi = photo_idx.clone();
+                                        Callback::from(move |_: MouseEvent| {
+                                            pi.set((*pi + 1) % n_photos);
+                                        })
+                                    }}>{"›"}</button>
+                                <span class="photo-counter">{ format!("{} / {}", photo_clamped + 1, n_photos) }</span>
+                            }
                         </div>
                     </div>
                 </div>

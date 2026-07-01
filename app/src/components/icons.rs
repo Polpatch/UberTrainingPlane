@@ -71,3 +71,8 @@ pub fn icon_star_radiant() -> Html {
 pub fn icon_revert() -> Html {
     svg(r#"<path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"/>"#)
 }
+
+/// Simple photo/image frame — exercise demonstration photos button.
+pub fn icon_photo() -> Html {
+    svg(r#"<rect x="3" y="4.5" width="18" height="15" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="8.25" cy="9.75" r="1.5" fill="currentColor"/><path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" d="M4 16.5l4.5-4.5 3 3 4-5 4.5 5.5"/>"#)
+}

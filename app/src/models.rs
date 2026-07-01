@@ -34,6 +34,8 @@ pub struct Exercise {
     #[serde(default)]
     pub video: Option<String>,
     #[serde(default)]
+    pub images: Vec<String>,
+    #[serde(default)]
     pub tipo: Option<String>,
     #[serde(default)]
     pub durata: Option<u32>,
@@ -955,7 +957,9 @@ pub fn parse_reps_range(reps: &str) -> (i32, i32) {
 // ── Exercise library ─────────────────────────────────────────────────────────
 
 /// Fetch and merge the exercise library at runtime.
-/// Loads `free_exercise_db.json` (873 entries) and `esercizi_custom.json` (extensions).
+/// Loads `free_exercise_db.json` (873 entries), `esercizi_custom.json` (extensions),
+/// and `video_overrides.json` (curated YouTube links keyed by canonical ID, applied
+/// on top since the external DB has no video field at all).
 /// Custom entries override DB entries on ID collision so we can patch any DB entry.
 /// Returns an empty map on fetch failure (components degrade gracefully).
 pub async fn load_exercise_library() -> HashMap<String, ExerciseDef> {
@@ -977,7 +981,27 @@ pub async fn load_exercise_library() -> HashMap<String, ExerciseDef> {
     for e in custom {
         map.insert(e.id.clone(), e);
     }
+
+    // Apply curated video overrides on top (neither DB nor custom carry video).
+    let videos: HashMap<String, String> = match Request::get("video_overrides.json").send().await {
+        Ok(resp) if resp.ok() => resp.json().await.unwrap_or_default(),
+        _ => HashMap::new(),
+    };
+    for (id, url) in videos {
+        if let Some(def) = map.get_mut(&id) {
+            def.video = Some(url);
+        }
+    }
+
     map
+}
+
+/// Base URL for free-exercise-db images, hosted on the repo's raw GitHub content.
+const IMAGE_BASE_URL: &str = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/";
+
+/// Build the full image URL for an image path from `ExerciseDef.images` (e.g. "Barbell_Squat/0.jpg").
+pub fn image_url(path: &str) -> String {
+    format!("{IMAGE_BASE_URL}{path}")
 }
 
 /// Fill in any None field in `exercise` from the library entry for its id.
@@ -989,6 +1013,7 @@ pub fn merge_exercise_with_library(exercise: &mut Exercise, lib: &HashMap<String
         if exercise.note.is_none()   { exercise.note  = def.note.clone(); }
         if exercise.tipo.is_none()   { exercise.tipo  = Some(def.tipo().to_string()); }
         if exercise.durata.is_none() { exercise.durata = def.durata_default; }
+        if exercise.images.is_empty() { exercise.images = def.images.clone(); }
     }
 }
 
@@ -1007,6 +1032,7 @@ mod tests {
             recupero: Some(90),
             note: None,
             video: None,
+            images: vec![],
             tipo: None,
             durata: None,
         }
