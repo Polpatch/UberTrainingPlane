@@ -34,8 +34,8 @@
     <!-- Trunk build -->
     
 <script type="module">
-import init, * as bindings from './fitness_wasm-72f55911deae3e2b.js';
-const wasm = await init({ module_or_path: './fitness_wasm-72f55911deae3e2b_bg.wasm' });
+import init, * as bindings from './fitness_wasm-137c45d1dd74a129.js';
+const wasm = await init({ module_or_path: './fitness_wasm-137c45d1dd74a129_bg.wasm' });
 
 
 window.wasmBindings = bindings;
@@ -44,6 +44,7 @@ window.wasmBindings = bindings;
 dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
 
 </script>
+    
     
     
     
@@ -487,6 +488,14 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
       .video-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.88); z-index: 300; display: flex; align-items: center; justify-content: center; padding: 20px; }
       .video-modal { width: 100%; max-width: 560px; }
       .video-iframe-wrapper { position: relative; padding-top: 56.25%; border-radius: 14px; overflow: hidden; background: #000; }
+      .photo-modal { max-width: 480px; }
+      .photo-frame { position: relative; border-radius: 14px; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; min-height: 240px; }
+      .photo-img { width: 100%; height: auto; display: block; max-height: 70vh; object-fit: contain; }
+      .photo-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,.5); color: #fff; font-size: 1.5rem; line-height: 1; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
+      .photo-nav:hover { background: rgba(0,0,0,.7); }
+      .photo-nav--prev { left: 10px; }
+      .photo-nav--next { right: 10px; }
+      .photo-counter { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.6); color: #fff; font-size: 0.78rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
       .video-icon-btn { flex-shrink: 0; background: var(--blue-bg); border: none; cursor: pointer; font-size: 1rem; color: var(--blue); padding: 4px 8px; border-radius: 8px; transition: background .15s; display: inline-flex; align-items: center; }
       .video-icon-btn:hover { background: var(--blue-soft); }
       /* Local data indicator in menu */
@@ -499,7 +508,7 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
         .input-row { grid-template-columns: 1fr; }
       }
     </style>
-  <link rel="modulepreload" href="./fitness_wasm-72f55911deae3e2b.js" crossorigin="anonymous" integrity="sha384-TyV1Eee/0G9+R+18Hk56VtoHcQRiQ2DhW+U9Kpx6qPwPx+LbGjqSyqInp4Odw3Ur"><link rel="modulepreload" href="./snippets/fitness_wasm-9ec66ad0e0bbca8f/inline0.js" crossorigin="anonymous" integrity="sha384-tZUEjYYw98GngozbM/8fnMlZUa0y4EbVwKvo3qfrSToLtmvmlr1VxO3Q05R+N/a7"><link rel="preload" href="./fitness_wasm-72f55911deae3e2b_bg.wasm" crossorigin="anonymous" integrity="sha384-6WWwHRSGrFAS9KycB5QTqXbV50JhRzC/kH04hZfeDT94LJXLL+JY7fC0hPzSAcFW" as="fetch" type="application/wasm"></head>
+  <link rel="modulepreload" href="./fitness_wasm-137c45d1dd74a129.js" crossorigin="anonymous" integrity="sha384-N8VjQ4miH20+ghzXwZfu1X+VRp0MFwzHs+55LZoH9LVp9bJXhTLUHzMGcrb/lac3"><link rel="modulepreload" href="./snippets/fitness_wasm-9ec66ad0e0bbca8f/inline0.js" crossorigin="anonymous" integrity="sha384-tZUEjYYw98GngozbM/8fnMlZUa0y4EbVwKvo3qfrSToLtmvmlr1VxO3Q05R+N/a7"><link rel="preload" href="./fitness_wasm-137c45d1dd74a129_bg.wasm" crossorigin="anonymous" integrity="sha384-LY4MoGaysjRRLmydTlG/RpGeQyK6gVv/3G3fKjZ1j6W4C8N9QuXW7VgcVuTAwEjg" as="fetch" type="application/wasm"></head>
   <body>
     <div id="root"></div>
   </body>
