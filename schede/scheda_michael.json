@@ -9,49 +9,49 @@
       "etichetta": "Push — Petto / Spalle / Tricipiti",
       "esercizi": [
         {
-          "id": "cardio_push",
+          "id": "Jogging_Treadmill",
           "serie": 1,
           "reps": "10 min",
           "recupero": null
         },
         {
-          "id": "flat_bench_bb_press",
+          "id": "Barbell_Bench_Press_-_Medium_Grip",
           "serie": 4,
           "reps": "5",
           "recupero": 120
         },
         {
-          "id": "low_incline_db_flyes",
+          "id": "Incline_Dumbbell_Flyes",
           "serie": 3,
           "reps": "10",
           "recupero": 90
         },
         {
-          "id": "incline_bench_bb_press",
+          "id": "Barbell_Incline_Bench_Press_-_Medium_Grip",
           "serie": 3,
           "reps": "6",
           "recupero": 120
         },
         {
-          "id": "db_standing_shoulder_raises",
+          "id": "Side_Lateral_Raise",
           "serie": 3,
           "reps": "8",
           "recupero": 90
         },
         {
-          "id": "dips_parallel_bars",
+          "id": "Parallel_Bar_Dip",
           "serie": 2,
           "reps": "8",
           "recupero": 120
         },
         {
-          "id": "skullcrushers",
+          "id": "EZ-Bar_Skullcrusher",
           "serie": 3,
           "reps": "8",
           "recupero": 90
         },
         {
-          "id": "straight_bar_tricep_extensions",
+          "id": "Triceps_Pushdown",
           "serie": 3,
           "reps": "10",
           "recupero": 90
@@ -63,61 +63,61 @@
       "etichetta": "Pull — Schiena / Bicipiti",
       "esercizi": [
         {
-          "id": "cardio_pull",
+          "id": "Jogging_Treadmill",
           "serie": 1,
           "reps": "10 min",
           "recupero": null
         },
         {
-          "id": "pull_up_wide_grip",
+          "id": "Wide-Grip_Rear_Pull-Up",
           "serie": 4,
           "reps": "10",
           "recupero": 120
         },
         {
-          "id": "neutral_grip_lat_pulldown",
+          "id": "Close-Grip_Front_Lat_Pulldown",
           "serie": 3,
           "reps": "10",
           "recupero": 90
         },
         {
-          "id": "bb_row",
+          "id": "Bent_Over_Barbell_Row",
           "serie": 3,
           "reps": "6",
           "recupero": 120
         },
         {
-          "id": "pec_dek_rear_delt_flyes",
+          "id": "Rear_Delt_Pec_Deck_Fly",
           "serie": 3,
           "reps": "10",
           "recupero": 90
         },
         {
-          "id": "upright_row",
+          "id": "Upright_Barbell_Row",
           "serie": 3,
           "reps": "8",
           "recupero": 90
         },
         {
-          "id": "bb_deadlift",
+          "id": "Barbell_Deadlift",
           "serie": 4,
           "reps": "5",
           "recupero": 120
         },
         {
-          "id": "weighted_sit_ups",
+          "id": "Weighted_Sit-Ups_-_With_Bands",
           "serie": 3,
           "reps": "15",
           "recupero": 90
         },
         {
-          "id": "ez_bar_bicep_curls",
+          "id": "EZ-Bar_Curl",
           "serie": 3,
           "reps": "10",
           "recupero": 90
         },
         {
-          "id": "incline_bench_bicep_curls",
+          "id": "Incline_Inner_Biceps_Curl",
           "serie": 3,
           "reps": "8",
           "recupero": 90
@@ -129,43 +129,43 @@
       "etichetta": "Legs — Gambe / Glutei / Core",
       "esercizi": [
         {
-          "id": "cardio_legs",
+          "id": "Jogging_Treadmill",
           "serie": 1,
           "reps": "10 min",
           "recupero": null
         },
         {
-          "id": "bb_squat",
+          "id": "Barbell_Squat",
           "serie": 4,
           "reps": "5",
           "recupero": 120
         },
         {
-          "id": "hyperextensions",
+          "id": "Hyperextensions_Back_Extensions",
           "serie": 4,
           "reps": "8",
           "recupero": 120
         },
         {
-          "id": "bulgarian_split_squat",
+          "id": "Dumbbell_Bulgarian_Split_Squat",
           "serie": 3,
           "reps": "10",
           "recupero": 120
         },
         {
-          "id": "gluteus_machine",
+          "id": "Glute_Machine",
           "serie": 3,
           "reps": "8",
           "recupero": 90
         },
         {
-          "id": "adductor_machine",
+          "id": "Thigh_Adductor",
           "serie": 3,
           "reps": "10",
           "recupero": 90
         },
         {
-          "id": "abductor_machine",
+          "id": "Thigh_Abductor",
           "serie": 3,
           "reps": "10",
           "recupero": 90

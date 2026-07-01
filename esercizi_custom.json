@@ -1,0 +1,75 @@
+[
+  {
+    "id": "Chest_Supported_Dumbbell_Row",
+    "name": "Chest Supported Dumbbell Row",
+    "force": "pull",
+    "level": "intermediate",
+    "mechanic": "compound",
+    "equipment": "dumbbell",
+    "primaryMuscles": ["middle back"],
+    "secondaryMuscles": ["biceps", "lats", "shoulders"],
+    "instructions": [
+      "Set an incline bench to about 30-45 degrees. Lie face down with your chest on the pad, a dumbbell in each hand, arms hanging straight down.",
+      "Retract your shoulder blades, then drive your elbows up and back, pulling the dumbbells toward your hips.",
+      "Squeeze at the top for a moment, then lower the dumbbells under control back to the starting position.",
+      "Keep your chest in contact with the bench throughout the movement to eliminate lower-back involvement."
+    ],
+    "category": "strength",
+    "images": []
+  },
+  {
+    "id": "Rear_Delt_Pec_Deck_Fly",
+    "name": "Rear Delt Pec Deck Fly",
+    "force": "pull",
+    "level": "beginner",
+    "mechanic": "isolation",
+    "equipment": "machine",
+    "primaryMuscles": ["shoulders"],
+    "secondaryMuscles": ["middle back"],
+    "instructions": [
+      "Sit facing the pec deck machine with your chest against the pad. Adjust the handles so your arms are roughly parallel to the floor.",
+      "Grasp the handles with a neutral or overhand grip, arms slightly bent.",
+      "Drive your elbows back and outward in a wide arc, squeezing your rear deltoids at the end of the movement.",
+      "Return slowly to the starting position without letting the weight stack touch down between reps."
+    ],
+    "category": "strength",
+    "images": []
+  },
+  {
+    "id": "Dumbbell_Bulgarian_Split_Squat",
+    "name": "Dumbbell Bulgarian Split Squat",
+    "force": "push",
+    "level": "intermediate",
+    "mechanic": "compound",
+    "equipment": "dumbbell",
+    "primaryMuscles": ["quadriceps"],
+    "secondaryMuscles": ["glutes", "hamstrings", "calves"],
+    "instructions": [
+      "Stand about two feet in front of a bench, holding a dumbbell in each hand at your sides.",
+      "Place the top of your rear foot on the bench behind you.",
+      "Lower your hips straight down until your front thigh is roughly parallel to the floor. Keep your torso upright and your front knee tracking over your toes.",
+      "Drive through your front heel to return to the starting position.",
+      "Complete all reps on one side before switching legs. Rest 60 seconds between legs, 90 seconds between sets."
+    ],
+    "category": "strength",
+    "images": []
+  },
+  {
+    "id": "Glute_Machine",
+    "name": "Glute Machine",
+    "force": "push",
+    "level": "beginner",
+    "mechanic": "isolation",
+    "equipment": "machine",
+    "primaryMuscles": ["glutes"],
+    "secondaryMuscles": ["hamstrings"],
+    "instructions": [
+      "Position yourself on the glute kickback machine according to its instructions, placing your working leg against the pad.",
+      "Keeping your core braced and your hips stable, extend your leg back and upward by contracting your glute.",
+      "Hold the peak contraction briefly, then return the leg under control to the starting position.",
+      "Complete all reps on one side before switching. Avoid swinging or rotating your hips."
+    ],
+    "category": "strength",
+    "images": []
+  }
+]

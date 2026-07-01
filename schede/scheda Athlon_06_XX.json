@@ -9,55 +9,55 @@
       "etichetta": "Push — Petto / Spalle / Tricipiti",
       "esercizi": [
         {
-          "id": "cardio_riscaldamento_push",
+          "id": "Jogging_Treadmill",
           "serie": 1,
           "reps": "5-8 min",
           "recupero": null
         },
         {
-          "id": "machine_chest_press_push1",
+          "id": "Machine_Bench_Press",
           "serie": 4,
           "reps": "6-8",
           "recupero": 120
         },
         {
-          "id": "low_incline_db_press_push1",
+          "id": "Incline_Dumbbell_Press",
           "serie": 3,
           "reps": "10-12",
           "recupero": 90
         },
         {
-          "id": "cable_crossover_low_push1",
+          "id": "Low_Cable_Crossover",
           "serie": 3,
           "reps": "12-15",
           "recupero": 60
         },
         {
-          "id": "lateral_raises_cable_push1",
+          "id": "Cable_Seated_Lateral_Raise",
           "serie": 4,
           "reps": "12-15",
           "recupero": 60
         },
         {
-          "id": "face_pull_push1",
+          "id": "Face_Pull",
           "serie": 3,
           "reps": "15-20",
           "recupero": 60
         },
         {
-          "id": "rope_pushdown_push1",
+          "id": "Triceps_Pushdown",
           "serie": 3,
           "reps": "10-12",
           "recupero": 60
         },
         {
-          "id": "overhead_tricep_ext_push1",
+          "id": "Cable_Rope_Overhead_Triceps_Extension",
           "serie": 3,
           "reps": "12-15",
           "recupero": 60
         },
         {
-          "id": "cardio_liss_push1",
+          "id": "Walking_Treadmill",
           "serie": 1,
           "reps": "10-15 min",
           "recupero": null
@@ -69,61 +69,61 @@
       "etichetta": "Pull — Schiena / Bicipiti / Spalla posteriore",
       "esercizi": [
         {
-          "id": "cardio_riscaldamento_pull",
+          "id": "Jogging_Treadmill",
           "serie": 1,
           "reps": "5-8 min",
           "recupero": null
         },
         {
-          "id": "pull_up_neutral_pull2",
+          "id": "Pullups",
           "serie": 4,
           "reps": "6-8",
           "recupero": 120
         },
         {
-          "id": "chest_supported_row_pull2",
+          "id": "Chest_Supported_Dumbbell_Row",
           "serie": 4,
           "reps": "8-10",
           "recupero": 90
         },
         {
-          "id": "lat_pulldown_neutral_pull2",
+          "id": "Close-Grip_Front_Lat_Pulldown",
           "serie": 3,
           "reps": "10-12",
           "recupero": 90
         },
         {
-          "id": "single_arm_cable_row_pull2",
+          "id": "Seated_One-arm_Cable_Pulley_Rows",
           "serie": 3,
           "reps": "10-12",
           "recupero": 60
         },
         {
-          "id": "rear_delt_fly_cable_pull2",
+          "id": "Cable_Rear_Delt_Fly",
           "serie": 3,
           "reps": "15-20",
           "recupero": 60
         },
         {
-          "id": "romanian_deadlift_pull2",
+          "id": "Romanian_Deadlift",
           "serie": 3,
           "reps": "8-10",
           "recupero": 120
         },
         {
-          "id": "ez_bar_curl_pull2",
+          "id": "EZ-Bar_Curl",
           "serie": 3,
           "reps": "8-10",
           "recupero": 60
         },
         {
-          "id": "incline_db_curl_pull2",
+          "id": "Incline_Dumbbell_Curl",
           "serie": 3,
           "reps": "10-12",
           "recupero": 60
         },
         {
-          "id": "cardio_liss_pull2",
+          "id": "Walking_Treadmill",
           "serie": 1,
           "reps": "10-15 min",
           "recupero": null
@@ -135,67 +135,67 @@
       "etichetta": "Legs — Gambe / Glutei / Core",
       "esercizi": [
         {
-          "id": "cardio_riscaldamento_legs",
+          "id": "Jogging_Treadmill",
           "serie": 1,
           "reps": "5-8 min",
           "recupero": null
         },
         {
-          "id": "back_squat_legs3",
+          "id": "Barbell_Squat",
           "serie": 4,
           "reps": "5-7",
           "recupero": 150
         },
         {
-          "id": "leg_press_legs3",
+          "id": "Leg_Press",
           "serie": 3,
           "reps": "10-12",
           "recupero": 120
         },
         {
-          "id": "bulgarian_split_squat_legs3",
+          "id": "Dumbbell_Bulgarian_Split_Squat",
           "serie": 3,
           "reps": "8-10",
           "recupero": 90
         },
         {
-          "id": "leg_curl_machine_legs3",
+          "id": "Seated_Leg_Curl",
           "serie": 3,
           "reps": "10-12",
           "recupero": 90
         },
         {
-          "id": "hip_thrust_legs3",
+          "id": "Barbell_Hip_Thrust",
           "serie": 4,
           "reps": "10-12",
           "recupero": 90
         },
         {
-          "id": "adductor_machine_legs3",
+          "id": "Thigh_Adductor",
           "serie": 3,
           "reps": "12-15",
           "recupero": 60
         },
         {
-          "id": "abductor_machine_legs3",
+          "id": "Thigh_Abductor",
           "serie": 3,
           "reps": "12-15",
           "recupero": 60
         },
         {
-          "id": "cable_crunch_legs3",
+          "id": "Cable_Crunch",
           "serie": 3,
           "reps": "12-15",
           "recupero": 60
         },
         {
-          "id": "plank_legs3",
+          "id": "Plank",
           "serie": 3,
           "reps": "30-45 sec",
           "recupero": 45
         },
         {
-          "id": "cardio_liss_legs3",
+          "id": "Walking_Treadmill",
           "serie": 1,
           "reps": "10-15 min",
           "recupero": null
