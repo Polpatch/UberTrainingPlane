@@ -55,18 +55,64 @@ pub struct CatalogEntry {
     pub preferita: Option<bool>,
 }
 
-/// Static exercise definition from the exercise library (esercizi.json).
+/// Exercise definition — compatible with free-exercise-db JSON schema.
+/// Custom exercises (esercizi_custom.json) use the same structure.
+/// Fields absent from the external DB (`nome`, `video`, `note`, `durata_default`)
+/// carry `#[serde(default)]` so they deserialise as None/empty from DB entries.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ExerciseDef {
     pub id: String,
-    pub nome: String,
-    pub tipo: String,
-    pub durata_default: Option<u32>,
-    pub video: Option<String>,
-    pub note: Option<String>,
-    pub descrizione: Option<String>,
+    /// English name from the DB.
+    pub name: String,
     #[serde(default)]
-    pub muscoli: Vec<String>,
+    pub force: Option<String>,
+    #[serde(default)]
+    pub level: Option<String>,
+    #[serde(default)]
+    pub mechanic: Option<String>,
+    #[serde(default)]
+    pub equipment: Option<String>,
+    #[serde(rename = "primaryMuscles", default)]
+    pub primary_muscles: Vec<String>,
+    #[serde(rename = "secondaryMuscles", default)]
+    pub secondary_muscles: Vec<String>,
+    #[serde(default)]
+    pub instructions: Vec<String>,
+    pub category: String,
+    #[serde(default)]
+    pub images: Vec<String>,
+    // ── Extension fields (absent from free-exercise-db, present in esercizi_custom.json) ──
+    /// Italian display-name override. Falls back to `name` when absent.
+    #[serde(default)]
+    pub nome: Option<String>,
+    /// YouTube video URL.
+    #[serde(default)]
+    pub video: Option<String>,
+    /// Italian execution notes.
+    #[serde(default)]
+    pub note: Option<String>,
+    /// Target duration in seconds; when Some, the exercise is treated as "temporale".
+    #[serde(default)]
+    pub durata_default: Option<u32>,
+}
+
+impl ExerciseDef {
+    /// Preferred display name: Italian override when present, English name otherwise.
+    pub fn display_name(&self) -> &str {
+        self.nome.as_deref().unwrap_or(&self.name)
+    }
+
+    /// App-level tipo: derived from `category` and `durata_default`.
+    /// Maps DB categories to the three values the UI understands.
+    pub fn tipo(&self) -> &str {
+        if self.durata_default.is_some() {
+            return "temporale";
+        }
+        match self.category.as_str() {
+            "cardio" => "cardio",
+            _ => "reps",
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -146,6 +192,27 @@ pub fn save_user_preferred(file: Option<&str>) -> Result<(), String> {
         Some(f) => set_storage("user_preferred_scheda", f),
         None    => { LocalStorage::delete("user_preferred_scheda"); Ok(()) }
     }
+}
+
+// ── UI preferences ───────────────────────────────────────────────────────────
+
+/// Persistent UI preferences stored in localStorage.
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+pub struct UserPreferences {
+    /// Right-handed layout: primary action button on the right. Default true.
+    pub righthanded: bool,
+}
+
+impl Default for UserPreferences {
+    fn default() -> Self { Self { righthanded: true } }
+}
+
+pub fn load_ui_prefs() -> UserPreferences {
+    LocalStorage::get::<UserPreferences>("ui_prefs").unwrap_or_default()
+}
+
+pub fn save_ui_prefs(prefs: &UserPreferences) -> Result<(), String> {
+    set_storage("ui_prefs", prefs)
 }
 
 // ── Schedule storage ─────────────────────────────────────────────────────────
@@ -535,6 +602,8 @@ pub struct SetRegistration {
     pub session_created: bool,
     /// When `Some((idx, value))`, caller should prefill `weight_inputs` at `idx`.
     pub prefill_weight: Option<(usize, String)>,
+    /// When `Some((idx, value))`, caller should prefill `reps_inputs` at `idx`.
+    pub prefill_reps: Option<(usize, String)>,
     /// When `Some(msg)`, persisting to localStorage failed (quota?) — the
     /// returned sets are still good for the UI, but the caller must surface
     /// the error: the data will NOT survive a reload.
@@ -544,11 +613,11 @@ pub struct SetRegistration {
 /// Register `set_number` (1-based) of `exercise` with the given peso/reps and
 /// persist it: upserts the set, advances the active exercise when the current one
 /// is complete, lazily creates the session, updates storage, and computes whether
-/// the next set's weight input should be pre-filled.
+/// the next set's weight/reps inputs should be pre-filled.
 ///
 /// This is the single source of truth shared by manual save, skip-timer, and the
 /// recovery-timer auto-save. Callers own only the *policy* differences (which set
-/// number, whether the weight uses fallback, timer teardown) and then mirror the
+/// number, whether the weight/reps use fallback, timer teardown) and then mirror the
 /// returned [`SetRegistration`] into their state handles.
 #[allow(clippy::too_many_arguments)]
 pub fn register_set(
@@ -563,8 +632,10 @@ pub fn register_set(
     weight_str: &str,
     prior_sets: Vec<CompletedSet>,
     weight_inputs: &HashMap<String, Vec<String>>,
+    reps_inputs: &HashMap<String, Vec<String>>,
     current_session_id: &str,
 ) -> SetRegistration {
+    let reps_str = reps.clone().unwrap_or_default();
     let list = upsert_completed_set(prior_sets, exercise, set_number, peso, reps, None);
 
     let ex_done = list.iter()
@@ -598,6 +669,8 @@ pub fn register_set(
 
     let prefill_weight =
         compute_prefill_weight(weight_inputs, &exercise.id, exercise.serie, set_number, weight_str);
+    let prefill_reps =
+        compute_prefill_reps(reps_inputs, &exercise.id, exercise.serie, set_number, &reps_str);
 
     SetRegistration {
         sets: list,
@@ -605,6 +678,7 @@ pub fn register_set(
         session_id,
         session_created,
         prefill_weight,
+        prefill_reps,
         storage_error,
     }
 }
@@ -626,6 +700,29 @@ pub fn compute_prefill_weight(
         .unwrap_or(false);
     if next_idx < serie as usize && !weight_str.is_empty() && !next_slot_filled {
         Some((next_idx, weight_str.to_string()))
+    } else {
+        None
+    }
+}
+
+/// Decide whether the reps just used for `set_number` (1-based) should
+/// pre-fill the NEXT set's input slot. Mirrors [`compute_prefill_weight`]: only
+/// when a next set exists, the reps value is non-empty and the next slot hasn't
+/// already been typed ahead by the user.
+pub fn compute_prefill_reps(
+    reps_inputs: &HashMap<String, Vec<String>>,
+    exercise_id: &str,
+    serie: u32,
+    set_number: u32,
+    reps_str: &str,
+) -> Option<(usize, String)> {
+    let next_idx = set_number as usize;
+    let next_slot_filled = reps_inputs.get(exercise_id)
+        .and_then(|v| v.get(next_idx))
+        .map(|v| !v.is_empty())
+        .unwrap_or(false);
+    if next_idx < serie as usize && !reps_str.is_empty() && !next_slot_filled {
+        Some((next_idx, reps_str.to_string()))
     } else {
         None
     }
@@ -693,6 +790,26 @@ pub fn weight_history_for_exercise(workout_id: &str, exercise_id: &str) -> Vec<W
         .collect();
     points.sort_by(|a, b| a.date.cmp(&b.date));
     points
+}
+
+/// Last recorded reps for a given exercise + set number, searched across all
+/// terminated sessions for the workout, most recent first. Mirrors
+/// `weight_history_for_exercise` but keyed per-set (reps for set 1 should
+/// hint set 1's last value, not an average across sets).
+pub fn last_reps_for_exercise_set(
+    workout_id: &str,
+    exercise_id: &str,
+    set_number: u32,
+) -> Option<String> {
+    let mut sessions = load_sessions(workout_id);
+    sessions.retain(|s| s.done);
+    sessions.sort_by(|a, b| b.started.cmp(&a.started));
+    sessions.iter().find_map(|s| {
+        s.sets.iter()
+            .find(|set| set.exercise_id == exercise_id && set.set_number == set_number)
+            .and_then(|set| set.reps.clone())
+            .filter(|r| !r.is_empty())
+    })
 }
 
 /// All terminated sessions for a workout+day, newest first.
@@ -837,26 +954,40 @@ pub fn parse_reps_range(reps: &str) -> (i32, i32) {
 
 // ── Exercise library ─────────────────────────────────────────────────────────
 
-static EXERCISE_LIBRARY_JSON: &str = include_str!("../esercizi.json");
+/// Fetch and merge the exercise library at runtime.
+/// Loads `free_exercise_db.json` (873 entries) and `esercizi_custom.json` (extensions).
+/// Custom entries override DB entries on ID collision so we can patch any DB entry.
+/// Returns an empty map on fetch failure (components degrade gracefully).
+pub async fn load_exercise_library() -> HashMap<String, ExerciseDef> {
+    use gloo_net::http::Request;
 
-pub fn load_exercise_library() -> HashMap<String, ExerciseDef> {
-    #[derive(Deserialize)]
-    struct LibraryFile {
-        esercizi: Vec<ExerciseDef>,
+    async fn fetch_list(path: &str) -> Vec<ExerciseDef> {
+        match Request::get(path).send().await {
+            Ok(resp) if resp.ok() => resp.json::<Vec<ExerciseDef>>().await.unwrap_or_default(),
+            _ => vec![],
+        }
     }
-    let lib: LibraryFile = serde_json::from_str(EXERCISE_LIBRARY_JSON)
-        .unwrap_or(LibraryFile { esercizi: vec![] });
-    lib.esercizi.into_iter().map(|e| (e.id.clone(), e)).collect()
+
+    let db     = fetch_list("free_exercise_db.json").await;
+    let custom = fetch_list("esercizi_custom.json").await;
+
+    let mut map: HashMap<String, ExerciseDef> =
+        db.into_iter().map(|e| (e.id.clone(), e)).collect();
+    // Custom wins on collision.
+    for e in custom {
+        map.insert(e.id.clone(), e);
+    }
+    map
 }
 
 /// Fill in any None field in `exercise` from the library entry for its id.
 /// Scheda values (if present) win; this only fills gaps.
 pub fn merge_exercise_with_library(exercise: &mut Exercise, lib: &HashMap<String, ExerciseDef>) {
     if let Some(def) = lib.get(&exercise.id) {
-        if exercise.nome.is_none()   { exercise.nome  = Some(def.nome.clone()); }
+        if exercise.nome.is_none()   { exercise.nome  = Some(def.display_name().to_string()); }
         if exercise.video.is_none()  { exercise.video = def.video.clone(); }
         if exercise.note.is_none()   { exercise.note  = def.note.clone(); }
-        if exercise.tipo.is_none()   { exercise.tipo  = Some(def.tipo.clone()); }
+        if exercise.tipo.is_none()   { exercise.tipo  = Some(def.tipo().to_string()); }
         if exercise.durata.is_none() { exercise.durata = def.durata_default; }
     }
 }

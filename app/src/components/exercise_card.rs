@@ -21,7 +21,52 @@ pub struct ExerciseCardProps {
 pub fn exercise_card(props: &ExerciseCardProps) -> Html {
     let exercise = &props.exercise;
     let n        = exercise.serie as usize;
-    let lp_timeout = use_mut_ref(|| None::<Timeout>);
+    let lp_timeout  = use_mut_ref(|| None::<Timeout>);
+    // Pointer origin for scroll-cancel: (client_x, client_y) at pointerdown.
+    let lp_origin   = use_mut_ref(|| (0i32, 0i32));
+
+    // ── Long-press on the name: 400ms hold → open picker ─────────────────────
+    // Cancelled if the pointer moves more than 10px (user is scrolling, not holding).
+    let on_name_pointerdown = {
+        let cb     = props.on_long_press.clone();
+        let lpt    = lp_timeout.clone();
+        let origin = lp_origin.clone();
+        Callback::from(move |e: PointerEvent| {
+            e.stop_propagation();
+            *origin.borrow_mut() = (e.client_x(), e.client_y());
+            let cb2 = cb.clone();
+            let t   = Timeout::new(400, move || cb2.emit(()));
+            *lpt.borrow_mut() = Some(t);
+        })
+    };
+    let on_name_pointermove = {
+        let lpt    = lp_timeout.clone();
+        let origin = lp_origin.clone();
+        Callback::from(move |e: PointerEvent| {
+            let (ox, oy) = *origin.borrow();
+            let dx = (e.client_x() - ox).abs();
+            let dy = (e.client_y() - oy).abs();
+            if dx > 10 || dy > 10 {
+                lpt.borrow_mut().take(); // cancel — user is scrolling
+            }
+        })
+    };
+    let on_name_pointerup = {
+        let lpt = lp_timeout.clone();
+        Callback::from(move |_: PointerEvent| { lpt.borrow_mut().take(); })
+    };
+    let on_name_pointercancel = {
+        let lpt = lp_timeout.clone();
+        Callback::from(move |_: PointerEvent| { lpt.borrow_mut().take(); })
+    };
+
+    let is_cardio = exercise.tipo.as_deref() == Some("cardio");
+
+    let cardio_done_mins: Option<u32> = if is_cardio {
+        props.saved_sets.iter()
+            .find(|s| s.exercise_id == exercise.id && s.set_number == 1)
+            .and_then(|s| s.durata_min)
+    } else { None };
 
     let dot_done: Vec<bool> = (0..n).map(|i| {
         let s = (i + 1) as u32;
@@ -50,34 +95,6 @@ pub fn exercise_card(props: &ExerciseCardProps) -> Html {
         Callback::from(move |_: MouseEvent| on_select.emit(()))
     };
 
-    // ── Long-press on the name: 400ms hold → open picker ─────────────────────
-    let on_name_pointerdown = {
-        let cb  = props.on_long_press.clone();
-        let lpt = lp_timeout.clone();
-        Callback::from(move |e: PointerEvent| {
-            e.stop_propagation();
-            let cb2 = cb.clone();
-            let t   = Timeout::new(400, move || cb2.emit(()));
-            *lpt.borrow_mut() = Some(t);
-        })
-    };
-    let on_name_pointerup = {
-        let lpt = lp_timeout.clone();
-        Callback::from(move |_: PointerEvent| { lpt.borrow_mut().take(); })
-    };
-    let on_name_pointercancel = {
-        let lpt = lp_timeout.clone();
-        Callback::from(move |_: PointerEvent| { lpt.borrow_mut().take(); })
-    };
-
-    let is_cardio = exercise.tipo.as_deref() == Some("cardio");
-
-    let cardio_done_mins: Option<u32> = if is_cardio {
-        props.saved_sets.iter()
-            .find(|s| s.exercise_id == exercise.id && s.set_number == 1)
-            .and_then(|s| s.durata_min)
-    } else { None };
-
     html! {
         <article
             class={classes!("exercise-card", if props.is_selected { Some("selected") } else { None })}
@@ -88,6 +105,7 @@ pub fn exercise_card(props: &ExerciseCardProps) -> Html {
                     <div class="exercise-name-row">
                         <h3
                             onpointerdown={on_name_pointerdown}
+                            onpointermove={on_name_pointermove}
                             onpointerup={on_name_pointerup}
                             onpointercancel={on_name_pointercancel}
                             style="user-select:none;-webkit-user-select:none;touch-action:none;"

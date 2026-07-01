@@ -1,8 +1,8 @@
 use crate::components::icons::{icon_chart, icon_play};
 use crate::components::progress_bar::ProgressBar;
 use crate::models::{
-    get_input_with_fallback, parse_reps_range, weight_history_for_exercise,
-    CompletedSet, Day, Exercise, TimerState, WeightPoint,
+    get_input_with_fallback, last_reps_for_exercise_set, parse_reps_range,
+    weight_history_for_exercise, CompletedSet, Day, Exercise, TimerState, WeightPoint,
 };
 use gloo_timers::callback::Timeout;
 use std::collections::HashMap;
@@ -172,6 +172,8 @@ pub struct BottomSheetProps {
     pub on_timed_stop:    Callback<()>,
     /// Called whenever the sheet expands or collapses — lets the parent adjust layout.
     pub on_expand_change: Callback<bool>,
+    /// Right-handed layout — primary action on the right. From UserPreferences.
+    pub righthanded: bool,
 }
 
 #[function_component(BottomSheet)]
@@ -183,6 +185,9 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
     let video_open         = use_state(|| false);
     let just_saved         = use_state(|| None::<usize>);
     let just_saved_timeout = use_mut_ref(|| None::<Timeout>);
+    // Swipe-to-expand/collapse: track Y at pointerdown on the handle.
+    let drag_start_y = use_mut_ref(|| 0i32);
+    let drag_moved   = use_mut_ref(|| false);
 
     // ── Values computed before hooks (hooks must run unconditionally) ─────────
     let exercise_id = props.exercise.as_ref().map(|e| e.id.clone()).unwrap_or_default();
@@ -298,7 +303,9 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
     let weight_value = get_input_with_fallback(&props.weight_inputs, &exercise_id, clamped, "");
     let reps_value   = get_input_with_fallback(&props.reps_inputs,   &exercise_id, clamped, &exercise.reps);
 
-    // Hint from last session — shown as placeholder when no weight entered yet
+    let set_number = (clamped + 1) as u32;
+
+    // Hint from last session — shown as placeholder when no weight/reps entered yet
     let weight_hint: String = if weight_display.is_empty() {
         weight_history_for_exercise(&props.workout_id, &exercise.id)
             .last()
@@ -307,8 +314,13 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
     } else {
         String::new()
     };
-    let set_number   = (clamped + 1) as u32;
-    let completed    = props.saved_sets.iter()
+    let reps_hint: String = if reps_display.is_empty() {
+        last_reps_for_exercise_set(&props.workout_id, &exercise.id, set_number)
+            .unwrap_or_default()
+    } else {
+        String::new()
+    };
+    let completed = props.saved_sets.iter()
         .any(|s| s.exercise_id == exercise.id && s.set_number == set_number);
 
     // ── Step controls ─────────────────────────────────────────────────────────
@@ -338,8 +350,12 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
 
     // When reps field holds a range like "8-10" (the exercise default), use the
     // lower bound so +/- starts from a sensible value instead of 1.
+    // Prefer the last-session hint over the scheda's target range when empty.
     let reps_n: i32 = reps_value.parse()
-        .unwrap_or_else(|_| parse_reps_range(&reps_value).0.max(1));
+        .unwrap_or_else(|_| {
+            reps_hint.parse().ok()
+                .unwrap_or_else(|| parse_reps_range(&reps_value).0.max(1))
+        });
     let on_reps_minus = {
         let cb = props.on_reps_change.clone(); let eid = exercise_id.clone();
         let val = (reps_n - 1).max(1).to_string();
@@ -397,9 +413,46 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
     html! {
         <>
         <div class={sheet_class}>
+            // ── Backdrop — collapses sheet on outside tap ─────────────────
+            if *expanded {
+                <div class="sheet-backdrop"
+                     onclick={{ let exp = expanded.clone(); Callback::from(move |_: MouseEvent| exp.set(false)) }}>
+                </div>
+            }
             // ── Handle area (always visible) ──────────────────────────────
             <div class="sheet-handle-area"
-                 onclick={{ let exp = expanded.clone(); Callback::from(move |_| exp.set(!*exp)) }}>
+                 onpointerdown={{
+                     let dsy  = drag_start_y.clone();
+                     let dmov = drag_moved.clone();
+                     Callback::from(move |e: PointerEvent| {
+                         *dsy.borrow_mut()  = e.client_y();
+                         *dmov.borrow_mut() = false;
+                     })
+                 }}
+                 onpointermove={{
+                     let dsy  = drag_start_y.clone();
+                     let dmov = drag_moved.clone();
+                     Callback::from(move |e: PointerEvent| {
+                         if (e.client_y() - *dsy.borrow()).abs() > 8 {
+                             *dmov.borrow_mut() = true;
+                         }
+                     })
+                 }}
+                 onpointerup={{
+                     let exp  = expanded.clone();
+                     let dsy  = drag_start_y.clone();
+                     let dmov = drag_moved.clone();
+                     Callback::from(move |e: PointerEvent| {
+                         let dy    = e.client_y() - *dsy.borrow();
+                         let moved = *dmov.borrow();
+                         if moved {
+                             if dy < -30      { exp.set(true); }
+                             else if dy > 30  { exp.set(false); }
+                         } else {
+                             exp.set(!*exp);
+                         }
+                     })
+                 }}>
                 <div class="sheet-handle-pill"></div>
                 <span class="sheet-ex-name">{ exercise.display_name() }</span>
                 <span class="sheet-progress-mini">
@@ -468,15 +521,17 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                         }
                     </div>
                     if !props.history_mode {
-                        <div class="sheet-actions">
-                            <button class="primary-button" onclick={{
-                                let cb = props.on_cardio_toggle.clone();
-                                Callback::from(move |_: MouseEvent| cb.emit(()))
-                            }}>
-                                { if props.cardio_running { "Pausa" }
-                                  else if props.cardio_elapsed > 0 { "Riprendi" }
-                                  else { "Avvia" } }
-                            </button>
+                        <div class={if props.righthanded { "sheet-actions" } else { "sheet-actions sheet-actions--lh" }}>
+                            if !props.righthanded {
+                                <button class="primary-button" onclick={{
+                                    let cb = props.on_cardio_toggle.clone();
+                                    Callback::from(move |_: MouseEvent| cb.emit(()))
+                                }}>
+                                    { if props.cardio_running { "Pausa" }
+                                      else if props.cardio_elapsed > 0 { "Riprendi" }
+                                      else { "Avvia" } }
+                                </button>
+                            }
                             <button class="secondary-button" onclick={{
                                 let cb = props.on_cardio_stop.clone();
                                 Callback::from(move |_: MouseEvent| cb.emit(()))
@@ -484,6 +539,16 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                                 disabled={props.cardio_elapsed == 0 && !props.cardio_running}>
                                 { if cardio_done { "Aggiorna" } else { "Registra" } }
                             </button>
+                            if props.righthanded {
+                                <button class="primary-button" onclick={{
+                                    let cb = props.on_cardio_toggle.clone();
+                                    Callback::from(move |_: MouseEvent| cb.emit(()))
+                                }}>
+                                    { if props.cardio_running { "Pausa" }
+                                      else if props.cardio_elapsed > 0 { "Riprendi" }
+                                      else { "Avvia" } }
+                                </button>
+                            }
                         </div>
                     }
                 } else if is_timed {
@@ -525,19 +590,30 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                         }
                     </div>
                     if !props.history_mode {
-                        <div class="sheet-actions">
-                            <button class="primary-button" onclick={{
-                                let cb = props.on_timed_toggle.clone();
-                                Callback::from(move |_: MouseEvent| cb.emit(()))
-                            }}>
-                                { if props.timed_timer.running { "Pausa" }
-                                  else if props.timed_timer.left > 0 { "Riprendi" }
-                                  else { "Avvia" } }
-                            </button>
-                            <button class="secondary-button" onclick={on_register}
-                                disabled={completed}>
+                        <div class={if props.righthanded { "sheet-actions" } else { "sheet-actions sheet-actions--lh" }}>
+                            if !props.righthanded {
+                                <button class="primary-button" onclick={{
+                                    let cb = props.on_timed_toggle.clone();
+                                    Callback::from(move |_: MouseEvent| cb.emit(()))
+                                }}>
+                                    { if props.timed_timer.running { "Pausa" }
+                                      else if props.timed_timer.left > 0 { "Riprendi" }
+                                      else { "Avvia" } }
+                                </button>
+                            }
+                            <button class="secondary-button" onclick={on_register.clone()} disabled={completed}>
                                 { if completed { "Completata" } else { "Registra" } }
                             </button>
+                            if props.righthanded {
+                                <button class="primary-button" onclick={{
+                                    let cb = props.on_timed_toggle.clone();
+                                    Callback::from(move |_: MouseEvent| cb.emit(()))
+                                }}>
+                                    { if props.timed_timer.running { "Pausa" }
+                                      else if props.timed_timer.left > 0 { "Riprendi" }
+                                      else { "Avvia" } }
+                                </button>
+                            }
                         </div>
                     }
                 } else {
@@ -612,7 +688,8 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                                     <div class="reps-row">
                                         <button class="step-btn" onclick={on_reps_minus}>{"−"}</button>
                                         <input class="reps-val-input" value={reps_display}
-                                            inputmode="numeric" placeholder={exercise.reps.clone()}
+                                            inputmode="numeric"
+                                            placeholder={if reps_hint.is_empty() { exercise.reps.clone() } else { format!("{} (ultima)", reps_hint) }}
                                             oninput={{
                                                 let cb = props.on_reps_change.clone();
                                                 let eid = exercise_id.clone();
@@ -634,23 +711,43 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                         }
                     </div>
                     // ── Action footer — outside scrollable area, always visible ──
-                    <div class="sheet-actions">
-                        if !props.history_mode
-                            && (!completed || props.timer.running || props.timer.left > 0)
-                        {
-                            <button class="primary-button" onclick={{
-                                let cb = props.on_start_timer.clone();
-                                Callback::from(move |_: MouseEvent| cb.emit(()))
-                            }}>
-                                { if props.timer.running { "Pausa" }
-                                  else if props.timer.left > 0 { "Riprendi recupero" }
-                                  else { "Avvia recupero" } }
-                            </button>
+                    <div class={if props.righthanded { "sheet-actions" } else { "sheet-actions sheet-actions--lh" }}>
+                        if props.righthanded {
+                            // Right-handed: [Registra serie secondary] [Avvia recupero primary] — timer closest to thumb
+                        } else {
+                            // Left-handed: [Avvia recupero primary] first — timer closest to thumb
+                            if !props.history_mode
+                                && (!completed || props.timer.running || props.timer.left > 0)
+                            {
+                                <button class="primary-button" onclick={{
+                                    let cb = props.on_start_timer.clone();
+                                    Callback::from(move |_: MouseEvent| cb.emit(()))
+                                }}>
+                                    { if props.timer.running { "Pausa" }
+                                      else if props.timer.left > 0 { "Riprendi recupero" }
+                                      else { "Avvia recupero" } }
+                                </button>
+                            }
                         }
-                        <button class="secondary-button" onclick={on_register}
+                        <button class="secondary-button" onclick={on_register.clone()}
                             disabled={props.timer.running || props.timer.left > 0}>
                             { if completed { "Aggiorna serie" } else { "Registra serie" } }
                         </button>
+                        if props.righthanded {
+                            // Right-handed: [Avvia recupero primary] last — timer closest to thumb
+                            if !props.history_mode
+                                && (!completed || props.timer.running || props.timer.left > 0)
+                            {
+                                <button class="primary-button" onclick={{
+                                    let cb = props.on_start_timer.clone();
+                                    Callback::from(move |_: MouseEvent| cb.emit(()))
+                                }}>
+                                    { if props.timer.running { "Pausa" }
+                                      else if props.timer.left > 0 { "Riprendi recupero" }
+                                      else { "Avvia recupero" } }
+                                </button>
+                            }
+                        }
                     </div>
                 }
             }

@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UberTrainingPlane — Migrazione export localStorage</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f0f13;
+      --surface:   #1a1a22;
+      --surface-2: #22222e;
+      --border:    #2e2e3e;
+      --text:      #f0f0f5;
+      --text-2:    #9898b0;
+      --text-3:    #5c5c78;
+      --blue:      #5b8def;
+      --blue-bg:   #1a2540;
+      --green:     #4caf82;
+      --green-bg:  #112b20;
+      --red:       #e05c5c;
+      --red-bg:    #2e1212;
+      --yellow:    #e0c060;
+      --yellow-bg: #2b2410;
+      --radius:    16px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px 80px;
+      gap: 24px;
+    }
+
+    header {
+      text-align: center;
+      max-width: 560px;
+    }
+    header h1 { font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; }
+    header p  { font-size: 0.9rem; color: var(--text-2); line-height: 1.6; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      width: 100%;
+      max-width: 560px;
+    }
+    .card-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-3);
+      margin-bottom: 16px;
+    }
+
+    /* Drop zone */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 14px;
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--blue);
+      background: var(--blue-bg);
+    }
+    .drop-zone input { display: none; }
+    .drop-icon { font-size: 2rem; margin-bottom: 10px; }
+    .drop-label { font-size: 0.95rem; color: var(--text-2); }
+    .drop-label strong { color: var(--blue); cursor: pointer; }
+    .drop-hint  { font-size: 0.8rem; color: var(--text-3); margin-top: 6px; }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat {
+      background: var(--surface-2);
+      border-radius: 12px;
+      padding: 14px 12px;
+      text-align: center;
+    }
+    .stat-value { font-size: 1.8rem; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: 0.72rem; color: var(--text-3); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat--blue   .stat-value { color: var(--blue); }
+    .stat--green  .stat-value { color: var(--green); }
+    .stat--yellow .stat-value { color: var(--yellow); }
+
+    /* Warning list */
+    .warn-list {
+      background: var(--yellow-bg);
+      border: 1px solid #4a3c10;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+    .warn-list-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--yellow);
+      margin-bottom: 10px;
+    }
+    .warn-item {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.8rem;
+      color: var(--text-2);
+      padding: 3px 0;
+    }
+
+    /* Detail log */
+    .detail-log {
+      background: var(--surface-2);
+      border-radius: 12px;
+      padding: 14px 16px;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.78rem;
+      color: var(--text-3);
+      line-height: 1.7;
+    }
+    .log-ok     { color: var(--green); }
+    .log-warn   { color: var(--yellow); }
+    .log-info   { color: var(--text-3); }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 999px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .btn:disabled { opacity: .35; cursor: not-allowed; }
+    .btn--primary  { background: var(--blue); color: #fff; }
+    .btn--secondary { background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); }
+    .btn:not(:disabled):hover { opacity: .88; }
+
+    .btn-row { display: flex; gap: 10px; }
+    .btn-row .btn { flex: 1; }
+
+    /* Hidden */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🔄 Migrazione export localStorage</h1>
+  <p>
+    Converte un file export dell'app con gli ID esercizi <em>legacy</em>
+    (es. <code>back_squat_legs3</code>) negli ID canonici del
+    <strong>free-exercise-db</strong> (es. <code>Barbell_Squat</code>).
+    Elaborazione locale — nessun dato viene trasmesso.
+  </p>
+</header>
+
+<!-- Step 1: drop zone -->
+<div class="card" id="step-upload">
+  <div class="card-title">1 — Carica il file export</div>
+  <div class="drop-zone" id="drop-zone">
+    <input type="file" id="file-input" accept=".json">
+    <div class="drop-icon">📂</div>
+    <div class="drop-label">
+      Trascina qui il file JSON<br>
+      oppure <strong id="browse-trigger">scegli file</strong>
+    </div>
+    <div class="drop-hint">File prodotto da: App → Menu → Esporta dati</div>
+  </div>
+</div>
+
+<!-- Step 2: results -->
+<div class="card hidden" id="step-results">
+  <div class="card-title">2 — Risultati migrazione</div>
+
+  <div class="stats-grid">
+    <div class="stat stat--green">
+      <div class="stat-value" id="stat-replaced">—</div>
+      <div class="stat-label">Set migrati</div>
+    </div>
+    <div class="stat stat--blue">
+      <div class="stat-value" id="stat-schede">—</div>
+      <div class="stat-label">Esercizi scheda</div>
+    </div>
+    <div class="stat stat--yellow">
+      <div class="stat-value" id="stat-unknown">—</div>
+      <div class="stat-label">ID sconosciuti</div>
+    </div>
+  </div>
+
+  <div class="warn-list hidden" id="warn-block">
+    <div class="warn-list-title">⚠️ ID non presenti nella mappa — rimasti invariati</div>
+    <div id="warn-items"></div>
+  </div>
+
+  <div class="detail-log hidden" id="detail-log"></div>
+
+  <div class="btn-row" style="margin-bottom:12px">
+    <button class="btn btn--secondary" id="btn-toggle-log">Mostra dettagli</button>
+  </div>
+
+  <button class="btn btn--primary" id="btn-download">
+    ⬇ Scarica JSON migrato
+  </button>
+</div>
+
+<!-- Step 3: reset -->
+<div class="hidden" id="step-reset">
+  <button class="btn btn--secondary" id="btn-reset" style="max-width:560px">
+    ↩ Carica un altro file
+  </button>
+</div>
+
+<script>
+// ── Migration map (from app/id_migration.json) ────────────────────────────────
+const ID_MAP = {
+  "abductor_machine":             "Thigh_Abductor",
+  "abductor_machine_legs3":       "Thigh_Abductor",
+  "adductor_machine":             "Thigh_Adductor",
+  "adductor_machine_legs3":       "Thigh_Adductor",
+  "back_squat":                   "Barbell_Squat",
+  "back_squat_legs3":             "Barbell_Squat",
+  "bb_squat":                     "Barbell_Squat",
+  "bb_deadlift":                  "Barbell_Deadlift",
+  "romanian_deadlift_or_leg_curl":"Romanian_Deadlift",
+  "romanian_deadlift_pull":       "Romanian_Deadlift",
+  "romanian_deadlift_pull2":      "Romanian_Deadlift",
+  "bb_row":                       "Bent_Over_Barbell_Row",
+  "chest_supported_row":          "Chest_Supported_Dumbbell_Row",
+  "chest_supported_row_pull2":    "Chest_Supported_Dumbbell_Row",
+  "single_arm_cable_row":         "Seated_One-arm_Cable_Pulley_Rows",
+  "single_arm_cable_row_pull2":   "Seated_One-arm_Cable_Pulley_Rows",
+  "pull_up_wide_grip":            "Wide-Grip_Rear_Pull-Up",
+  "pull_up_neutral_pull2":        "Pullups",
+  "pull_up_neutral_supine":       "Pullups",
+  "lat_pulldown_neutral":         "Close-Grip_Front_Lat_Pulldown",
+  "lat_pulldown_neutral_pull2":   "Close-Grip_Front_Lat_Pulldown",
+  "neutral_grip_lat_pulldown":    "Close-Grip_Front_Lat_Pulldown",
+  "flat_bench_bb_press":          "Barbell_Bench_Press_-_Medium_Grip",
+  "incline_bench_bb_press":       "Barbell_Incline_Bench_Press_-_Medium_Grip",
+  "machine_chest_press":          "Machine_Bench_Press",
+  "machine_chest_press_push1":    "Machine_Bench_Press",
+  "low_incline_db_press":         "Incline_Dumbbell_Press",
+  "low_incline_db_press_push1":   "Incline_Dumbbell_Press",
+  "db_flat_bench_or_floor_press": "Dumbbell_Floor_Press",
+  "low_incline_db_flyes":         "Incline_Dumbbell_Flyes",
+  "cable_crossover_low_push1":    "Low_Cable_Crossover",
+  "lateral_raises":               "Side_Lateral_Raise",
+  "lateral_raises_cable_push1":   "Cable_Seated_Lateral_Raise",
+  "db_standing_shoulder_raises":  "Side_Lateral_Raise",
+  "upright_row":                  "Upright_Barbell_Row",
+  "face_pull_push1":              "Face_Pull",
+  "y_raise_or_face_pull":         "Face_Pull",
+  "pec_dek_rear_delt_flyes":      "Rear_Delt_Pec_Deck_Fly",
+  "rear_delt_flyes":              "Cable_Rear_Delt_Fly",
+  "rear_delt_fly_cable_pull2":    "Cable_Rear_Delt_Fly",
+  "ez_bar_bicep_curl":            "EZ-Bar_Curl",
+  "ez_bar_bicep_curls":           "EZ-Bar_Curl",
+  "ez_bar_curl_pull2":            "EZ-Bar_Curl",
+  "incline_db_curl":              "Incline_Dumbbell_Curl",
+  "incline_db_curl_pull2":        "Incline_Dumbbell_Curl",
+  "incline_bench_bicep_curls":    "Incline_Inner_Biceps_Curl",
+  "rope_pushdown":                "Triceps_Pushdown",
+  "rope_pushdown_push1":          "Triceps_Pushdown",
+  "straight_bar_tricep_extensions":"Triceps_Pushdown",
+  "overhead_tricep_extension":    "Cable_Rope_Overhead_Triceps_Extension",
+  "overhead_tricep_ext_push1":    "Cable_Rope_Overhead_Triceps_Extension",
+  "skullcrushers":                "EZ-Bar_Skullcrusher",
+  "dips_parallel_bars":           "Parallel_Bar_Dip",
+  "bulgarian_split_squat":        "Dumbbell_Bulgarian_Split_Squat",
+  "bulgarian_split_squat_legs3":  "Dumbbell_Bulgarian_Split_Squat",
+  "leg_press":                    "Leg_Press",
+  "leg_press_legs3":              "Leg_Press",
+  "leg_curl_machine_legs3":       "Seated_Leg_Curl",
+  "hip_thrust":                   "Barbell_Hip_Thrust",
+  "hip_thrust_legs3":             "Barbell_Hip_Thrust",
+  "gluteus_machine":              "Glute_Machine",
+  "hyperextensions":              "Hyperextensions_Back_Extensions",
+  "cable_crunch_legs3":           "Cable_Crunch",
+  "weighted_sit_ups":             "Weighted_Sit-Ups_-_With_Bands",
+  "weighted_situp_or_cable_crunch":"Cable_Crunch",
+  "plank_legs3":                  "Plank",
+  "cardio_riscaldamento_push":    "Jogging_Treadmill",
+  "cardio_riscaldamento_pull":    "Jogging_Treadmill",
+  "cardio_riscaldamento_legs":    "Jogging_Treadmill",
+  "cardio_push":                  "Jogging_Treadmill",
+  "cardio_pull":                  "Jogging_Treadmill",
+  "cardio_legs":                  "Jogging_Treadmill",
+  "cardio_liss_push1":            "Walking_Treadmill",
+  "cardio_liss_pull2":            "Walking_Treadmill",
+  "cardio_liss_legs3":            "Walking_Treadmill",
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let migratedJson = null;
+let logVisible   = false;
+
+// ── DOM refs ──────────────────────────────────────────────────────────────────
+const dropZone    = document.getElementById('drop-zone');
+const fileInput   = document.getElementById('file-input');
+const stepUpload  = document.getElementById('step-upload');
+const stepResults = document.getElementById('step-results');
+const stepReset   = document.getElementById('step-reset');
+const statReplaced = document.getElementById('stat-replaced');
+const statSchede   = document.getElementById('stat-schede');
+const statUnknown  = document.getElementById('stat-unknown');
+const warnBlock   = document.getElementById('warn-block');
+const warnItems   = document.getElementById('warn-items');
+const detailLog   = document.getElementById('detail-log');
+const btnDownload = document.getElementById('btn-download');
+const btnToggle   = document.getElementById('btn-toggle-log');
+const btnReset    = document.getElementById('btn-reset');
+
+// ── Drop zone wiring ──────────────────────────────────────────────────────────
+document.getElementById('browse-trigger').addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('click', e => { if (e.target !== document.getElementById('browse-trigger')) fileInput.click(); });
+fileInput.addEventListener('change', () => fileInput.files[0] && readFile(fileInput.files[0]));
+
+dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) readFile(f);
+});
+
+// ── File reading ──────────────────────────────────────────────────────────────
+function readFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      processExport(data);
+    } catch(err) {
+      alert('Errore: file JSON non valido.\n' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ── Migration logic ───────────────────────────────────────────────────────────
+function migrateId(id, log, unknown) {
+  const newId = ID_MAP[id];
+  if (newId) {
+    log.push({ type: 'ok', msg: `${id} → ${newId}` });
+    return { id: newId, changed: true };
+  }
+  // Not in map — could be already a canonical ID or truly unknown
+  const alreadyCanonical = Object.values(ID_MAP).includes(id);
+  if (alreadyCanonical) {
+    log.push({ type: 'info', msg: `${id} (già canonico)` });
+  } else {
+    log.push({ type: 'warn', msg: `${id} — non in mappa, rimasto invariato` });
+    unknown.add(id);
+  }
+  return { id, changed: false };
+}
+
+function processExport(data) {
+  const log     = [];
+  const unknown = new Set();
+  let setsReplaced  = 0;
+  let schedeReplaced = 0;
+
+  // Deep clone to avoid mutating the original
+  const out = JSON.parse(JSON.stringify(data));
+
+  // ── 1. Migrate sessions[workout_id][*].sets[*].exercise_id ────────────────
+  if (out.sessions && typeof out.sessions === 'object') {
+    for (const [workoutId, sessions] of Object.entries(out.sessions)) {
+      if (!Array.isArray(sessions)) continue;
+      for (const session of sessions) {
+        if (!Array.isArray(session.sets)) continue;
+        for (const set of session.sets) {
+          if (!set.exercise_id) continue;
+          const { id, changed } = migrateId(set.exercise_id, log, unknown);
+          if (changed) {
+            set.exercise_id = id;
+            setsReplaced++;
+          }
+        }
+      }
+    }
+  }
+
+  // ── 2. Migrate schedules[*].giorni[*].esercizi[*].id ─────────────────────
+  if (Array.isArray(out.schedules)) {
+    for (const scheda of out.schedules) {
+      if (!Array.isArray(scheda.giorni)) continue;
+      for (const day of scheda.giorni) {
+        if (!Array.isArray(day.esercizi)) continue;
+        for (const ex of day.esercizi) {
+          if (!ex.id) continue;
+          const { id, changed } = migrateId(ex.id, log, unknown);
+          if (changed) {
+            ex.id = id;
+            schedeReplaced++;
+          }
+        }
+      }
+    }
+  }
+
+  // ── Update export metadata ────────────────────────────────────────────────
+  out.migrated_at = new Date().toISOString();
+  out.migration_version = 1;
+
+  migratedJson = JSON.stringify(out, null, 2);
+  showResults(setsReplaced, schedeReplaced, unknown, log);
+}
+
+// ── UI update ─────────────────────────────────────────────────────────────────
+function showResults(setsReplaced, schedeReplaced, unknown, log) {
+  statReplaced.textContent = setsReplaced;
+  statSchede.textContent   = schedeReplaced;
+  statUnknown.textContent  = unknown.size;
+
+  // Warnings
+  if (unknown.size > 0) {
+    warnItems.innerHTML = [...unknown].map(id =>
+      `<div class="warn-item">• ${id}</div>`
+    ).join('');
+    warnBlock.classList.remove('hidden');
+  }
+
+  // Detail log
+  detailLog.innerHTML = log.map(({ type, msg }) =>
+    `<div class="log-${type}">${escHtml(msg)}</div>`
+  ).join('');
+
+  stepUpload.classList.add('hidden');
+  stepResults.classList.remove('hidden');
+  stepReset.classList.remove('hidden');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Download ──────────────────────────────────────────────────────────────────
+btnDownload.addEventListener('click', () => {
+  if (!migratedJson) return;
+  const blob = new Blob([migratedJson], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `utp_export_migrated_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+// ── Toggle log ────────────────────────────────────────────────────────────────
+btnToggle.addEventListener('click', () => {
+  logVisible = !logVisible;
+  detailLog.classList.toggle('hidden', !logVisible);
+  btnToggle.textContent = logVisible ? 'Nascondi dettagli' : 'Mostra dettagli';
+});
+
+// ── Reset ─────────────────────────────────────────────────────────────────────
+btnReset.addEventListener('click', () => {
+  migratedJson = null;
+  logVisible   = false;
+  fileInput.value = '';
+  statReplaced.textContent = statSchede.textContent = statUnknown.textContent = '—';
+  warnBlock.classList.add('hidden');
+  warnItems.innerHTML = '';
+  detailLog.innerHTML = '';
+  detailLog.classList.add('hidden');
+  btnToggle.textContent = 'Mostra dettagli';
+  stepResults.classList.add('hidden');
+  stepReset.classList.add('hidden');
+  stepUpload.classList.remove('hidden');
+});
+</script>
+</body>
+</html>

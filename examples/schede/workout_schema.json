@@ -1,13 +1,26 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Workout Schema",
+  "description": "Schema per le schede di allenamento di UberTrainingPlane. Gli esercizi sono identificati tramite ID del free-exercise-db (PascalCase, es. Barbell_Squat) o del catalogo custom (esercizi_custom.json). I campi nome, note e video nella scheda sovrascrivono i valori del database; se assenti vengono popolati automaticamente dalla libreria a runtime.",
   "type": "object",
   "required": ["id", "nome", "giorni"],
   "properties": {
-    "id": { "type": "string", "description": "Identificativo univoco della scheda" },
-    "nome": { "type": "string", "description": "Nome leggibile della scheda" },
-    "descrizione": { "type": ["string", "null"], "description": "Descrizione opzionale" },
-    "categoria": { "type": ["string", "null"], "description": "Categoria opzionale" },
+    "id": {
+      "type": "string",
+      "description": "Identificativo univoco della scheda (snake_case, es. scheda_ppl_2024)"
+    },
+    "nome": {
+      "type": "string",
+      "description": "Nome leggibile della scheda"
+    },
+    "descrizione": {
+      "type": ["string", "null"],
+      "description": "Descrizione opzionale della scheda"
+    },
+    "categoria": {
+      "type": ["string", "null"],
+      "description": "Categoria opzionale (es. Push/Pull/Legs, Full Body)"
+    },
     "giorni": {
       "type": "array",
       "minItems": 1,
@@ -15,24 +28,62 @@
         "type": "object",
         "required": ["giorno", "esercizi"],
         "properties": {
-          "giorno": { "type": "string", "description": "Etichetta del giorno (es. Giorno 1)" },
-          "etichetta": { "type": ["string", "null"], "description": "Nome leggibile del giorno" },
+          "giorno": {
+            "type": "string",
+            "description": "Etichetta interna del giorno (es. Giorno 1)"
+          },
+          "etichetta": {
+            "type": ["string", "null"],
+            "description": "Nome leggibile del giorno (es. Push — Petto / Spalle / Tricipiti)"
+          },
           "esercizi": {
             "type": "array",
             "minItems": 1,
             "items": {
               "type": "object",
-              "required": ["id", "nome", "serie", "reps"],
+              "required": ["id", "serie", "reps"],
               "properties": {
-                "id": { "type": "string", "description": "Identificativo unico esercizio (es. panca_piana)" },
-                "nome": { "type": "string", "description": "Nome visualizzato dell'esercizio" },
-                "serie": { "type": "integer", "minimum": 1, "description": "Numero di serie" },
-                "reps": { "type": "string", "description": "Ripetizioni (es. 8-10 o AMRAP)" },
-                "recupero": { "type": ["integer", "null"], "minimum": 0, "description": "Recupero in secondi (opzionale)" },
-                "video": { "type": ["string", "null"], "format": "uri", "description": "URL al video (es. YouTube) dell'esercizio (opzionale)" },
-                "note": { "type": ["string", "null"], "description": "Note opzionali" },
-                "tipo": { "type": ["string", "null"], "enum": ["cardio", null], "description": "Tipo esercizio: 'cardio' per tapis roulant/cyclette, omesso per esercizi con peso" },
-                "durata": { "type": ["integer", "null"], "minimum": 1, "description": "Durata target in minuti (opzionale, solo per esercizi cardio)" }
+                "id": {
+                  "type": "string",
+                  "description": "ID esercizio dal free-exercise-db (PascalCase_With_Underscores, es. Barbell_Squat) o dal catalogo custom. Nome, note, tipo e video vengono risolti dalla libreria a runtime."
+                },
+                "serie": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Numero di serie"
+                },
+                "reps": {
+                  "type": "string",
+                  "description": "Ripetizioni target (es. '8-10', '12', 'AMRAP', '10-15 min')"
+                },
+                "recupero": {
+                  "type": ["integer", "null"],
+                  "minimum": 0,
+                  "description": "Recupero in secondi tra le serie (opzionale, es. 90)"
+                },
+                "nome": {
+                  "type": ["string", "null"],
+                  "description": "Override del nome visualizzato. Se assente viene usato il nome dalla libreria."
+                },
+                "note": {
+                  "type": ["string", "null"],
+                  "description": "Override delle note di esecuzione. Se assente vengono usate le note dalla libreria."
+                },
+                "video": {
+                  "type": ["string", "null"],
+                  "format": "uri",
+                  "description": "Override URL video (es. YouTube). Se assente viene usato il video dalla libreria."
+                },
+                "tipo": {
+                  "type": ["string", "null"],
+                  "enum": ["reps", "cardio", "temporale", null],
+                  "description": "Override del tipo esercizio. 'reps' = serie/ripetizioni (default), 'cardio' = timer cronometro, 'temporale' = countdown isometrico (usa durata). Se assente viene derivato dalla libreria."
+                },
+                "durata": {
+                  "type": ["integer", "null"],
+                  "minimum": 1,
+                  "description": "Override durata target in secondi per esercizi temporali (es. 60 per il plank da 1 minuto). Se assente viene usato durata_default dalla libreria."
+                }
               },
               "additionalProperties": false
             }

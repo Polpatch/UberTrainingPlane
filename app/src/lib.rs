@@ -12,7 +12,7 @@ use gloo_file::callbacks::{read_as_text, FileReader};
 use gloo_file::File as GlooFile;
 use gloo_net::http::Request;
 use gloo_timers::callback::Interval;
-use models::{load_user_preferred, save_user_preferred, TimerState, *};
+use models::{load_ui_prefs, load_user_preferred, save_ui_prefs, save_user_preferred, TimerState, UserPreferences, *};
 use recovery_timer::use_recovery_timer;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
@@ -228,26 +228,33 @@ fn app() -> Html {
     let session_elapsed_handle  = use_mut_ref(|| None::<Interval>);
     let desc_expanded           = use_state(|| false);
     let user_preferred          = use_state(load_user_preferred);
+    let ui_prefs                = use_state(load_ui_prefs);
     let cardio_elapsed          = use_state(|| 0u32);
     let cardio_running          = use_state(|| false);
     let sheet_expanded          = use_state(|| false);
+    let confirm_delete          = use_state(|| false);
     let picker_open         = use_state(|| false);
     let picker_exercise_idx = use_state(|| 0usize);
     // Maps exercise index → patched Exercise for the current session.
     // Cleared when the day or workout changes.
     let exercise_overrides: UseStateHandle<HashMap<usize, Exercise>> = use_state(HashMap::new);
-    // Sorted library for the picker; built once (static JSON, never changes).
-    let exercise_library = use_memo(|_| {
-        let mut lib: Vec<ExerciseDef> = load_exercise_library().into_values().collect();
-        lib.sort_by(|a, b| a.nome.cmp(&b.nome));
-        // Deduplicate by nome for the picker display only (library JSON keeps all IDs
-        // for merge lookups; picker only needs one entry per distinct exercise name).
+    // Exercise library — loaded async at startup from free_exercise_db.json + esercizi_custom.json.
+    // None while fetching; components degrade gracefully (empty picker, no-op merge).
+    let lib_state: UseStateHandle<Option<HashMap<String, ExerciseDef>>> = use_state(|| None);
+    // Sorted, deduplicated Vec for the picker.
+    let exercise_library = use_memo(|lib_opt: &Option<HashMap<String, ExerciseDef>>| {
+        let Some(lib) = lib_opt.as_ref() else { return vec![]; };
+        let mut entries: Vec<ExerciseDef> = lib.values().cloned().collect();
+        entries.sort_by(|a, b| a.display_name().cmp(b.display_name()));
+        // One entry per distinct display name for the picker (all IDs remain in lib_map for lookup).
         let mut seen = std::collections::HashSet::new();
-        lib.retain(|e| seen.insert(e.nome.to_lowercase()));
-        lib
-    }, ());
-    // HashMap version for O(1) lookup in picker_select callback.
-    let lib_map = use_memo(|_| load_exercise_library(), ());
+        entries.retain(|e| seen.insert(e.display_name().to_lowercase()));
+        entries
+    }, (*lib_state).clone());
+    // HashMap version for O(1) lookup in merge and picker_select.
+    let lib_map = use_memo(|lib_opt: &Option<HashMap<String, ExerciseDef>>| {
+        lib_opt.clone().unwrap_or_default()
+    }, (*lib_state).clone());
     let cardio_handle           = use_mut_ref(|| None::<Interval>);
     // ID of the currently active session (empty = no workout loaded)
     let current_session_id  = use_state(|| String::new());
@@ -358,6 +365,31 @@ fn app() -> Html {
         )
     };
 
+    // ── Fetch exercise library ────────────────────────────────────────────────
+    let _fetch_library = {
+        let lib_state = lib_state.clone();
+        let workout   = workout.clone();
+        use_effect_with_deps(
+            move |_| {
+                spawn_local(async move {
+                    let library = load_exercise_library().await;
+                    // Re-merge current workout in case it was opened before the library arrived.
+                    if let Some(mut w) = (*workout).clone() {
+                        for day in &mut w.giorni {
+                            for ex in &mut day.esercizi {
+                                merge_exercise_with_library(ex, &library);
+                            }
+                        }
+                        workout.set(Some(w));
+                    }
+                    lib_state.set(Some(library));
+                });
+                || ()
+            },
+            (),
+        )
+    };
+
     // ── Shared session-state application ─────────────────────────────────────
     // Mirror a resolved DaySession into the day-level state handles. Single
     // source of truth for the "0 / 1 / many open sessions" branch that used to
@@ -415,13 +447,13 @@ fn app() -> Html {
         let workout = workout.clone();
         let error   = error.clone();
         let apply   = apply_day_session.clone();
+        let lib_map = lib_map.clone();
         Rc::new(move |mut data: Workout, day_idx: usize| {
-            // Ensure static exercise fields (tipo, nome, video, note, durata)
-            // are always populated from the library regardless of load path.
-            let lib = load_exercise_library();
+            // Merge library fields into each exercise. If the library has not yet
+            // loaded (lib_map is empty), the fetch effect will re-merge after it does.
             for day in &mut data.giorni {
                 for ex in &mut day.esercizi {
-                    merge_exercise_with_library(ex, &lib);
+                    merge_exercise_with_library(ex, &*lib_map);
                 }
             }
             let day_label = data.giorni.get(day_idx)
@@ -637,7 +669,7 @@ fn app() -> Html {
                         let reg = register_set(
                             workout, day, *day_index, exercise, current_idx,
                             (set_index + 1) as u32, peso, reps, &weight_str,
-                            (*saved_sets).clone(), &weight_inputs, &current_session_id,
+                            (*saved_sets).clone(), &weight_inputs, &reps_inputs, &current_session_id,
                         );
                         if let Some(e) = reg.storage_error { error.set(Some(e)); }
                         if reg.session_created { current_session_id.set(reg.session_id); }
@@ -647,6 +679,11 @@ fn app() -> Html {
                         if let Some((idx, val)) = reg.prefill_weight {
                             weight_inputs.set(update_input_map(
                                 (*weight_inputs).clone(), exercise.id.clone(), idx, val,
+                            ));
+                        }
+                        if let Some((idx, val)) = reg.prefill_reps {
+                            reps_inputs.set(update_input_map(
+                                (*reps_inputs).clone(), exercise.id.clone(), idx, val,
                             ));
                         }
                         saved_sets.set(reg.sets);
@@ -753,6 +790,7 @@ fn app() -> Html {
         let selected_exercise  = selected_exercise.clone();
         let saved_sets         = saved_sets.clone();
         let weight_inputs      = weight_inputs.clone();
+        let reps_inputs        = reps_inputs.clone();
         let current_session_id = current_session_id.clone();
         let reg_live           = reg_live.clone();
         let error              = error.clone();
@@ -793,7 +831,7 @@ fn app() -> Html {
             let reg = register_set(
                 workout, day, *day_index, exercise, ex_idx,
                 next_set, peso, reps, &weight_str,
-                sets, &wi_live, &sid_live,
+                sets, &wi_live, &ri_live, &sid_live,
             );
             if let Some(e) = reg.storage_error { error.set(Some(e)); }
             if reg.session_created { current_session_id.set(reg.session_id); }
@@ -804,6 +842,11 @@ fn app() -> Html {
             if let Some((idx, val)) = reg.prefill_weight {
                 weight_inputs.set(update_input_map(
                     wi_live, exercise.id.clone(), idx, val,
+                ));
+            }
+            if let Some((idx, val)) = reg.prefill_reps {
+                reps_inputs.set(update_input_map(
+                    ri_live, exercise.id.clone(), idx, val,
                 ));
             }
             saved_sets.set(reg.sets);
@@ -918,10 +961,10 @@ fn app() -> Html {
                 {
                     let mut patched = scheda_ex.clone();
                     patched.id    = def.id.clone();
-                    patched.nome  = Some(def.nome.clone());
+                    patched.nome  = Some(def.display_name().to_string());
                     patched.video = def.video.clone();
                     patched.note  = def.note.clone();
-                    patched.tipo  = Some(def.tipo.clone());
+                    patched.tipo  = Some(def.tipo().to_string());
                     patched.durata = def.durata_default;
                     let mut map = (*exercise_overrides).clone();
                     map.insert(idx, patched);
@@ -1074,23 +1117,30 @@ fn app() -> Html {
     };
 
     // ── Cancel / delete current workout session ──────────────────────────────
-    let on_delete_workout = {
+    let do_delete_workout = {
         let workout            = workout.clone();
         let current_session_id = current_session_id.clone();
         let reset              = reset_workout_state.clone();
         let error              = error.clone();
-        Callback::from(move |_| {
+        let confirm_delete     = confirm_delete.clone();
+        Callback::from(move |_: MouseEvent| {
+            confirm_delete.set(false);
             if let Some(w) = &*workout {
                 let sid = (*current_session_id).clone();
                 if !sid.is_empty() {
                     if let Err(e) = delete_session(&w.id, &sid) {
-                        error.set(Some(e)); // reset() would clear the banner
+                        error.set(Some(e));
                         return;
                     }
                 }
             }
             reset();
         })
+    };
+    // Passed to WorkoutView — opens the confirm dialog instead of deleting directly.
+    let on_delete_workout = {
+        let cd = confirm_delete.clone();
+        Callback::from(move |_: MouseEvent| cd.set(true))
     };
 
     // ── Clear workout (go back to catalog without terminating the session) ───
@@ -1507,6 +1557,7 @@ fn app() -> Html {
                                     exercise_overrides={(*exercise_overrides).clone()}
                                     on_save_and_finish={on_save_and_finish.clone()}
                                     on_delete_workout={on_delete_workout.clone()}
+                                    righthanded={(*ui_prefs).righthanded}
                                 />
                             }
                         } // close else (not resume dialog)
@@ -1563,6 +1614,7 @@ fn app() -> Html {
                 on_timed_toggle={on_timed_toggle}
                 on_timed_stop={on_timed_stop}
                 on_expand_change={{ let se = sheet_expanded.clone(); Callback::from(move |v: bool| se.set(v)) }}
+                righthanded={(*ui_prefs).righthanded}
             />
 
             // ── Exercise picker modal ────────────────────────────────────────
@@ -1572,6 +1624,27 @@ fn app() -> Html {
                     on_select={on_picker_select.clone()}
                     on_cancel={on_picker_cancel.clone()}
                 />
+            }
+
+            // ── Confirm delete dialog ────────────────────────────────────────
+            if *confirm_delete {
+                <div class="confirm-overlay"
+                     onclick={{ let cd = confirm_delete.clone(); Callback::from(move |_: MouseEvent| cd.set(false)) }}>
+                    <div class="confirm-modal"
+                         onclick={Callback::from(|e: MouseEvent| e.stop_propagation())}>
+                        <p class="confirm-title">{"Cancella allenamento?"}</p>
+                        <p class="confirm-body">{"La sessione in corso verrà eliminata. Le serie già registrate non verranno salvate."}</p>
+                        <div class="confirm-actions">
+                            <button class="secondary-button" onclick={{
+                                let cd = confirm_delete.clone();
+                                Callback::from(move |_: MouseEvent| cd.set(false))
+                            }}>{"Annulla"}</button>
+                            <button class="danger-button" onclick={do_delete_workout.clone()}>
+                                {"Sì, cancella"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             }
 
             // ── Burger menu modal ────────────────────────────────────────────
@@ -1618,6 +1691,28 @@ fn app() -> Html {
                         <p class="menu-hint">
                             {"Il template è un esempio completo da modificare. Lo schema permette la validazione e l'autocomplete in VS Code."}
                         </p>
+                        <div class="menu-section-title">{"Preferenze"}</div>
+                        <button class="menu-action-btn" onclick={{
+                            let prefs = ui_prefs.clone();
+                            Callback::from(move |_: MouseEvent| {
+                                let updated = UserPreferences { righthanded: !(*prefs).righthanded };
+                                let _ = save_ui_prefs(&updated);
+                                prefs.set(updated);
+                            })
+                        }}>
+                            <span class="menu-action-icon">{ if (*ui_prefs).righthanded { "🤜" } else { "🤛" } }</span>
+                            { if (*ui_prefs).righthanded { "Destrorso (pulsante registra a destra)" }
+                              else { "Sinistrorso (pulsante registra a sinistra)" } }
+                        </button>
+                        <div class="menu-section-title">{"Crediti"}</div>
+                        <div class="menu-credits">
+                            {"Database esercizi: "}
+                            <a href="https://github.com/yuhonas/free-exercise-db"
+                               target="_blank" rel="noopener" class="menu-credits-link">
+                                {"free-exercise-db"}
+                            </a>
+                            {" — The Unlicense (public domain)"}
+                        </div>
                         <div class="local-data-indicator">
                             <span class="local-data-dot"></span>
                             {"Dati salvati localmente sul dispositivo"}

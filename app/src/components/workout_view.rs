@@ -33,6 +33,8 @@ pub struct WorkoutViewProps {
     pub exercise_overrides:     HashMap<usize, Exercise>,
     pub on_save_and_finish:     Callback<MouseEvent>,
     pub on_delete_workout:      Callback<MouseEvent>,
+    /// Right-handed layout — Salva e termina on the right.
+    pub righthanded:            bool,
 }
 
 #[function_component(WorkoutView)]
@@ -122,19 +124,31 @@ pub fn workout_view(props: &WorkoutViewProps) -> Html {
                                 }
                             }) }
                         </section>
-                        <div class="workout-footer">
-                            <button class={classes!(
-                                "footer-btn",
-                                "footer-btn--save",
-                                if props.all_done { Some("footer-btn--save--done") } else { None }
-                            )}
-                                onclick={props.on_save_and_finish.clone()}>
-                                {"Salva e termina"}
-                            </button>
+                        <div class={if props.righthanded { "workout-footer" } else { "workout-footer workout-footer--lh" }}>
+                            if !props.righthanded {
+                                // Left-handed: Salva a sinistra
+                                <button class={classes!(
+                                    "footer-btn", "footer-btn--save",
+                                    if props.all_done { Some("footer-btn--save--done") } else { None }
+                                )}
+                                    onclick={props.on_save_and_finish.clone()}>
+                                    {"Salva e termina"}
+                                </button>
+                            }
                             <button class="footer-btn footer-btn--delete"
                                 onclick={props.on_delete_workout.clone()}>
                                 {"Cancella allenamento"}
                             </button>
+                            if props.righthanded {
+                                // Right-handed: Salva a destra
+                                <button class={classes!(
+                                    "footer-btn", "footer-btn--save",
+                                    if props.all_done { Some("footer-btn--save--done") } else { None }
+                                )}
+                                    onclick={props.on_save_and_finish.clone()}>
+                                    {"Salva e termina"}
+                                </button>
+                            }
                         </div>
                     </>
                 }
