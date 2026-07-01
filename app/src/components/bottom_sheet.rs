@@ -472,6 +472,8 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                 </span>
                 if video_embed.is_some() {
                     <button class="video-icon-btn" title="Guarda video esercizio"
+                        onpointerdown={Callback::from(|e: PointerEvent| e.stop_propagation())}
+                        onpointerup={Callback::from(|e: PointerEvent| e.stop_propagation())}
                         onclick={{
                             let vo = video_open.clone();
                             Callback::from(move |e: MouseEvent| {
@@ -482,6 +484,8 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                 }
                 if !is_cardio && !is_timed {
                     <button class="chart-icon-btn" title="Grafico avanzamento peso"
+                        onpointerdown={Callback::from(|e: PointerEvent| e.stop_propagation())}
+                        onpointerup={Callback::from(|e: PointerEvent| e.stop_propagation())}
                         onclick={{
                             let co = chart_open.clone();
                             Callback::from(move |e: MouseEvent| {

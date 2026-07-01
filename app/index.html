@@ -383,9 +383,9 @@
       .history-session-date { font-weight: 700; font-size: 0.95rem; color: var(--text); }
       .history-session-meta { font-size: 0.85rem; color: var(--text-3); }
       .bottom-sheet { position: fixed; bottom: 0; left: 0; right: 0; z-index: 90; background: var(--surface); border-radius: 24px 24px 0 0; box-shadow: 0 -4px 24px var(--sh-lg); transition: height 0.28s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; overflow: hidden; }
-      .bottom-sheet--expanded  { height: 62vh; }
+      .bottom-sheet--expanded  { height: calc(62vh + 1.5em); }
       .bottom-sheet--minimized { height: 72px; }
-      .sheet-backdrop { position: fixed; inset: 0; bottom: 62vh; z-index: 89; }
+      .sheet-backdrop { position: fixed; inset: 0; bottom: calc(62vh + 1.5em); z-index: 89; }
       .sheet-handle-area { flex-shrink: 0; height: 72px; padding: 0 20px; display: flex; align-items: center; gap: 10px; cursor: pointer; position: relative; user-select: none; -webkit-user-select: none; touch-action: none; }
       .sheet-handle-pill { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 36px; height: 4px; border-radius: 2px; background: var(--border-2); }
       .sheet-ex-name { flex: 1; font-weight: 700; font-size: 1rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-top: 4px; }

@@ -1488,7 +1488,7 @@ fn app() -> Html {
                 }
             </header>
 
-            <main class="app-main" style={if *sheet_expanded { "padding-bottom: calc(62vh + 24px)" } else { "" }}>
+            <main class="app-main" style={if *sheet_expanded { "padding-bottom: calc(62vh + 1.5em + 24px)" } else { "" }}>
                 {
                     if let Some(workout_data) = &*workout {
                         if !resume_candidates.is_empty() {
