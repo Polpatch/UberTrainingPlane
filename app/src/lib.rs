@@ -71,6 +71,20 @@ fn inputs_from_sets(sets: &[CompletedSet]) -> (HashMap<String, Vec<String>>, Has
     (w, r)
 }
 
+fn day_with_overrides(
+    workout: &Workout,
+    day_idx: usize,
+    overrides: &HashMap<usize, Exercise>,
+) -> Option<Day> {
+    let mut day = workout.giorni.get(day_idx)?.clone();
+    for (idx, exercise) in overrides {
+        if let Some(slot) = day.esercizi.get_mut(*idx) {
+            *slot = exercise.clone();
+        }
+    }
+    Some(day)
+}
+
 /// JSON Schema for validating custom schede (VS Code / editor autocomplete).
 const SCHEDA_SCHEMA: &str = include_str!("../../examples/schede/workout_schema.json");
 
@@ -397,6 +411,7 @@ fn app() -> Html {
     // suggestion entry points.
     let apply_day_session: Rc<dyn Fn(usize, DaySession)> = {
         let timer              = timer.clone();
+        let timed_timer        = timed_timer.clone();
         let day_index          = day_index.clone();
         let selected_exercise  = selected_exercise.clone();
         let saved_sets         = saved_sets.clone();
@@ -404,11 +419,13 @@ fn app() -> Html {
         let reps_inputs        = reps_inputs.clone();
         let current_session_id = current_session_id.clone();
         let resume_candidates  = resume_candidates.clone();
+        let exercise_overrides = exercise_overrides.clone();
         Rc::new(move |day_idx: usize, outcome: DaySession| {
-            // Switching day/session context abandons any running recovery:
-            // its at-zero save would otherwise target an exercise index in the
-            // NEW day (same bug class as the timer-target fix, one level up).
+            // Switching day/session context abandons any running timer:
+            // at-zero saves would otherwise target an exercise index in the
+            // NEW day/session.
             timer.stop();
+            timed_timer.stop();
             day_index.set(day_idx);
             match outcome {
                 DaySession::Fresh => {
@@ -418,8 +435,9 @@ fn app() -> Html {
                     reps_inputs.set(HashMap::new());
                     current_session_id.set(String::new());
                     resume_candidates.set(vec![]);
+                    exercise_overrides.set(HashMap::new());
                 }
-                DaySession::Resume { session_id, sets, active_exercise } => {
+                DaySession::Resume { session_id, sets, active_exercise, exercise_overrides: overrides } => {
                     let (wi, ri) = inputs_from_sets(&sets);
                     selected_exercise.set(active_exercise);
                     saved_sets.set(sets);
@@ -427,6 +445,7 @@ fn app() -> Html {
                     reps_inputs.set(ri);
                     current_session_id.set(session_id);
                     resume_candidates.set(vec![]);
+                    exercise_overrides.set(overrides);
                 }
                 DaySession::Disambiguate(candidates) => {
                     selected_exercise.set(0);
@@ -435,6 +454,7 @@ fn app() -> Html {
                     reps_inputs.set(HashMap::new());
                     current_session_id.set(String::new());
                     resume_candidates.set(candidates);
+                    exercise_overrides.set(HashMap::new());
                 }
             }
         })
@@ -581,14 +601,15 @@ fn app() -> Html {
         let workout           = workout.clone();
         let day_index         = day_index.clone();
         let saved_sets        = saved_sets.clone();
+        let exercise_overrides = exercise_overrides.clone();
         Callback::from(move |idx: usize| {
             cardio_handle.borrow_mut().take();
             cardio_running.set(false);
             timed_timer.stop();
             // Restore saved duration if this is a completed cardio exercise
             let restored = workout.as_ref()
-                .and_then(|w| w.giorni.get(*day_index))
-                .and_then(|d| d.esercizi.get(idx))
+                .and_then(|w| day_with_overrides(w, *day_index, &exercise_overrides))
+                .and_then(|d| d.esercizi.get(idx).cloned())
                 .filter(|e| e.tipo.as_deref() == Some("cardio"))
                 .and_then(|e| saved_sets.iter().find(|s| s.exercise_id == e.id && s.set_number == 1))
                 .and_then(|s| s.durata_min)
@@ -649,9 +670,10 @@ fn app() -> Html {
         let saved_sets         = saved_sets.clone();
         let current_session_id = current_session_id.clone();
         let error              = error.clone();
+        let exercise_overrides = exercise_overrides.clone();
         Callback::from(move |set_index: usize| {
             if let Some(workout) = &*workout {
-                if let Some(day) = workout.giorni.get(*day_index) {
+                if let Some(day) = day_with_overrides(workout, *day_index, &exercise_overrides) {
                     if let Some(exercise) = day.esercizi.get(*selected_exercise) {
                         // Manual save: the user explicitly picked this set, so use the
                         // weight exactly as typed (no fallback to a previous set).
@@ -667,9 +689,10 @@ fn app() -> Html {
                             .cloned();
                         let current_idx = *selected_exercise;
                         let reg = register_set(
-                            workout, day, *day_index, exercise, current_idx,
+                            workout, &day, *day_index, exercise, current_idx,
                             (set_index + 1) as u32, peso, reps, &weight_str,
                             (*saved_sets).clone(), &weight_inputs, &reps_inputs, &current_session_id,
+                            &exercise_overrides,
                         );
                         if let Some(e) = reg.storage_error { error.set(Some(e)); }
                         if reg.session_created { current_session_id.set(reg.session_id); }
@@ -730,12 +753,13 @@ fn app() -> Html {
         let cardio_running     = cardio_running.clone();
         let cardio_handle      = cardio_handle.clone();
         let error               = error.clone();
+        let exercise_overrides = exercise_overrides.clone();
         Callback::from(move |_: ()| {
             cardio_handle.borrow_mut().take();
             cardio_running.set(false);
             let elapsed = *cardio_elapsed;
             if let Some(workout) = &*workout {
-                if let Some(day) = workout.giorni.get(*day_index) {
+                if let Some(day) = day_with_overrides(workout, *day_index, &exercise_overrides) {
                     if let Some(exercise) = day.esercizi.get(*selected_exercise) {
                         let durata_min = Some(elapsed / 60);
                         let list = upsert_completed_set(
@@ -746,7 +770,7 @@ fn app() -> Html {
                             .filter(|s| s.exercise_id == exercise.id)
                             .count() >= exercise.serie as usize;
                         let next_active = if ex_done {
-                            let next = next_incomplete_exercise(day, &list, current_idx);
+                            let next = next_incomplete_exercise(&day, &list, current_idx);
                             if next != current_idx { selected_exercise.set(next); }
                             next
                         } else { current_idx };
@@ -764,8 +788,9 @@ fn app() -> Html {
                         };
                         if !sid.is_empty() {
                             let total = total_day_sets(workout, &day.giorno);
-                            if let Err(e) =
-                                update_session_sets(&workout.id, &sid, &list, next_active, total)
+                            if let Err(e) = update_session_sets(
+                                &workout.id, &sid, &list, next_active, total, &exercise_overrides,
+                            )
                             {
                                 error.set(Some(e));
                             }
@@ -794,9 +819,11 @@ fn app() -> Html {
         let current_session_id = current_session_id.clone();
         let reg_live           = reg_live.clone();
         let error              = error.clone();
+        let exercise_overrides = exercise_overrides.clone();
         Rc::new(move |ex_idx: usize| {
             let Some(workout) = &*workout else { return };
-            let Some(day) = workout.giorni.get(*day_index) else { return };
+            let overrides = (*exercise_overrides).clone();
+            let Some(day) = day_with_overrides(workout, *day_index, &overrides) else { return };
             let Some(exercise) = day.esercizi.get(ex_idx) else { return };
 
             // Snapshot the live state once (current as of the last render).
@@ -829,9 +856,10 @@ fn app() -> Html {
                 .and_then(|v| v.get(next_idx))
                 .cloned();
             let reg = register_set(
-                workout, day, *day_index, exercise, ex_idx,
+                workout, &day, *day_index, exercise, ex_idx,
                 next_set, peso, reps, &weight_str,
                 sets, &wi_live, &ri_live, &sid_live,
+                &overrides,
             );
             if let Some(e) = reg.storage_error { error.set(Some(e)); }
             if reg.session_created { current_session_id.set(reg.session_id); }
@@ -951,6 +979,8 @@ fn app() -> Html {
         let workout_state       = workout.clone();
         let day_index           = day_index.clone();
         let lib_map             = lib_map.clone();
+        let saved_sets         = saved_sets.clone();
+        let error              = error.clone();
         Callback::from(move |chosen_id: String| {
             let idx = *picker_exercise_idx;
             // Build the patched Exercise: scheda's serie/reps/recupero + library's static fields.
@@ -959,6 +989,15 @@ fn app() -> Html {
                     .and_then(|w| w.giorni.get(*day_index))
                     .and_then(|d| d.esercizi.get(idx))
                 {
+                    let current_id = exercise_overrides
+                        .get(&idx)
+                        .map(|e| e.id.as_str())
+                        .unwrap_or(&scheda_ex.id);
+                    if saved_sets.iter().any(|s| s.exercise_id == current_id) {
+                        error.set(Some("Non puoi cambiare un esercizio dopo aver registrato serie per quello slot.".into()));
+                        picker_open.set(false);
+                        return;
+                    }
                     let mut patched = scheda_ex.clone();
                     patched.id    = def.id.clone();
                     patched.nome  = Some(def.display_name().to_string());
@@ -966,9 +1005,11 @@ fn app() -> Html {
                     patched.note  = def.note.clone();
                     patched.tipo  = Some(def.tipo().to_string());
                     patched.durata = def.durata_default;
+                    patched.images = def.images.clone();
                     let mut map = (*exercise_overrides).clone();
                     map.insert(idx, patched);
                     exercise_overrides.set(map);
+                    error.set(None);
                 }
             }
             picker_open.set(false);
@@ -986,6 +1027,7 @@ fn app() -> Html {
         let reps_inputs        = reps_inputs.clone();
         let resume_candidates  = resume_candidates.clone();
         let error              = error.clone();
+        let exercise_overrides = exercise_overrides.clone();
         Callback::from(move |meta: SessionMeta| {
             if let Some(w) = &*workout {
                 // Delete other open sessions for this same day (keep only the chosen one)
@@ -999,8 +1041,8 @@ fn app() -> Html {
                     }
                 }
 
-                let (sid, sets, active_ex) = find_open_session(&w.id, &meta.day)
-                    .unwrap_or((String::new(), vec![], 0));
+                let (sid, sets, active_ex, overrides) = find_open_session(&w.id, &meta.day)
+                    .unwrap_or((String::new(), vec![], 0, HashMap::new()));
                 let day_idx = w.giorni.iter()
                     .position(|d| d.giorno == meta.day)
                     .unwrap_or(0);
@@ -1011,6 +1053,7 @@ fn app() -> Html {
                 current_session_id.set(sid);
                 weight_inputs.set(wi);
                 reps_inputs.set(ri);
+                exercise_overrides.set(overrides);
             }
             resume_candidates.set(vec![]);
         })
@@ -1027,6 +1070,7 @@ fn app() -> Html {
         let reps_inputs        = reps_inputs.clone();
         let resume_candidates  = resume_candidates.clone();
         let error              = error.clone();
+        let exercise_overrides = exercise_overrides.clone();
         Callback::from(move |_| {
             if let Some(w) = &*workout {
                 // Delete only the open sessions for the day being disambiguated
@@ -1046,6 +1090,7 @@ fn app() -> Html {
                 current_session_id.set(String::new());
                 weight_inputs.set(HashMap::new());
                 reps_inputs.set(HashMap::new());
+                exercise_overrides.set(HashMap::new());
             }
             resume_candidates.set(vec![]);
         })
@@ -1072,8 +1117,11 @@ fn app() -> Html {
         let cardio_elapsed         = cardio_elapsed.clone();
         let cardio_running         = cardio_running.clone();
         let cardio_handle          = cardio_handle.clone();
+        let timed_timer            = timed_timer.clone();
+        let exercise_overrides     = exercise_overrides.clone();
         Rc::new(move || {
             timer.stop();
+            timed_timer.stop();
             cardio_handle.borrow_mut().take();
             cardio_running.set(false);
             cardio_elapsed.set(0);
@@ -1088,6 +1136,7 @@ fn app() -> Html {
             reps_inputs.set(HashMap::new());
             current_session_id.set(String::new());
             resume_candidates.set(vec![]);
+            exercise_overrides.set(HashMap::new());
             viewing_history.set(false);
             show_completion.set(false);
             desc_expanded.set(false);
@@ -1163,6 +1212,7 @@ fn app() -> Html {
 
     let on_view_session = {
         let timer              = timer.clone();
+        let timed_timer        = timed_timer.clone();
         let workout            = workout.clone();
         let day_index          = day_index.clone();
         let selected_exercise  = selected_exercise.clone();
@@ -1172,10 +1222,12 @@ fn app() -> Html {
         let current_session_id = current_session_id.clone();
         let viewing_history    = viewing_history.clone();
         let history_open       = history_open.clone();
+        let exercise_overrides = exercise_overrides.clone();
         Callback::from(move |session: Session| {
-            // Entering history abandons any running recovery (its auto-save
-            // would write into the terminated session being viewed).
+            // Entering history abandons any running timer (at-zero saves would
+            // otherwise write into the terminated session being viewed).
             timer.stop();
+            timed_timer.stop();
             if let Some(w) = &*workout {
                 let day_idx = w.giorni.iter()
                     .position(|d| d.giorno == session.day)
@@ -1188,6 +1240,7 @@ fn app() -> Html {
             weight_inputs.set(wi);
             reps_inputs.set(ri);
             current_session_id.set(session.id.clone());
+            exercise_overrides.set(session.exercise_overrides.clone());
             viewing_history.set(true);
             history_open.set(false);
         })
@@ -1202,17 +1255,19 @@ fn app() -> Html {
         let reps_inputs        = reps_inputs.clone();
         let current_session_id = current_session_id.clone();
         let viewing_history    = viewing_history.clone();
+        let exercise_overrides = exercise_overrides.clone();
         Callback::from(move |_| {
             if let Some(w) = &*workout {
                 if let Some(day) = w.giorni.get(*day_index) {
                     match find_open_session(&w.id, &day.giorno) {
-                        Some((sid, sets, active_ex)) => {
+                        Some((sid, sets, active_ex, overrides)) => {
                             let (wi, ri) = inputs_from_sets(&sets);
                             saved_sets.set(sets);
                             weight_inputs.set(wi);
                             reps_inputs.set(ri);
                             current_session_id.set(sid);
                             selected_exercise.set(active_ex);
+                            exercise_overrides.set(overrides);
                         }
                         None => {
                             saved_sets.set(vec![]);
@@ -1220,6 +1275,7 @@ fn app() -> Html {
                             reps_inputs.set(HashMap::new());
                             current_session_id.set(String::new());
                             selected_exercise.set(0);
+                            exercise_overrides.set(HashMap::new());
                         }
                     }
                 }
@@ -1231,6 +1287,7 @@ fn app() -> Html {
     // ── Calendar: select session from dot / CTA ──────────────────────────────
     let on_select_session_meta = {
         let timer              = timer.clone();
+        let timed_timer        = timed_timer.clone();
         let workout            = workout.clone();
         let day_index          = day_index.clone();
         let selected_exercise  = selected_exercise.clone();
@@ -1241,13 +1298,15 @@ fn app() -> Html {
         let viewing_history    = viewing_history.clone();
         let error              = error.clone();
         let open_workout_fn    = open_workout_fn.clone();
+        let exercise_overrides = exercise_overrides.clone();
         Callback::from(move |meta: SessionMeta| {
             let Some(data) = load_schedules().into_iter().find(|w| w.id == meta.workout_id)
                 else { return };
             let day_idx = data.giorni.iter().position(|d| d.giorno == meta.day).unwrap_or(0);
             if meta.done {
                 if let Some(session) = find_session_by_id(&meta.workout_id, &meta.id) {
-                    timer.stop(); // entering history view — abandon any recovery
+                    timer.stop(); // entering history view — abandon live timers
+                    timed_timer.stop();
                     let (wi, ri) = inputs_from_sets(&session.sets);
                     day_index.set(day_idx);
                     selected_exercise.set(session.active_exercise);
@@ -1255,6 +1314,7 @@ fn app() -> Html {
                     weight_inputs.set(wi);
                     reps_inputs.set(ri);
                     current_session_id.set(session.id.clone());
+                    exercise_overrides.set(session.exercise_overrides.clone());
                     viewing_history.set(true);
                     workout.set(Some(data));
                     error.set(None);
@@ -1549,11 +1609,23 @@ fn app() -> Html {
                                     on_change_day={on_change_day.clone()}
                                     on_select_exercise={on_select_exercise.clone()}
                                     on_long_press_exercise={{ let cb = on_open_picker.clone(); Callback::from(move |idx: usize| cb.emit(idx)) }}
-                                    on_revert_exercise={{ let eo = exercise_overrides.clone(); Callback::from(move |idx: usize| {
-                                        let mut map = (*eo).clone();
-                                        map.remove(&idx);
-                                        eo.set(map);
-                                    }) }}
+                                    on_revert_exercise={{
+                                        let eo = exercise_overrides.clone();
+                                        let sets = saved_sets.clone();
+                                        let err = error.clone();
+                                        Callback::from(move |idx: usize| {
+                                            let mut map = (*eo).clone();
+                                            if let Some(current) = map.get(&idx) {
+                                                if sets.iter().any(|s| s.exercise_id == current.id) {
+                                                    err.set(Some("Non puoi ripristinare un esercizio dopo aver registrato serie per quello slot.".into()));
+                                                    return;
+                                                }
+                                            }
+                                            map.remove(&idx);
+                                            eo.set(map);
+                                            err.set(None);
+                                        })
+                                    }}
                                     exercise_overrides={(*exercise_overrides).clone()}
                                     on_save_and_finish={on_save_and_finish.clone()}
                                     on_delete_workout={on_delete_workout.clone()}

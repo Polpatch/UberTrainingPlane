@@ -143,6 +143,8 @@ pub struct Session {
     pub done: bool,
     pub active_exercise: usize,
     pub sets: Vec<CompletedSet>,
+    #[serde(default)]
+    pub exercise_overrides: HashMap<usize, Exercise>,
 }
 
 /// Lightweight entry stored in the `sessions_index` key.
@@ -243,6 +245,31 @@ fn sessions_key(workout_id: &str) -> String {
     format!("sessions__{}", workout_id)
 }
 
+const SESSIONS_PREFIX: &str = "sessions__";
+
+fn workout_id_from_sessions_key(key: &str) -> Option<String> {
+    key.strip_prefix(SESSIONS_PREFIX)
+        .filter(|id| !id.is_empty())
+        .map(ToOwned::to_owned)
+}
+
+fn local_session_workout_ids() -> HashSet<String> {
+    let Some(storage) = web_sys::window()
+        .and_then(|w| w.local_storage().ok().flatten())
+    else {
+        return HashSet::new();
+    };
+    let mut ids = HashSet::new();
+    for i in 0..storage.length().unwrap_or(0) {
+        if let Ok(Some(key)) = storage.key(i) {
+            if let Some(id) = workout_id_from_sessions_key(&key) {
+                ids.insert(id);
+            }
+        }
+    }
+    ids
+}
+
 pub fn load_sessions(workout_id: &str) -> Vec<Session> {
     LocalStorage::get(sessions_key(workout_id)).unwrap_or_default()
 }
@@ -280,12 +307,15 @@ pub fn total_day_sets(workout: &Workout, day_label: &str) -> u32 {
 
 /// Find the most recent non-terminated session for workout+day.
 /// Returns None if no open session exists (use `create_session_for_day` to create one).
-pub fn find_open_session(workout_id: &str, day_label: &str) -> Option<(String, Vec<CompletedSet>, usize)> {
+pub fn find_open_session(
+    workout_id: &str,
+    day_label: &str,
+) -> Option<(String, Vec<CompletedSet>, usize, HashMap<usize, Exercise>)> {
     load_sessions(workout_id)
         .into_iter()
         .filter(|s| s.day == day_label && !s.done)
         .max_by(|a, b| a.updated.cmp(&b.updated))
-        .map(|s| (s.id, s.sets, s.active_exercise))
+        .map(|s| (s.id, s.sets, s.active_exercise, s.exercise_overrides))
 }
 
 /// All non-terminated session metas for a specific workout+day (for disambiguation).
@@ -305,6 +335,7 @@ pub enum DaySession {
         session_id: String,
         sets: Vec<CompletedSet>,
         active_exercise: usize,
+        exercise_overrides: HashMap<usize, Exercise>,
     },
     /// Multiple open sessions — caller must show the resume/disambiguation dialog.
     Disambiguate(Vec<SessionMeta>),
@@ -319,10 +350,11 @@ pub fn resolve_day_session(workout_id: &str, day_label: &str) -> DaySession {
     match open.len() {
         0 => DaySession::Fresh,
         1 => match find_open_session(workout_id, day_label) {
-            Some((session_id, sets, active_exercise)) => DaySession::Resume {
+            Some((session_id, sets, active_exercise, exercise_overrides)) => DaySession::Resume {
                 session_id,
                 sets,
                 active_exercise,
+                exercise_overrides,
             },
             None => DaySession::Fresh,
         },
@@ -340,7 +372,7 @@ pub fn create_session_for_day(workout: &Workout, day_idx: usize) -> Result<Strin
         None => return Ok(new_id()),
     };
     // Safety net: don't create a second session if one already exists
-    if let Some((existing_id, _, _)) = find_open_session(&workout.id, &day.giorno) {
+    if let Some((existing_id, _, _, _)) = find_open_session(&workout.id, &day.giorno) {
         return Ok(existing_id);
     }
     let id  = new_id();
@@ -355,6 +387,7 @@ pub fn create_session_for_day(workout: &Workout, day_idx: usize) -> Result<Strin
         done: false,
         active_exercise: 0,
         sets: vec![],
+        exercise_overrides: HashMap::new(),
     };
     // Write the full session first, the index after: a partial failure leaves
     // at worst an unindexed session, never a ghost index entry.
@@ -396,11 +429,13 @@ pub fn update_session_sets(
     sets: &[CompletedSet],
     active_exercise: usize,
     total_expected: u32,
+    exercise_overrides: &HashMap<usize, Exercise>,
 ) -> Result<(), String> {
     let mut sessions = load_sessions(workout_id);
     if let Some(s) = sessions.iter_mut().find(|s| s.id == session_id) {
         s.sets = sets.to_vec();
         s.active_exercise = active_exercise;
+        s.exercise_overrides = exercise_overrides.clone();
         s.updated = now_iso();
         let pct = s.completion_pct(total_expected);
         let meta = SessionMeta {
@@ -636,6 +671,7 @@ pub fn register_set(
     weight_inputs: &HashMap<String, Vec<String>>,
     reps_inputs: &HashMap<String, Vec<String>>,
     current_session_id: &str,
+    exercise_overrides: &HashMap<usize, Exercise>,
 ) -> SetRegistration {
     let reps_str = reps.clone().unwrap_or_default();
     let list = upsert_completed_set(prior_sets, exercise, set_number, peso, reps, None);
@@ -662,9 +698,9 @@ pub fn register_set(
 
     if !session_id.is_empty() {
         let total = total_day_sets(workout, &day.giorno);
-        if let Err(e) =
-            update_session_sets(&workout.id, &session_id, &list, next_active_exercise, total)
-        {
+        if let Err(e) = update_session_sets(
+            &workout.id, &session_id, &list, next_active_exercise, total, exercise_overrides,
+        ) {
             storage_error.get_or_insert(e);
         }
     }
@@ -839,9 +875,12 @@ pub struct ExportData {
 pub fn export_all_data() -> String {
     let schedules      = load_schedules();
     let sessions_index = load_sessions_index();
-    // Collect sessions for every known workout_id
-    let ids: std::collections::HashSet<String> = sessions_index
+    // Collect sessions for every known workout_id. The canonical index is
+    // `sessions_index`, but export also scans raw `sessions__*` keys so a
+    // backup still contains data after a partial write left a session unindexed.
+    let mut ids: HashSet<String> = sessions_index
         .iter().map(|m| m.workout_id.clone()).collect();
+    ids.extend(local_session_workout_ids());
     let mut sessions = std::collections::HashMap::new();
     for id in ids {
         let s = load_sessions(&id);
@@ -861,10 +900,27 @@ pub fn export_all_data() -> String {
 pub fn import_all_data(json: &str) -> Result<(), String> {
     let data: ExportData = serde_json::from_str(json)
         .map_err(|e| format!("Formato non riconosciuto: {}", e))?;
+    let mut known_ids: HashSet<String> = load_schedules().into_iter().map(|w| w.id).collect();
+    known_ids.extend(load_sessions_index().into_iter().map(|m| m.workout_id));
+    known_ids.extend(local_session_workout_ids());
+
+    let mut imported_ids: HashSet<String> = data.schedules.iter().map(|w| w.id.clone()).collect();
+    imported_ids.extend(data.sessions_index.iter().map(|m| m.workout_id.clone()));
+    imported_ids.extend(data.sessions.keys().cloned());
+
     save_schedules(&data.schedules)?;
     save_sessions_index(&data.sessions_index)?;
     for (workout_id, s) in &data.sessions {
         save_sessions(workout_id, s)?;
+    }
+    // Now that the new backup is written, remove stale per-workout stores so
+    // import really behaves as an overwrite instead of merging old sessions.
+    known_ids.extend(imported_ids.iter().cloned());
+    for workout_id in known_ids {
+        if !data.sessions.contains_key(&workout_id) {
+            let key = sessions_key(&workout_id);
+            LocalStorage::delete(&key);
+        }
     }
     Ok(())
 }
@@ -1060,6 +1116,57 @@ mod tests {
         m
     }
 
+    #[test]
+    fn sessions_key_prefix_roundtrip_rejects_invalid_keys() {
+        assert_eq!(workout_id_from_sessions_key("sessions__w1").as_deref(), Some("w1"));
+        assert_eq!(workout_id_from_sessions_key("sessions__").as_deref(), None);
+        assert_eq!(workout_id_from_sessions_key("session__w1").as_deref(), None);
+    }
+
+    #[test]
+    fn session_deserializes_legacy_json_without_exercise_overrides() {
+        let json = r#"{
+            "id":"s1",
+            "workout_id":"w1",
+            "workout_nome":"Workout",
+            "day":"A",
+            "started":"2026-01-01T00:00:00.000Z",
+            "updated":"2026-01-01T00:00:00.000Z",
+            "done":false,
+            "active_exercise":0,
+            "sets":[]
+        }"#;
+        let session: Session = serde_json::from_str(json).expect("legacy session should deserialize");
+        assert!(session.exercise_overrides.is_empty());
+    }
+
+    #[test]
+    fn session_roundtrips_exercise_overrides() {
+        let mut overrides = HashMap::new();
+        overrides.insert(1, ex("alt_exercise", 3));
+        let session = Session {
+            id: "s1".into(),
+            workout_id: "w1".into(),
+            workout_nome: "Workout".into(),
+            day: "A".into(),
+            started: "2026-01-01T00:00:00.000Z".into(),
+            updated: "2026-01-01T00:00:00.000Z".into(),
+            done: false,
+            active_exercise: 1,
+            sets: vec![done_set("alt_exercise", 1)],
+            exercise_overrides: overrides,
+        };
+
+        let encoded = serde_json::to_string(&session).expect("session should serialize");
+        let decoded: Session = serde_json::from_str(&encoded).expect("session should deserialize");
+
+        assert_eq!(
+            decoded.exercise_overrides.get(&1).map(|e| e.id.as_str()),
+            Some("alt_exercise")
+        );
+        assert_eq!(decoded.sets[0].exercise_id, "alt_exercise");
+    }
+
     // ── parse_reps_range ─────────────────────────────────────────────────────
 
     #[test]
@@ -1241,6 +1348,7 @@ mod tests {
             day: "A".into(), started: "t".into(), updated: "t".into(),
             done: false, active_exercise: 0,
             sets: vec![done_set("e1", 1), done_set("e1", 2)],
+            exercise_overrides: HashMap::new(),
         };
         assert_eq!(s.completion_pct(0), 0.0);
         assert_eq!(s.completion_pct(4), 50.0);
