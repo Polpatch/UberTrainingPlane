@@ -37,6 +37,57 @@ pub struct WorkoutViewProps {
     pub righthanded:            bool,
 }
 
+#[derive(Properties)]
+struct ExerciseListProps {
+    pub day_index: usize,
+    pub exercises: Vec<Exercise>,
+    pub selected_exercise: usize,
+    pub saved_sets: Vec<CompletedSet>,
+    pub on_select_exercise: Callback<usize>,
+    pub on_long_press_exercise: Callback<usize>,
+    pub on_revert_exercise: Callback<usize>,
+    pub exercise_overrides: HashMap<usize, Exercise>,
+}
+
+impl PartialEq for ExerciseListProps {
+    fn eq(&self, other: &Self) -> bool {
+        self.day_index == other.day_index
+            && self.exercises == other.exercises
+            && self.selected_exercise == other.selected_exercise
+            && self.saved_sets == other.saved_sets
+            && self.exercise_overrides == other.exercise_overrides
+    }
+}
+
+#[function_component(ExerciseList)]
+fn exercise_list(props: &ExerciseListProps) -> Html {
+    html! {
+        <section class="exercise-list" key={props.day_index}>
+            { for props.exercises.iter().enumerate().map(|(idx, exercise)| {
+                let on_select_exercise     = props.on_select_exercise.clone();
+                let on_long_press_exercise = props.on_long_press_exercise.clone();
+                let on_revert_exercise     = props.on_revert_exercise.clone();
+                let is_overridden          = props.exercise_overrides.contains_key(&idx);
+                let eff_exercise = props.exercise_overrides
+                    .get(&idx)
+                    .cloned()
+                    .unwrap_or_else(|| exercise.clone());
+                html! {
+                    <ExerciseCard
+                        exercise={eff_exercise}
+                        saved_sets={props.saved_sets.clone()}
+                        is_selected={props.selected_exercise == idx}
+                        is_overridden={is_overridden}
+                        on_select={Callback::from(move |_: ()| on_select_exercise.emit(idx))}
+                        on_long_press={Callback::from(move |_: ()| on_long_press_exercise.emit(idx))}
+                        on_revert={Callback::from(move |_: ()| on_revert_exercise.emit(idx))}
+                    />
+                }
+            }) }
+        </section>
+    }
+}
+
 #[function_component(WorkoutView)]
 pub fn workout_view(props: &WorkoutViewProps) -> Html {
     let workout = &props.workout;
@@ -78,7 +129,7 @@ pub fn workout_view(props: &WorkoutViewProps) -> Html {
             />
 
             { if let Some(day) = day {
-                let selected = props.selected_exercise;
+                let exercises = day.esercizi.clone();
                 html! {
                     <>
                         <div class="day-header">
@@ -100,30 +151,16 @@ pub fn workout_view(props: &WorkoutViewProps) -> Html {
                                 }
                             </p>
                         </div>
-                        <section class="exercise-list" key={props.day_index}>
-                            { for day.esercizi.iter().enumerate().map(|(idx, exercise)| {
-                                let on_select_exercise     = props.on_select_exercise.clone();
-                                let on_long_press_exercise = props.on_long_press_exercise.clone();
-                                let on_revert_exercise     = props.on_revert_exercise.clone();
-                                let is_overridden          = props.exercise_overrides.contains_key(&idx);
-                                // Use the overridden exercise for display if present.
-                                let eff_exercise = props.exercise_overrides
-                                    .get(&idx)
-                                    .cloned()
-                                    .unwrap_or_else(|| exercise.clone());
-                                html! {
-                                    <ExerciseCard
-                                        exercise={eff_exercise}
-                                        saved_sets={props.saved_sets.clone()}
-                                        is_selected={selected == idx}
-                                        is_overridden={is_overridden}
-                                        on_select={Callback::from(move |_: ()| on_select_exercise.emit(idx))}
-                                        on_long_press={Callback::from(move |_: ()| on_long_press_exercise.emit(idx))}
-                                        on_revert={Callback::from(move |_: ()| on_revert_exercise.emit(idx))}
-                                    />
-                                }
-                            }) }
-                        </section>
+                        <ExerciseList
+                            day_index={props.day_index}
+                            exercises={exercises}
+                            selected_exercise={props.selected_exercise}
+                            saved_sets={props.saved_sets.clone()}
+                            on_select_exercise={props.on_select_exercise.clone()}
+                            on_long_press_exercise={props.on_long_press_exercise.clone()}
+                            on_revert_exercise={props.on_revert_exercise.clone()}
+                            exercise_overrides={props.exercise_overrides.clone()}
+                        />
                         <div class={if props.righthanded { "workout-footer" } else { "workout-footer workout-footer--lh" }}>
                             if !props.righthanded {
                                 // Left-handed: Salva a sinistra

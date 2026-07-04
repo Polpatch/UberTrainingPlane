@@ -1,7 +1,8 @@
 use gloo_storage::{LocalStorage, Storage};
-use js_sys::Date as JsDate;
+use js_sys::{Date as JsDate, Reflect};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
+use wasm_bindgen::{JsCast, JsValue};
 
 // ── Core workout data ────────────────────────────────────────────────────────
 
@@ -167,7 +168,22 @@ pub fn now_iso() -> String {
 }
 
 fn new_id() -> String {
-    (JsDate::now() as u64).to_string()
+    let crypto_key = JsValue::from_str("crypto");
+    let random_uuid_key = JsValue::from_str("randomUUID");
+    if let Ok(crypto) = Reflect::get(&js_sys::global(), &crypto_key) {
+        if let Ok(random_uuid) = Reflect::get(&crypto, &random_uuid_key) {
+            if let Some(f) = random_uuid.dyn_ref::<js_sys::Function>() {
+                if let Ok(id) = f.call0(&crypto) {
+                    if let Some(id) = id.as_string() {
+                        return id;
+                    }
+                }
+            }
+        }
+    }
+
+    let random = (js_sys::Math::random() * 1_000_000_000_000.0) as u64;
+    format!("{}-{}", JsDate::now() as u64, random)
 }
 
 // ── Storage write helper ─────────────────────────────────────────────────────

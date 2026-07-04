@@ -441,7 +441,7 @@ function showResults(setsReplaced, schedeReplaced, unknown, log) {
   // Warnings
   if (unknown.size > 0) {
     warnItems.innerHTML = [...unknown].map(id =>
-      `<div class="warn-item">• ${id}</div>`
+      `<div class="warn-item">• ${escHtml(id)}</div>`
     ).join('');
     warnBlock.classList.remove('hidden');
   }
