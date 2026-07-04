@@ -417,6 +417,44 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
     let sheet_class = if *expanded { "bottom-sheet bottom-sheet--expanded" }
                       else         { "bottom-sheet bottom-sheet--minimized" };
 
+    let on_handle_keydown = {
+        let exp = expanded.clone();
+        Callback::from(move |e: KeyboardEvent| {
+            let key = e.key();
+            if key == "Enter" || key == " " {
+                e.prevent_default();
+                exp.set(!*exp);
+            }
+        })
+    };
+
+    let close_video = {
+        let vo = video_open.clone();
+        Callback::from(move |_: MouseEvent| vo.set(false))
+    };
+    let close_photo = {
+        let po = photo_open.clone();
+        Callback::from(move |_: MouseEvent| po.set(false))
+    };
+    let close_video_on_escape = {
+        let vo = video_open.clone();
+        Callback::from(move |e: KeyboardEvent| {
+            if e.key() == "Escape" {
+                e.prevent_default();
+                vo.set(false);
+            }
+        })
+    };
+    let close_photo_on_escape = {
+        let po = photo_open.clone();
+        Callback::from(move |e: KeyboardEvent| {
+            if e.key() == "Escape" {
+                e.prevent_default();
+                po.set(false);
+            }
+        })
+    };
+
     html! {
         <>
         <div class={sheet_class}>
@@ -428,6 +466,15 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
             }
             // ── Handle area (always visible) ──────────────────────────────
             <div class="sheet-handle-area"
+                 role="button"
+                 tabindex="0"
+                 aria-expanded={expanded.to_string()}
+                 aria-label={format!(
+                     "{} dettagli esercizio {}",
+                     if *expanded { "Comprimi" } else { "Espandi" },
+                     exercise.display_name(),
+                 )}
+                 onkeydown={on_handle_keydown}
                  onpointerdown={{
                      let dsy  = drag_start_y.clone();
                      let dmov = drag_moved.clone();
@@ -782,11 +829,23 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
         if *video_open {
             if let Some(embed_url) = video_embed {
                 <div class="video-overlay"
-                    onclick={{ let vo = video_open.clone(); Callback::from(move |_| vo.set(false)) }}>
+                    tabindex="0"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Video esercizio"
+                    onclick={close_video.clone()}
+                    onkeydown={close_video_on_escape}>
                     <div class="video-modal"
                         onclick={Callback::from(|e: MouseEvent| e.stop_propagation())}>
+                        <button class="menu-close-btn video-close-btn"
+                            aria-label="Chiudi video esercizio"
+                            autofocus={true}
+                            onclick={close_video.clone()}>
+                            {"✕"}
+                        </button>
                         <div class="video-iframe-wrapper">
                             <iframe
+                                title={format!("Video esercizio {}", exercise.display_name())}
                                 src={embed_url}
                                 allow="autoplay; encrypted-media; fullscreen"
                                 allowfullscreen={true}
@@ -802,13 +861,25 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
         if *photo_open {
             if let Some(src) = current_photo_url {
                 <div class="video-overlay"
-                    onclick={{ let po = photo_open.clone(); Callback::from(move |_| po.set(false)) }}>
+                    tabindex="0"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Foto dimostrative esercizio"
+                    onclick={close_photo.clone()}
+                    onkeydown={close_photo_on_escape}>
                     <div class="video-modal photo-modal"
                         onclick={Callback::from(|e: MouseEvent| e.stop_propagation())}>
+                        <button class="menu-close-btn video-close-btn"
+                            aria-label="Chiudi foto dimostrative"
+                            autofocus={true}
+                            onclick={close_photo.clone()}>
+                            {"✕"}
+                        </button>
                         <div class="photo-frame">
-                            <img src={src} alt="Dimostrazione esercizio" class="photo-img" />
+                            <img src={src} alt={format!("Dimostrazione esercizio {}", exercise.display_name())} class="photo-img" />
                             if n_photos > 1 {
                                 <button class="photo-nav photo-nav--prev" title="Precedente"
+                                    aria-label="Foto precedente"
                                     onclick={{
                                         let pi = photo_idx.clone();
                                         Callback::from(move |_: MouseEvent| {
@@ -816,6 +887,7 @@ pub fn bottom_sheet(props: &BottomSheetProps) -> Html {
                                         })
                                     }}>{"‹"}</button>
                                 <button class="photo-nav photo-nav--next" title="Successiva"
+                                    aria-label="Foto successiva"
                                     onclick={{
                                         let pi = photo_idx.clone();
                                         Callback::from(move |_: MouseEvent| {

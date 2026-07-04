@@ -1532,9 +1532,32 @@ fn app() -> Html {
     // ── Render ───────────────────────────────────────────────────────────────
     let open_menu  = { let m = menu_open.clone(); Callback::from(move |_| m.set(true))  };
     let close_menu = { let m = menu_open.clone(); Callback::from(move |_| m.set(false)) };
+    let on_app_keydown = {
+        let menu_open       = menu_open.clone();
+        let confirm_delete  = confirm_delete.clone();
+        let show_completion = show_completion.clone();
+        let history_open    = history_open.clone();
+        let picker_open     = picker_open.clone();
+        Callback::from(move |e: KeyboardEvent| {
+            if e.key() == "Escape" {
+                e.prevent_default();
+                if *picker_open {
+                    picker_open.set(false);
+                } else if *confirm_delete {
+                    confirm_delete.set(false);
+                } else if *history_open {
+                    history_open.set(false);
+                } else if *show_completion {
+                    show_completion.set(false);
+                } else if *menu_open {
+                    menu_open.set(false);
+                }
+            }
+        })
+    };
 
     html! {
-        <div class="app-shell">
+        <div class="app-shell" onkeydown={on_app_keydown}>
             <header class="app-header">
                 <button class="burger-btn" onclick={open_menu} title="Menu">
                     <span></span><span></span><span></span>
@@ -1555,8 +1578,12 @@ fn app() -> Html {
                             // ── Resume-session dialog (rendered inside app-main) ──
                             html! {
                                 <div class="resume-dialog-wrap">
-                                    <div class="resume-dialog">
-                                        <h2>{"Sessioni in corso"}</h2>
+                                    <div class="resume-dialog"
+                                        role="dialog"
+                                        aria-modal="true"
+                                        aria-labelledby="resume-dialog-title"
+                                        tabindex="-1">
+                                        <h2 id="resume-dialog-title">{"Sessioni in corso"}</h2>
                                         <p class="resume-dialog-sub">
                                             { format!("Hai {} sessioni non terminate per «{}». Scegli cosa fare:",
                                               resume_candidates.len(), workout_data.nome) }
@@ -1701,13 +1728,27 @@ fn app() -> Html {
             // ── Confirm delete dialog ────────────────────────────────────────
             if *confirm_delete {
                 <div class="confirm-overlay"
-                     onclick={{ let cd = confirm_delete.clone(); Callback::from(move |_: MouseEvent| cd.set(false)) }}>
+                     tabindex="0"
+                     onclick={{ let cd = confirm_delete.clone(); Callback::from(move |_: MouseEvent| cd.set(false)) }}
+                     onkeydown={{
+                         let cd = confirm_delete.clone();
+                         Callback::from(move |e: KeyboardEvent| {
+                             if e.key() == "Escape" {
+                                 e.prevent_default();
+                                 cd.set(false);
+                             }
+                         })
+                     }}>
                     <div class="confirm-modal"
+                         role="dialog"
+                         aria-modal="true"
+                         aria-labelledby="confirm-delete-title"
+                         tabindex="-1"
                          onclick={Callback::from(|e: MouseEvent| e.stop_propagation())}>
-                        <p class="confirm-title">{"Cancella allenamento?"}</p>
+                        <p id="confirm-delete-title" class="confirm-title">{"Cancella allenamento?"}</p>
                         <p class="confirm-body">{"La sessione in corso verrà eliminata. Le serie già registrate non verranno salvate."}</p>
                         <div class="confirm-actions">
-                            <button class="secondary-button" onclick={{
+                            <button class="secondary-button" autofocus={true} onclick={{
                                 let cd = confirm_delete.clone();
                                 Callback::from(move |_: MouseEvent| cd.set(false))
                             }}>{"Annulla"}</button>
@@ -1721,12 +1762,27 @@ fn app() -> Html {
 
             // ── Burger menu modal ────────────────────────────────────────────
             if *menu_open {
-                <div class="menu-overlay" onclick={close_menu.clone()}>
+                <div class="menu-overlay"
+                    tabindex="0"
+                    onclick={close_menu.clone()}
+                    onkeydown={{
+                        let m = menu_open.clone();
+                        Callback::from(move |e: KeyboardEvent| {
+                            if e.key() == "Escape" {
+                                e.prevent_default();
+                                m.set(false);
+                            }
+                        })
+                    }}>
                     <div class="menu-modal"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="menu-modal-title"
+                        tabindex="-1"
                         onclick={Callback::from(|e: MouseEvent| e.stop_propagation())}>
                         <div class="menu-modal-header">
-                            <span class="menu-modal-title">{"Menu"}</span>
-                            <button class="menu-close-btn" onclick={close_menu}>{ icon_x() }</button>
+                            <span id="menu-modal-title" class="menu-modal-title">{"Menu"}</span>
+                            <button class="menu-close-btn" aria-label="Chiudi menu" autofocus={true} onclick={close_menu}>{ icon_x() }</button>
                         </div>
                         if workout.is_some() {
                             <>
@@ -1835,10 +1891,24 @@ fn app() -> Html {
             // ── Workout completion modal ──────────────────────────────────────
             if *show_completion {
                 <div class="completion-overlay"
-                    onclick={on_close_completion.clone()}>
+                    tabindex="0"
+                    onclick={on_close_completion.clone()}
+                    onkeydown={{
+                        let sc = show_completion.clone();
+                        Callback::from(move |e: KeyboardEvent| {
+                            if e.key() == "Escape" {
+                                e.prevent_default();
+                                sc.set(false);
+                            }
+                        })
+                    }}>
                     <div class="completion-modal"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="completion-title"
+                        tabindex="-1"
                         onclick={Callback::from(|e: MouseEvent| e.stop_propagation())}>
-                        <div class="completion-modal-title">{"Allenamento completato!"}</div>
+                        <div id="completion-title" class="completion-modal-title">{"Allenamento completato!"}</div>
                         <div class="completion-stats">
                             <div class="completion-stat">
                                 <span class="completion-stat-value">{ session_done.to_string() }</span>
@@ -1857,6 +1927,7 @@ fn app() -> Html {
                         </div>
                         <div class="completion-modal-actions">
                             <button class="primary-button completion-save-btn"
+                                autofocus={true}
                                 onclick={{
                                     let close = on_close_completion.clone();
                                     let save  = on_save_and_finish.clone();
@@ -1877,12 +1948,29 @@ fn app() -> Html {
 
             // ── History sessions modal ────────────────────────────────────────
             if *history_open {
-                <div class="menu-overlay" onclick={on_close_history.clone()}>
+                <div class="menu-overlay"
+                    tabindex="0"
+                    onclick={on_close_history.clone()}
+                    onkeydown={{
+                        let h = history_open.clone();
+                        Callback::from(move |e: KeyboardEvent| {
+                            if e.key() == "Escape" {
+                                e.prevent_default();
+                                h.set(false);
+                            }
+                        })
+                    }}>
                     <div class="menu-modal"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="history-modal-title"
+                        tabindex="-1"
                         onclick={Callback::from(|e: MouseEvent| e.stop_propagation())}>
                         <div class="menu-modal-header">
-                            <span class="menu-modal-title">{"Storico sessioni"}</span>
+                            <span id="history-modal-title" class="menu-modal-title">{"Storico sessioni"}</span>
                             <button class="menu-close-btn"
+                                aria-label="Chiudi storico sessioni"
+                                autofocus={true}
                                 onclick={on_close_history}>{ icon_x() }</button>
                         </div>
                         { if history_sessions.is_empty() {

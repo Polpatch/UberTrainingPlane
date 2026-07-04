@@ -110,39 +110,62 @@ pub fn calendar(props: &CalendarProps) -> Html {
         let pp = popup.clone();
         let on_sel = props.on_select_session.clone();
         let ds = day_sess.clone();
-
         let has_sessions = !ds.is_empty();
-        let onclick = if has_sessions {
+
+        let status = match (has_open, has_done) {
+            (true, true) => "sessioni in corso e completate",
+            (true, false) => "sessione in corso",
+            (false, true) => "sessione completata",
+            (false, false) => "nessuna sessione",
+        };
+        let label = format!(
+            "{} {} {}: {}",
+            day,
+            month_name(month),
+            year,
+            status,
+        );
+
+        if has_sessions {
             let ds2 = ds.clone();
-            Some(Callback::from(move |_: MouseEvent| {
+            let onclick = Callback::from(move |_: MouseEvent| {
                 match ds2.len() {
                     1 => { on_sel.emit(ds2[0].clone()); }
                     _ => { pp.set(Some(ds2.clone())); }
                 }
-            }))
-        } else {
-            None
-        };
-
-        cells.push(html! {
-            <div
-                class={classes!(
-                    "cal-cell",
-                    if is_today    { Some("cal-cell--today") }  else { None },
-                    if has_any     { Some("cal-cell--active") } else { None },
-                    if !has_sessions { Some("cal-cell--empty") } else { None },
-                )}
-                onclick={onclick}
-            >
-                <span class="cal-day-num">{ day }</span>
-                if has_any {
-                    <div class="cal-dots">
+            });
+            cells.push(html! {
+                <button
+                    type="button"
+                    class={classes!(
+                        "cal-cell",
+                        if is_today    { Some("cal-cell--today") }  else { None },
+                        if has_any     { Some("cal-cell--active") } else { None },
+                    )}
+                    aria-label={label}
+                    onclick={onclick}
+                >
+                    <span class="cal-day-num">{ day }</span>
+                    <div class="cal-dots" aria-hidden="true">
                         if has_open { <span class="cal-dot cal-dot--open"></span> }
                         if has_done { <span class="cal-dot cal-dot--done"></span> }
                     </div>
-                }
-            </div>
-        });
+                </button>
+            });
+        } else {
+            cells.push(html! {
+                <div
+                    class={classes!(
+                        "cal-cell",
+                        if is_today { Some("cal-cell--today") } else { None },
+                        Some("cal-cell--empty"),
+                    )}
+                    aria-label={label}
+                >
+                    <span class="cal-day-num">{ day }</span>
+                </div>
+            });
+        }
     }
 
     // ── CTA button ────────────────────────────────────────────────────────────
@@ -187,12 +210,28 @@ pub fn calendar(props: &CalendarProps) -> Html {
         let on_sel = props.on_select_session.clone();
         html! {
             <div class="cal-popup-overlay"
-                onclick={{ let p = pp.clone(); Callback::from(move |_: MouseEvent| p.set(None)) }}>
+                tabindex="0"
+                onclick={{ let p = pp.clone(); Callback::from(move |_: MouseEvent| p.set(None)) }}
+                onkeydown={{
+                    let p = pp.clone();
+                    Callback::from(move |e: KeyboardEvent| {
+                        if e.key() == "Escape" {
+                            e.prevent_default();
+                            p.set(None);
+                        }
+                    })
+                }}>
                 <div class="cal-popup"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="cal-popup-title"
+                    tabindex="-1"
                     onclick={Callback::from(|e: MouseEvent| e.stop_propagation())}>
                     <div class="cal-popup-header">
-                        <span class="cal-popup-title">{"Sessioni del giorno"}</span>
+                        <span id="cal-popup-title" class="cal-popup-title">{"Sessioni del giorno"}</span>
                         <button class="cal-popup-close"
+                            autofocus={true}
+                            aria-label="Chiudi sessioni del giorno"
                             onclick={{ let p = pp.clone(); Callback::from(move |_: MouseEvent| p.set(None)) }}>
                             { icon_x() }
                         </button>

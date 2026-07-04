@@ -104,16 +104,31 @@ pub fn exercise_picker(props: &ExercisePickerProps) -> Html {
 
     html! {
         <div class="picker-overlay"
+             tabindex="0"
              onclick={{ let cb = props.on_cancel.clone();
-                        Callback::from(move |_: MouseEvent| cb.emit(())) }}>
+                        Callback::from(move |_: MouseEvent| cb.emit(())) }}
+             onkeydown={{
+                 let cb = props.on_cancel.clone();
+                 Callback::from(move |e: KeyboardEvent| {
+                     if e.key() == "Escape" {
+                         e.prevent_default();
+                         cb.emit(());
+                     }
+                 })
+             }}>
 
             <div class="picker-modal"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="exercise-picker-title"
+                 tabindex="-1"
                  onclick={Callback::from(|e: MouseEvent| e.stop_propagation())}>
 
                 // ── Header ───────────────────────────────────────────────
                 <div class="picker-header">
-                    <span class="picker-title">{"Esercizio alternativo"}</span>
+                    <span id="exercise-picker-title" class="picker-title">{"Esercizio alternativo"}</span>
                     <button class="menu-close-btn"
+                        aria-label="Chiudi selezione esercizio"
                         onclick={{ let cb = props.on_cancel.clone();
                                    Callback::from(move |_: MouseEvent| cb.emit(())) }}>
                         {"✕"}
@@ -125,6 +140,7 @@ pub fn exercise_picker(props: &ExercisePickerProps) -> Html {
                     class="picker-search"
                     type="text"
                     placeholder="Cerca per nome (IT o EN)…"
+                    autofocus={true}
                     value={(*query).clone()}
                     oninput={{
                         let q   = query.clone();

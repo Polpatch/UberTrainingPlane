@@ -94,11 +94,26 @@ pub fn exercise_card(props: &ExerciseCardProps) -> Html {
         let on_select = props.on_select.clone();
         Callback::from(move |_: MouseEvent| on_select.emit(()))
     };
+    let onkeydown_card = {
+        let on_select = props.on_select.clone();
+        Callback::from(move |e: KeyboardEvent| {
+            let key = e.key();
+            if key == "Enter" || key == " " {
+                e.prevent_default();
+                on_select.emit(());
+            }
+        })
+    };
+
 
     html! {
         <article
             class={classes!("exercise-card", if props.is_selected { Some("selected") } else { None })}
+            role="button"
+            tabindex="0"
+            aria-selected={props.is_selected.to_string()}
             onclick={onclick_card}
+            onkeydown={onkeydown_card}
         >
             <div class="exercise-head">
                 <div style="flex:1;min-width:0;">
@@ -108,7 +123,7 @@ pub fn exercise_card(props: &ExerciseCardProps) -> Html {
                             onpointermove={on_name_pointermove}
                             onpointerup={on_name_pointerup}
                             onpointercancel={on_name_pointercancel}
-                            style="user-select:none;-webkit-user-select:none;touch-action:none;"
+                            style="user-select:none;-webkit-user-select:none;touch-action:pan-y;"
                         >{ exercise.display_name() }</h3>
                         if props.is_overridden {
                             <button class="revert-btn"
@@ -119,6 +134,7 @@ pub fn exercise_card(props: &ExerciseCardProps) -> Html {
                                         cb.emit(());
                                     })
                                 }}
+                                onkeydown={Callback::from(|e: KeyboardEvent| e.stop_propagation())}
                                 title="Ripristina esercizio originale">
                                 { icon_revert() }
                             </button>
